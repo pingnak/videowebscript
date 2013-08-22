@@ -4,44 +4,61 @@
 # Script to generate web page tree from video collection
 #
 
+# Default (no parameter) search path for video files
+export CONTENT_ROOT="/Volumes/video/Classes"
+
+# Override CONTENT_ROOT if we pass in a directory/folder 
+if test -d "$1" ; then 
+	CONTENT_ROOT="$1"
+else
+    echo "Use default: $CONTENT_ROOT"
+fi
+
+
+# Name of folder we bury our page content in
+export PAGES_NAME="webify_data"
+
+# Name of our global CSS file
+export CSS_NAME="webified.css"
+export VIDEO_PLAYER="videoplayer.html"
+
+# Get root of script, where we assume the template folder will be
+export SCRIPT_ROOT=`dirname "$0"`
+export SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates"
+
+# Root to put all the html stuff in, relative to ROOT
+export HTMLROOT=.
+
+# Name of root index file (a flattened version of all movies)
+export WEBIFY_INDEX="$CONTENT_ROOT/index.html"
+
+# Name of folder to stuff all the other things, besides the index
+export WEBIFY_PAGES="$CONTENT_ROOT/$PAGES_NAME"
+
+# mp4, webm, ogg 
+#Exclude the web content, naturally -not -path "./directory/*"
+export FIND_VIDEOS="-name *.mp4 -o -name *.ogg -o -name *.webm -not -path \"$WEBIFY_PAGES\""
+
+# slurp in constantly pasted content, to speed things along
+export LINE_HTML=`cat $SCRIPT_TEMPLATES/index_file.html`
+export FOLDER_HTML=`cat $SCRIPT_TEMPLATES/index_folder.html`
+
+# Make sure we have the output path for all the bits and pieces
+mkdir -p "$WEBIFY_PAGES"
+
+# Copy the CSS file
+cp "$SCRIPT_TEMPLATES/$CSS_NAME" "$WEBIFY_PAGES"
+cp "$SCRIPT_TEMPLATES/Folder.svg" "$WEBIFY_PAGES"
+
+# Copy the video player and tell it about the CSS file
+sed -e "s@WEBIFIED_CSS@./$CSS_NAME@g" \
+    $SCRIPT_ROOT/templates/$VIDEO_PLAYER > "$WEBIFY_PAGES/$VIDEO_PLAYER"
+
 #
-# TODO: Hierarchically generate TOC to match directory structure.
+# Now that the globals and resources are set up, call the folder webifier
 #
 
-ROOT=../Classes
-INDEX="./index.html"
-PAGES="./pages"
+$SCRIPT_ROOT/templates/webify_folder.sh $CONTENT_ROOT
 
-#
-# Function to generate index and web page for video 
-#
-function export_html {
-    echo $1
-    # Chop the path up
-    movie_path=$1
-    basepath=`dirname "$movie_path"`
-    filename=${movie_path##*/}
-    filename_noext=${filename%.*}
-    filename_webpage=$PAGES/$filename_noext.html
-    filename_jpeg=$basepath/$filename_noext.jpg
-    
-    # Generate a thumbnail (if it doesn't already exist)
-    # https://code.google.com/p/ffmpegthumbnailer/
-    if test ! -f "$filename_jpeg"; then
-        echo ffmpegthumbnailer "$movie_path" 
-        ffmpegthumbnailer -f -t18 -s256 -i "$movie_path" -o "$filename_jpeg"
-    fi
-        
-    # Generate the index.html entry
-    line_text='        <div><a href="PAGE_PATH"><img style="vertical-align:middle" src="MOVIE_IMAGE" /><font color="#00ffff" size="24">MOVIE_TITLE</font></a></div>'
-    echo $line_text | sed -e "s@PAGE_PATH@$filename_webpage@g" -e "s@MOVIE_IMAGE@$basepath/$filename_noext.jpg@g" -e "s@MOVIE_TITLE@$filename_noext@g" >> "$INDEX"
-    
-    # Generate the web page
-    sed -e "s@MOVIE_PATH@../$movie_path@g" -e "s@MOVIE_TITLE@$filename_noext@g" -e "s@MOVIE_TYPE@video/mp4@g" ./templates/single.html > "$filename_webpage"
-}
-
-# Generate tree
-mkdir -p "$PAGES"
-cat ./templates/index_prolog.html > "$INDEX"
-find -s $ROOT -name *.mp4 | while read i ; do export_html "$i" ; done
-cat ./templates/index_epilog.html >> "$INDEX"
+# Note: We've littered this bash session with all of these variables, to call 
+# webify_folder.sh.  So now you can call webify_folder.sh, too. 
