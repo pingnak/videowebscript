@@ -1,11 +1,41 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/loose.dtd">
-<html>
-    <!-- HTML5 movie container -->
-	<head>
-		<title>Available Movies</title>
-		<link rel="stylesheet" type="text/css" href="WEBIFIED_CSS">
+		</style>
+		<title>Available Titles</title>
+		<script type="text/javascript">
+		    /* Load the video when the page finishes loading */
+		    function updatevideo(video_path)
+		    {
+		        console.log("PLAY:",video_path);
+		        if( typeof(video_path) == 'undefined' )
+		        {
+		            return;
+		            //var playlist = document.getElementById("playlist");
+		            //var videos = playlist.getElementsByClassName("index_entry");
+		        }
+                var video_type='video/'+video_path.split('.').pop();
+                var video = document.getElementById("videoplayer");
+                video.setAttribute("src",video_path);
+                video.setAttribute("type".video_type);
+                video.load();
+                video.play();
+                // ToDo:
+                // Initially hide/collapse video window, or stick something on it?
+                // Continue playing in remainder of 'playlist', after current ends? 
+                // Seek-to/play-to function for episodic content?
+                // http://www.w3.org/2010/05/video/mediaevents.html
+ 		    }
+		</script>
 	</head>
-	<body>
-	<div class="title">TITLE_TEXT</div>
+	<body onload="updatevideo();" >
+    <video id="videoplayer" width="100%" controls >
+        Get a <i>modern</i> browser that doesn't SUCK!<br/>
+        <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
+        <a href="https://www.apple.com/safari/">Safari</a><br/>
+        <a href="https://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
+        <a href="https://www.opera.com/">Opera</a><br/>
+        <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
+        <a href="https://www.w3schools.com/html/html5_video.asp">More info...</a>
+    </video>
 	<br/>
-    <div>
+	<div class="title">Titles Available In TITLE_TEXT</div>
+	<br/>
+	<div id="playlist">
