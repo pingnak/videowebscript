@@ -100,7 +100,7 @@ cat "$SCRIPT_TEMPLATES/index_main_prolog.html" >> "$main_index"
 # Find all video files, then get the paths, then sort to unique, to build a 
 # list of folers to process.
 echo
-echo On network, initial find may take a little time...
+echo On LAN, initial find may take a little time...
 find -s "$CONTENT_ROOT" -name '*.mp4' -o -name '*.ogg' -o -name '*.webm' | while read i ; do dirname "$i" ; done | sort -u | while read folder_path ; 
 do 
     echo "$folder_path"

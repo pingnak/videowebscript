@@ -1,31 +1,86 @@
 		</style>
-		<title>Available Titles</title>
+		<title>TITLE_TEXT</title>
 		<script type="text/javascript">
+		    var video;            // Video player reference
+		    var now_playing;      // Currently playing video
+		    var videos;           // Our play list
+		    var title;            // Title text reference
+		    var original_title;   // Original title, before play list monkeyed with it
+		    function initvideo()
+		    {
+                video = document.getElementById("videoplayer");
+                title = document.getElementById("title");
+                original_title = title.innerHTML;
+                var playlist = document.getElementById("playlist");
+                videos = playlist.getElementsByClassName("index_entry");
+                video.style.display = 'none';
+		    }
 		    /* Load the video when the page finishes loading */
-		    function updatevideo(video_path)
+		    function playvideo(video_path)
 		    {
 		        console.log("PLAY:",video_path);
-		        if( typeof(video_path) == 'undefined' )
+		        now_playing = video_path;
+		        if( 'undefined' == typeof(now_playing) )
 		        {
+                    title.innerHTML = original_title;
+                    video.style.display = 'none';
 		            return;
-		            //var playlist = document.getElementById("playlist");
-		            //var videos = playlist.getElementsByClassName("index_entry");
 		        }
-                var video_type='video/'+video_path.split('.').pop();
-                var video = document.getElementById("videoplayer");
-                video.setAttribute("src",video_path);
+                var video_type='video/'+now_playing.split('.').pop();
+                video.setAttribute("src",now_playing);
                 video.setAttribute("type".video_type);
                 video.load();
                 video.play();
+                video.addEventListener( "ended", playNext );
+                // Show title
+                title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
+                // Show video
+                window.scrollTo(0,0);
+                video.style.display = '';
                 // ToDo:
                 // Initially hide/collapse video window, or stick something on it?
-                // Continue playing in remainder of 'playlist', after current ends? 
                 // Seek-to/play-to function for episodic content?
                 // http://www.w3.org/2010/05/video/mediaevents.html
  		    }
+ 		    function playFirst()
+ 		    {   // Play the first item on the list
+                var item = playlist[0];
+                playvideo(item.href);
+ 		    }
+ 		    function playNext(first)
+ 		    {   // Seek list of links for current video
+                var item;
+                var link;
+                var videos = playlist.getElementsByClassName("index_entry");
+                for( i = 0; i < videos.length; ++i )
+                {   
+                    item = videos[i];
+                    link = item.getElementsByTagName("a")[0];
+                    // Link actually contains: "javascript: playvideo('VIDEO_PATH');"
+                    // Split by quote and pick out the URI from it.
+                    href = link.href.split("'")[1];
+                    console.log( href );
+                    if( href == now_playing )
+                    {   // Found the current video; look at next.
+                        item = videos[i+1];
+                        if( 'undefined' == typeof(item) )
+                        {
+                            console.log("End of videos");
+                            playvideo();
+                        }
+                        else
+                        {
+                            link = item.getElementsByTagName("a")[0];
+                            href = link.href.split("'")[1];
+                            playvideo(href);
+                        }
+                        break;
+                    }
+                }
+ 		    }
 		</script>
 	</head>
-	<body onload="updatevideo();" >
+	<body onload="initvideo();" >
     <video id="videoplayer" width="100%" controls >
         Get a <i>modern</i> browser that doesn't SUCK!<br/>
         <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
@@ -36,6 +91,6 @@
         <a href="https://www.w3schools.com/html/html5_video.asp">More info...</a>
     </video>
 	<br/>
-	<div class="title">Titles Available In TITLE_TEXT</div>
+	<div id="title" class="title">Titles Available In TITLE_TEXT</div>
 	<br/>
 	<div id="playlist">
