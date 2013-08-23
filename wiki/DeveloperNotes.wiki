@@ -1,0 +1,45 @@
+A script to generate an interface for a collection of videos.
+
+= Introduction =
+
+So you have a bunch of videos, perhaps for a library, perhaps for classes, perhaps for personal use.  Or maybe you just need to knock together a web site to play your home movies.
+
+All this BASH script does is iterate through the folders and build indexes for each folder of videos, and a table of contents for the video folders, that can be browsed and played by a web browser that supports HTML5+Javascript and is not too picky to let you browse files off your own hard disks and/or LAN.
+
+In the case of a 'ChromeCast' doohicky, this will also make that library work with it by browsing to it with Chrome, playing a video, and sending it off to your device.  Not optimal, but it works if you have a nice, fast wireless network, or if at least the computer that's doing the playback is on a wired portion of the network.
+
+Also, if the library fits onto portable storage of some sort, you will have a consistent, portable user interface for that on practically any computer you plug it into, that can mount the file system, can open in a modern desktop web browser.
+
+= Details =
+
+BASH is shell script supported by Mac OSX and the various other UNIXes and LINUXes.  If you are a Windows user, you're not necessarily out in the cold. there is always Cygwin or Win-BASH or various other GNU tools ports for windows.  It's possible the little script I have could be adapted to 'dir /s /b' and some of the token pasting iterators that 'CMD' supports, but... I don't feel motivated to.  If you're computer literate enough to use a shell script (or 'batch file'), you can read the script and port it yourself, or just install one of the aforementioned BASHes for Windows, to run this script.
+
+HTML5 support for media files is crap.  Mostly because Microsoft, Apple, Mozilla, Opera, and everyone else is allowed to pick and choose what features they like, and still claim to be 'standard compliant'.  So some support ogg.  Some support MP4.  Some support 'webm'.  I hold it much less against the companies like Mozilla, who balk at licensing fees for MP4, and more against the big, rich corporations, like Microsoft and Apple, who won't implement a free, open source, unlimited license standard, with no strings attached for its use, other than to share any modifications that they make to the original source code.
+
+*[http://www.w3schools.com/html/html5_video.asp]
+
+This also uses the 'ffmpegthumbnailer' project to create thumbnail images.  You can modify the script to use other thumbnailers, or remove the thumbnail images all together.  Basically, it grabs a frame from a ways in, in the video, and makes a little jpeg picture for the index, and names it the same as the original video file.  Some DLNA servers want thumbnails like that, and this conforms to that 'standard'.  Most linuxes have it in the software library, and OSX users can install it with 'Homebrew'.  Windows users will probably find binaries for it 'hosted' with infectious, browser altering, malware installing 'setup' packages, all over the web.
+
+*[https://code.google.com/p/ffmpegthumbnailer/]
+
+*[http://brew.sh/]
+
+= Caveats =
+
+I have some important cautions for you, if your video is licensed, copyrighted, private, etc.  Like any other electronic means of viewing things, it is easy to inadvertently share your videos with the world.  Take proper precautions.  These are not necessarily 'all' of the precautions you should take.  Just some examples to get you thinking about your liability.
+
+1. Put a password on your wireless router.  Or you'll share it all with everyone within a mile of your wireless network.
+
+2. It would be trivial to configure a web server to use the output of this script.  If you do, make sure that anyone who pings your network router from the outside world doesn't discover a web server with your video collection on it.  You know, configure the firewall right.
+
+3. If you have to share protected content with others, over a distance, make sure it's done over a VPN.  
+
+4. Even on your own LAN, you might want to slap a password on access to your video folder.  Just because.
+
+= Special Pleading =
+
+Hey, this is just a script.  It has many valuable uses, and like anything that's useful, it can be used to do 'wrong'.  I take no responsibility for your willful, personal misconduct in distributing copyrighted materials, or other crimes, in whatever jurisdictions that you are in.  
+
+I don't warrant it to work under any circumstances, because it relies on 'web standards' that aren't standardized at all, and even the BASH shell and related tools vary quite a bit across platforms that support them.
+
+I checked the 'GNU Lesser GPL' license checkbox.  I can't control what you do with it, and don't really care, because _I can't control what you do with it_.  Use it, abuse it, modify and release it again as your own without giving me any 'credit'.  This was three days' worth of hard work, not a lifetime of commitment to me.  Just don't blame me for what happens if you break laws or try to use it as part of a missile guidance system and blow yourself up, or whatever.
