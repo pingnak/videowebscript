@@ -4,7 +4,7 @@ A script to generate an interface for a collection of videos.
 
 So you have a bunch of videos, perhaps for a library, perhaps for classes, perhaps for personal use.  Or maybe you just need to knock together a web site to play your home movies.
 
-All this BASH script does is iterate through the folders and build indexes for each folder of videos, and a table of contents for the video folders, that can be browsed by a web browser that supports HTML5+Javascript and is not too picky to let you browse files off your own hard disks and/or LAN.
+All this BASH script does is iterate through the folders and build indexes for each folder of videos, and a table of contents for the video folders, that can be browsed and played by a web browser that supports HTML5+Javascript and is not too picky to let you browse files off your own hard disks and/or LAN.
 
 In the case of a 'ChromeCast' doohicky, this will also make that library work with it by browsing to it with Chrome, playing a video, and sending it off to your device.  Not optimal, but it works if you have a nice, fast wireless network, or if at least the computer that's doing the playback is on a wired portion of the network.
 
