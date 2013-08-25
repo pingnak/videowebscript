@@ -1,31 +1,36 @@
-/* Slurped in from webified.css during compilation */
-body {
-    font-family: sans;
-    background-color: #000000; 
-    color:#ffffff; 
-}
-.title {
-    width:100%;
-    color:#e0e0e0;
-    font-size:50px;
-    white-space:nowrap;
-    text-align:center;
-}
-.index_entry {
-    color:#00ffff;
-    font-size:30px;
-    white-space:nowrap;
-}
-/* Bright links that only underline when tracked */
-a:link      { color:#00ffff; text-decoration: none; }
-a:visited   { color:#00ffff; text-decoration: none; }
-a:hover     { color:#00ffff; text-decoration: underline; }
-a:active    { color:#20ffff; text-decoration: none; }
-img.index_thumbnail {
-    width:256px;
-    vertical-align:middle;
-}
-.info_text {
-  color: #808080;
-  font-size: 10px;
-}
+            /* Slurped in from webified.css during compilation */
+            body {
+                font-family: sans;
+                background-color: #000000; 
+                color:#ffffff; 
+            }
+            /* Bright links that only underline when tracked */
+            a:link      { color:#00ffff; text-decoration: none; }
+            a:visited   { color:#00ffff; text-decoration: none; }
+            a:hover     { color:#00ffff; text-decoration: underline; }
+            a:active    { color:#20ffff; text-decoration: none; }
+            .title {
+                width:100%;
+                color:#e0e0e0;
+                font-size:50px;
+                white-space:nowrap;
+                text-align:center;
+            }
+            .index_entry {
+                color:#00ffff;
+                font-size:30px;
+                white-space:nowrap;
+            }
+            img.index_thumbnail {
+                width:256px;
+                vertical-align:middle;
+            }
+            .folder_entry {
+                color:#00f8f8;
+                font-size:30px;
+                white-space:nowrap;
+            }
+            .info_text {
+              color: #808080;
+              font-size: 10px;
+            }
