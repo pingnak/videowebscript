@@ -1,30 +1,23 @@
 		</style>
-		<title>TITLE_TEXT</title>
-		<script type="text/javascript">
-		    var video;            // Video player reference
-		    var playlist;         // List of videos to play
-		    var now_playing;      // Currently playing video
-		    var title;            // Title text reference
-		    var original_title;   // Original title, before play list monkeyed with it
-		    function initvideo()
-		    {
-                video = document.getElementById("videoplayer");
-                video.style.display = 'none';
-                title = document.getElementById("title");
-                original_title = title.innerHTML;
-                playlist = document.getElementsByClassName("index_entry");
-		    }
-		    /* Load the video when the page finishes loading */
-		    function playvideo(video_path)
-		    {
-		        console.log("PLAY:",video_path);
-		        now_playing = video_path;
-		        if( 'undefined' == typeof(now_playing) )
-		        {
+        <title>TITLE_TEXT</title>
+        <script type="text/javascript">
+            var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
+            /* 
+             * Load the video when the page finishes loading 
+             * http://www.w3.org/2010/05/video/mediaevents.html
+             */
+            function playvideo(video_path)
+            {
+                console.log("PLAY:",video_path);
+                now_playing = video_path;
+                var video = document.getElementById("videoplayer");
+                if( 'undefined' == typeof(now_playing) )
+                {
                     title.innerHTML = original_title;
                     video.style.display = 'none';
-		            return;
-		        }
+                    return;
+                }
+                video.style.display = '';
                 var video_type='video/'+now_playing.split('.').pop();
                 video.setAttribute("src",now_playing);
                 video.setAttribute("type".video_type);
@@ -32,22 +25,20 @@
                 video.play();
                 video.addEventListener( "ended", playNext );
                 // Show title
+                var title = document.getElementById("title");
                 title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
                 // Show video
                 window.scrollTo(0,0);
-                video.style.display = '';
-                // ToDo:
-                // Initially hide/collapse video window, or stick something on it?
-                // Seek-to/play-to function for episodic content?
-                // http://www.w3.org/2010/05/video/mediaevents.html
- 		    }
- 		    function playFirst()
- 		    {   // Play the first item on the list
+            }
+            function playFirst()
+            {   // Play the first item on the list
+                var playlist = document.getElementsByClassName("index_entry");
                 var path = playlist[0].getAttribute("path");
                 playvideo(path);
- 		    }
- 		    function playNext()
- 		    {   // Seek list of links for current video
+            }
+            function playNext()
+            {   // Seek list of links for current video
+                var playlist = document.getElementsByClassName("index_entry");
                 var item;
                 var nextitem;
                 var link;
@@ -73,26 +64,26 @@
                         break;
                     }
                 }
- 		    }
-		    // When a onclick="javascript: toggleNextDiv(this);" cllas this, the DIV following that link is hidden/shown
-		    function toggleNextDiv(link)
-		    {
-		        nextdiv = link;
-		        while ( nextdiv = nextdiv.nextSibling ) {
-		            if( nextdiv.nodeName == "DIV" ) {
+            }
+            // When a onclick="javascript: toggleNextDiv(this);" calls this, the DIV following that link is hidden/shown
+            function toggleNextDiv(link)
+            {
+                nextdiv = link;
+                while ( nextdiv = nextdiv.nextSibling ) {
+                    if( nextdiv.nodeName == "DIV" ) {
                         nextdiv.style.display = nextdiv.style.display == 'none' ? '' : 'none';
                         window.setTimeout(snapback, 1);
                         break;
-		            }
-		        }
-		        function snapback()
-		        {
-		            link.scrollIntoView();
-		        }
-		    }
-		</script>
-	</head>
-	<body onload="initvideo();" >
+                    }
+                }
+                function snapback()
+                {
+                    link.scrollIntoView();
+                }
+            }
+        </script>
+        </head>
+	<body>
     <video id="videoplayer" width="100%" controls style="display:none;" >
         Get a <i>modern</i> browser that supports HTML5 Video.  If you see this text, it doesn't, or it is disabled.<br/>
         <a href="https://www.w3schools.com/html/html5_video.asp">More info...</a>
