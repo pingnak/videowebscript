@@ -62,29 +62,7 @@ cat $INDEX_PROLOG | sed \-e "s@TITLE_TEXT@$folder_start@g" >> "$main_index"
 # If we had content in the root of the tree, we need to keep the rest aligned
 needed_root=
 
-# Find all video files, then get the paths, then sort to unique, to build a 
-# list of folers to process.
-echo
-echo On a LAN with a lot of files, initial find may take a little time...
-pushd "$CONTENT_ROOT" > /dev/null
-find -s . -name '*.mp4' -o -name '*.ogg' -o -name '*.webm' | while read i ; do dirname "$i" ; done | sort -u | while read folder_relative ; 
-do
-    echo $folder_relative
-    # Lookup 'BASH parameter expansion', to decode this stuff
-    folder_name=`basename "$folder_relative"`
-    folder_path="$CONTENT_ROOT${folder_relative#.}"
-    folder_parent=`dirname "$folder_relative"`
-    if test "." = "$folder_name" ; then
-        folder_name="$folder_start"
-        needed_root="$folder_start/"
-        folder_parent=
-    else
-        if test "." = "$folder_parent" ; then
-            folder_parent="$needed_root"
-        else
-            folder_parent="$needed_root${folder_parent:2}/"
-        fi
-    fi
+function export_folder {
     
     # Parse folder name depth to indent?
     echo $INDEX_FOLDER | sed \
@@ -92,7 +70,11 @@ do
         -e "s@FOLDER_TITLE@$folder_name@g" >> "$main_index"
 
     # Now drop in a collapsed tree of titles for the current folder entry
-    echo '<div style="display:none;" id="titles">' >> "$main_index"
+    if test "true" = "$isroot" ; then
+        echo '<div id="titles">' >> "$main_index"
+    else
+        echo '<div id="titles" style="display:none;">' >> "$main_index"
+    fi
     find -s "$folder_relative" -depth 1 -name '*.mp4' -o -name '*.ogg' -o -name '*.webm' | while read movie_path ; 
     do 
         echo "$movie_path"
@@ -108,7 +90,7 @@ do
         # e.g. filename_jpeg=$CONTENT_ROOT/thumbnails/$filename_noext.jpg
         if test ! -f "$filename_jpeg"; then
             echo ffmpegthumbnailer "$movie_path" 
-            ffmpegthumbnailer -f -t18 -s256 -i "$movie_path" -o "$filename_jpeg"
+            ffmpegthumbnailer -f -t18 -s128 -i "$movie_path" -o "$filename_jpeg"
         fi
 
         # Spit out a line of table of contents
@@ -118,7 +100,44 @@ do
             -e "s@MOVIE_TITLE@$filename_noext@g" >> "$main_index"
     done
     echo '</div>' >> "$main_index"
+}
+
+# Find all video files, then get the paths, then sort to unique, to build a 
+# list of folers to process.
+echo
+echo On a LAN with a lot of files, initial find may take a little time...
+echo "$CONTENT_ROOT"
+pushd "$CONTENT_ROOT" > /dev/null
+find -s . -name '*.mp4' -o -name '*.ogg' -o -name '*.webm' | while read i ; do dirname "$i" ; done | sort -u -i -f | while read folder_relative ; 
+do
+    echo $folder_relative
+    # Lookup 'BASH parameter expansion', to decode this stuff
+    isroot=
+    folder_name=`basename "$folder_relative"`
+    folder_path="$CONTENT_ROOT${folder_relative#.}"
+    folder_parent=`dirname "$folder_relative"`
+    if test "." = "$folder_name" ; then
+        folder_name="$folder_start"
+        needed_root="$folder_start/"
+        folder_parent=
+    else
+        if test "." = "$folder_parent" ; then
+            folder_parent="$needed_root"
+        else
+            folder_parent="$needed_root${folder_parent:2}/"
+        fi
+        export_folder
+    fi
+    
 done
+
+isroot="true"
+folder_relative="."
+folder_name="$folder_start"
+needed_root="$folder_start/"
+folder_parent=
+export_folder
+
 popd > /dev/null
 
 cat $INDEX_EPILOG >> "$main_index"
