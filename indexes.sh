@@ -65,6 +65,7 @@ needed_root=
 # list of folers to process.
 echo
 echo On a LAN with a lot of files, initial find may take a little time...
+echo $CONTENT_ROOT
 pushd "$CONTENT_ROOT" > /dev/null
 find . -name 'index.html' | sort -u | while read folder_relative ; 
 do
