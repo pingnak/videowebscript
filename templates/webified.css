@@ -22,7 +22,7 @@
                 white-space:nowrap;
             }
             img.index_thumbnail {
-                width:128px;
+                width:THUMB_SIZEpx;
                 vertical-align:middle;
             }
             .folder_entry {
