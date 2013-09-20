@@ -14,6 +14,9 @@ WEBIFY_MAIN_INDEX="index.html"
 SCRIPT_ROOT=`dirname "$0"`
 SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates"
 
+# Icon parameters
+THUMB_SIZE=192
+
 # slurp in constantly pasted content, to speed things along
 INDEX_TOPMOST="$SCRIPT_TEMPLATES/index_topmost.html"
 INDEX_CSS="$SCRIPT_TEMPLATES/webified.css"
@@ -56,8 +59,8 @@ folder_start=`basename "$CONTENT_ROOT"`
 
 # Generate top portion of index file
 cat $INDEX_TOPMOST > "$main_index"
-cat $INDEX_CSS >> "$main_index"
-cat $INDEX_PROLOG | sed \-e "s@TITLE_TEXT@$folder_start@g" >> "$main_index"
+cat $INDEX_CSS | sed -e "s@THUMB_SIZE@$THUMB_SIZE@g" >> "$main_index"
+cat $INDEX_PROLOG | sed -e "s@TITLE_TEXT@$folder_start@g" >> "$main_index"
 
 # If we had content in the root of the tree, we need to keep the rest aligned
 needed_root=
@@ -90,7 +93,7 @@ function export_folder {
         # e.g. filename_jpeg=$CONTENT_ROOT/thumbnails/$filename_noext.jpg
         if test ! -f "$filename_jpeg"; then
             echo ffmpegthumbnailer "$movie_path" 
-            ffmpegthumbnailer -f -t18 -s128 -i "$movie_path" -o "$filename_jpeg"
+            ffmpegthumbnailer -f -t18 -s$THUMB_SIZE -i "$movie_path" -o "$filename_jpeg"
         fi
 
         # Spit out a line of table of contents
