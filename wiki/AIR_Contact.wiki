@@ -1,0 +1,13 @@
+An Adobe AIR version
+
+= Introduction =
+
+Added the beginnings of an AIR project to do the same thing, but with a bit easier and more 'portable' for less technical users.  Nearly identical to the BASH script, except a GUI and a crumb of extra ambition to handle a few other media cases.
+
+= Details =
+
+If you have Adobe AIR installed, just open the .air file to run it.  If you don't have adobe AIR installed, then install it from somewhere like here...
+
+http://get.adobe.com/air/
+
+What's checked in right now will not generate the thumbnails.  We'll see if I can convince the Video player to let me capture a frame, and perhaps spill a bit of metadata into the thumbnail. 
