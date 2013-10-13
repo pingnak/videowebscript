@@ -344,7 +344,7 @@ package
             var root : File = tree[0];
             var url : String = path.url;
             var depth : int = File_Depth(path,root);
-            var found : Array = [path];
+            var found : Array = new Array();
             for( i = 0; i < tree.length; ++i )
             {
                 f = tree[i];

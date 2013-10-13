@@ -17,8 +17,6 @@ package
     import flash.text.*;
     import flash.media.*;
     import flash.filters.*;
-    // I'll have to migrate this out of the flash build, to a flex build
-    //import mx.graphics.codec.*;
 
     import flash.filesystem.*;
     
@@ -28,55 +26,52 @@ package
         internal static const SO_SIGN : String = "CONTACT_SIGN_01";
 
         /** What to call the 'top level' index file */
-        public var MAIN_INDEX      : String = "index.html";
-
-        /** Multiple index mode: What to call the folder indexes */
-        public var FOLDER_INDEX    : String = "index_toc.html";
+        public static var MAIN_INDEX      : String = "index.html";
 
         /** Where to look for script template content */
-        public var SCRIPT_TEMPLATES: String ="templates/"
+        public static var SCRIPT_TEMPLATES: String ="templates/"
 
         /** Top few lines of html files */
-        public var INDEX_TOPMOST   : String = SCRIPT_TEMPLATES+"index_topmost.html";
+        public static var INDEX_TOPMOST   : String = SCRIPT_TEMPLATES+"index_topmost.html";
 
         /** CSS as its own stand-alone css file (concatenated in for easy house-keeping) */
-        public var INDEX_CSS       : String = SCRIPT_TEMPLATES+"webified.css";
+        public static var INDEX_CSS       : String = SCRIPT_TEMPLATES+"webified.css";
         
         /** Start of movie player and available content */
-        public var MOVIE_PROLOG    : String = SCRIPT_TEMPLATES+"index_prolog.html";
+        public static var MOVIE_PROLOG    : String = SCRIPT_TEMPLATES+"index_prolog.html";
         
         /** End of movie player html file */
-        public var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
+        public static var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
         
         /** A movie file link with player logic */
-        public var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
+        public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** Accordion movie folder link */
-        public var INDEX_FOLDER    : String = SCRIPT_TEMPLATES+"index_folder.html";
+        public static var INDEX_FOLDER    : String = SCRIPT_TEMPLATES+"index_folder.html";
 
         /** Link to folder index */
-        public var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
+        public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
         
         /** Width of thumbnails */
-        public var THUMB_SIZE      : int = 128;
+        public static var THUMB_SIZE      : int = 128;
 
         /** Regular expressions that we accept as 'MP4 content' 
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
             or DRM, or other proprietary extensions in them.   
         **/
-        public var REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
+        public static var REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
 
         /** Regular expressions that we accept as 'MP4 content'*/
-        public var REGEX_THUMB      : String = ".(png|jpg|jpeg)";
+        public static var REGEX_THUMB      : String = ".(png|jpg|jpeg)";
         
-        internal var root_path_video : File;
-        internal var root_path_audio : File;
-        internal var root_path_image : File;
+        internal static var root_path_video : File;
+        internal static var root_path_audio : File;
+        internal static var root_path_image : File;
         
-        internal var finding : Find;
+        internal static var finding : Find;
         
-        internal var thumbnail_template : MovieClip;
-        internal var thumbnail : Thumbnail;
+        internal static var thumbnail_template : MovieClip;
+        internal static var thumbnail : Thumbnail;
         
         public function Contact()
         {
@@ -323,12 +318,10 @@ package
 
             // Size elements
             addChild(thumbnail_template);
-//          thumbnail_template.mcSprocketHoles.width = thumbnail_template.mcSprocketHoles.height = THUMB_SIZE;
 
             // Render to bitmap
             var bmd : BitmapData = new BitmapData(THUMB_SIZE, thumbnail.video_object.height, false, 0);
             bmd.draw(thumbnail_template);
-//            removeChild(thumbnail_template);
             
             // Encode jpeg
             var jpeg : JPGEncoder = new JPGEncoder(80);
@@ -340,6 +333,24 @@ package
             fs.writeBytes(bytes,0,bytes.length );
             fs.close();
         }
+
+        /**
+         * Check for thumbnail file
+         * @param file MP4 file to check for thumbnail
+         * @return Path to thumbnail that exists, or will be generated
+        **/
+        protected function CheckThumbnail(file:File) : File
+        {
+            var file_thumb : File;
+            file_thumb = Find.File_newExtension( file, '.jpg' );
+            if( !file_thumb.exists )
+            {   // Have NO thumbnail (make a jpeg)
+                trace("Needs thumbnail:",file_thumb.url);
+                thumbnail.AddTask( file, file_thumb )
+            }
+            return file_thumb;
+        }
+
         
         /**
          * One index.html file for the whole tree
@@ -441,15 +452,10 @@ package
                             if( ext.match(rxMP4) )
                             {   // Video file
                                 var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
-                                var file_thumb : File;
-                                var filename_thumb : String;
-                                file_thumb = Find.File_newExtension( file, '.jpg' );
-                                if( !file_thumb.exists )
-                                {   // Have NO thumbnail (make a jpeg)
-                                    trace("Needs:",file_thumb.url);
-                                    thumbnail.AddTask( file, file_thumb )
-                                }
-                                filename_thumb = Find.File_relative( file_thumb, root );
+                                
+                                var file_thumb : File = CheckThumbnail(file);
+                                var filename_thumb : String = Find.File_relative( file_thumb, root );
+                                
                                 seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
                                 seded = seded.replace(/VIDEO_PATH/g,file_relative_path);
                                 seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
@@ -496,119 +502,75 @@ package
             {
                 var i : int;
                 var j : int;
-                var file : File;
-                var folder : File;
-                var root : File = found[0];
-                var root_string : String = Find.File_name(root);
-                var main_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
-                var fs:FileStream = new FileStream();
-                
-                fs.open( main_index_file, FileMode.WRITE );
-                
-                // Top part of file
-                fs.writeUTFBytes(LoadText(INDEX_TOPMOST));
                 var seded : String
-                seded = LoadText(INDEX_CSS);
-                seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
-                fs.writeUTFBytes(seded);
-                
-                seded = LoadText(MOVIE_PROLOG);
-                seded = seded.replace(/TITLE_TEXT/g,root_string);
-                fs.writeUTFBytes(seded);
+                var folder : File;
 
+                // Preload the various template elements we'll be writing for each folder/file
+                var index_prolog : String = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS) + LoadText(MOVIE_PROLOG); 
+                var index_index : String = LoadText(INDEX_INDEX); 
                 var index_file : String = LoadText(INDEX_FILE); 
-                var index_folder : String = LoadText(INDEX_FOLDER); 
-                var need_sdiv : Boolean = false;
+                var index_epilog : String = LoadText(INDEX_EPILOG); 
                 
-                // Iterate files + folders
-                var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i");
+                // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
                 for( i = 0; i < folders.length; ++i )
                 {
-                    folder = folders[i];
+                    var root : File = folders[i];
                     
-                    var files : Array = Find.GetChildren( found, folder );
-                    var mp4files : Array = Find.Filter( files, justmp4 );
-                    function justmp4(file:File):Boolean
-                    {
-                        return !Find.File_extension( file ).match(rxMP4);
-                    }
+                    // Get a list of folders in this folder, files in this folder
+                    var curr_files : Array = Find.GetChildren( found, root );
+                    var curr_folders : Array = Find.GetFolders(curr_files);
+                    curr_files = Find.GetFiles(curr_files);
                     
-                    // Skip over folders that don't have mp4 files.
-                    //trace(mp4files.length, folder.nativePath);
-                    if( 1 < mp4files.length ) 
+                    // Create and build top half of index file
+                    var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
+                    var fs : FileStream = new FileStream();
+                    fs.open( curr_index_file, FileMode.WRITE );
+                    var curr_title : String = Find.File_name(root);
+                    seded = index_prolog;
+                    seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                    seded = seded.replace(/TITLE_TEXT/g,curr_title);
+                    fs.writeUTFBytes(seded);
+
+                    // Iterate child folders and generate links to them
+                    for( j = 1; j < curr_folders.length; ++j )
                     {
-                        var relative_path : String;
-                        var folderparent : String;
-                        var foldername : String;
-                        var folderstyle : String;
-                        if( 0 == i )
-                        {   // Special case for root path
-                            relative_path = "";
-                            folderparent = "";
-                            foldername = root_string;
-                            folderstyle='';
-                        }
-                        else if( 0 == Find.File_Depth( folder, root ) )
-                        {
-                            relative_path = Find.File_relative( folder, root );
-                            folderparent = ""; 
-                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                            folderstyle='style="display:none;"';
-                        }
-                        else
-                        {
-                            relative_path = Find.File_relative( folder, root );
-                            folderparent = Find.File_relative(Find.File_parent( folder ), root )+'/';
-                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                            folderstyle='style="display:none;"';
-                        }
-    
-                        // Parse folder name depth to indent?
-                        seded = index_folder.replace(/FOLDER_PARENT/g,folderparent);
-                        seded = seded.replace(/FOLDER_TITLE/g,foldername);
-                        seded = seded.replace(/FOLDER_STYLE/g,folderstyle);
+                        var curr_folder = curr_folders[j];
+                        var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                        var curr_index_title : String = Find.File_nameext( curr_folder );
+                        var curr_index_relative : String = Find.File_relative( curr_index, root );
+
+                        // Emit index for child folder
+                        seded = index_index;
+                        seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                         fs.writeUTFBytes(seded);
-                        
-                        for( j = 1; j < mp4files.length; ++j )
-                        {
-                            file = mp4files[j];
-    
-                            var file_relative_path : String = Find.File_relative( file, root );
-                            var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
-                            var lastdot : int = filename.lastIndexOf('.');
-                            var ext : String = lastdot<0?'':filename.slice(lastdot);
-                            if( ext.match(rxMP4) )
-                            {   // Video file
-                                var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
-                                var file_thumb : File;
-                                var filename_thumb : String;
-                                file_thumb = Find.File_newExtension( file, '.jpg' );
-                                if( !file_thumb.exists )
-                                {   // Have NO thumbnail (make a jpeg)
-                                    trace("Needs:",file_thumb.url);
-                                    thumbnail.AddTask( file, file_thumb )
-                                }
-                                filename_thumb = Find.File_relative( file_thumb, root );
-                                seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
-                                seded = seded.replace(/VIDEO_PATH/g,file_relative_path);
-                                seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
-                                fs.writeUTFBytes(seded);
-                            }
-                            else
-                            {
-                                // Thumbnail files are mixed in with the mp4, so we don't
-                                // do extra directory tree searches through the file system
-                                // to check for thumbnails' existence
-                            }
-                        }
-                        fs.writeUTFBytes("</div>\n");
                     }
+                    
+                    // Iterate files and generate code + thumbnails
+                    for( j = 0; j < curr_files.length; ++j )
+                    {
+                        var curr_file = curr_files[j];
+                        var curr_file_relative : String = Find.File_relative( curr_file, root );
+                        var curr_file_title : String = Find.File_name( curr_file );
+                        
+                        var file_thumb : File = CheckThumbnail(curr_file);
+                        var curr_file_thumb : String = Find.File_relative( file_thumb, root );
+
+                        // Emit index+code to play file
+                        seded = index_file;
+                        seded = seded.replace(/VIDEO_IMAGE/g,curr_file_thumb);
+                        seded = seded.replace(/VIDEO_PATH/g,curr_file_relative);
+                        seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                        fs.writeUTFBytes(seded);
+                    }
+                    
+
+                    // Bottom part of file index file; all done
+                    fs.writeUTFBytes(index_epilog);
+                    fs.close();
                 }
     
-                // Bottom part of file
-                fs.writeUTFBytes(LoadText(INDEX_EPILOG));
-                fs.close();
             }
             catch( e:Error )
             {
@@ -635,7 +597,6 @@ package
         **/
         protected function DoAudio(e:Event=null):void
         {
-
             if( !CheckGet( ui.bDoAudio ) )
             {
                 DoImage();
