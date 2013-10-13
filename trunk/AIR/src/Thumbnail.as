@@ -7,6 +7,9 @@ package
     import flash.display.*;
     import flash.events.*;
     import flash.filesystem.*;
+
+    // I'll have to migrate this out of the flash build, to a flex build
+    //import mx.graphics.codec.*;
     
     /**
      * Generate a thumbnail from an mp4 file.
@@ -21,9 +24,13 @@ package
      * Capture a frame
      * Save a jpeg/png JPEGEncoder/PNGEncoder
      * http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/Video.html
+     *
+     * Kind of evolved to a queue of thumbnails, since everything is asynchronous
+     * Use AddTask to add video+thumbnail paths, then call Startup and wait for 'Event.COMPLETE'
     **/
     public class Thumbnail extends EventDispatcher
     {
+        // Events
         public static const SNAPSHOT_READY : String = "snapshot";
         public static const COMPLETE : String = Event.COMPLETE;
         
@@ -33,7 +40,7 @@ package
         internal var _metadata : Object;
 
         internal var mcPlace : MovieClip;
-        internal var thumbsize : Number;
+        internal var thumbsize : uint;
         
         internal var videoFile : File;
         internal var thumbFile : File;
@@ -52,7 +59,7 @@ package
         public function get video_object() : Video { return video; }
         public function get video_stream() : NetStream { return stream; }
         
-        public function Thumbnail( mcPlace : MovieClip, thumbsize : Number = 128 )
+        public function Thumbnail( mcPlace : MovieClip, thumbsize : uint = 128 )
         {
             this.thumbsize = thumbsize;
             this.mcPlace = mcPlace;
@@ -205,9 +212,8 @@ package
 		}
 		protected function TraceObject(sz:String, info:Object):void
 		{
-		    trace(sz,':',getTimer(),videoFile.url);
-		    for( var s : String in info ) 
-		        trace("\t",s,info[s]);
+		    //trace(sz,':',getTimer(),videoFile.url);
+		    //for( var s : String in info ) trace("\t",s,info[s]);
 		}
         
 		/**
@@ -221,16 +227,40 @@ package
 
             // Let app know to set up any capture decorations
             // Makes the code a touch more 'reusable' by abstracting this
+            // Add crap to the template, draw on it, whatever
             dispatchEvent( new Event( SNAPSHOT_READY ) );
-
-            // Remove current queue            
-            queue.shift();
             
-            // See if anything else has stacked up
+            // Give UI a chance to refresh after calling back
             var timer : Timer = new Timer( 10, 1 );
-            timer.addEventListener( TimerEvent.TIMER, PopTask );
+            timer.addEventListener( TimerEvent.TIMER, DoCapture );
             timer.start();
+            
         }
+
+        /**
+         * Write a captured image
+        **/
+        protected function DoCapture(e:Event):void
+        {
+            // Render to bitmap
+            var bmd : BitmapData = new BitmapData(thumbsize, mcPlace.height, false, 0);
+            bmd.draw(mcPlace);
+            
+            // Encode jpeg
+            var jpeg : JPGEncoder = new JPGEncoder(80);
+            var bytes : ByteArray = jpeg.encode(bmd);
+            
+            // Write jpeg
+            var fs:FileStream = new FileStream();
+            fs.open( thumbFile, FileMode.WRITE );
+            fs.writeBytes(bytes,0,bytes.length );
+            fs.close();
+
+            // Remove current queue, see if there's more to do
+            queue.shift();
+            PopTask();
+        }
+   
     }
 }
     
