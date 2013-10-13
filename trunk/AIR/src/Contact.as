@@ -1,4 +1,4 @@
-
+﻿
 /*
  * Web (HTML5) Contact Sheet Generator
  * 
@@ -73,12 +73,17 @@ package
         
         internal var finding : Find;
         
+        internal var thumbnail_template : MovieClip;
+        internal var thumbnail : Thumbnail;
+        
         public function Contact()
         {
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
             CheckSetup(ui.bDoVideo);
             CheckSetup(ui.bnVideoAllInOne);
+            
 
             ui.tfPathAudio.addEventListener( Event.CHANGE, onFolderEdited ); 
             ui.bFindPathAudio.addEventListener( MouseEvent.CLICK, BrowsePathAudio );
@@ -127,7 +132,9 @@ package
                     dobj.tabIndex = i;
                 }
             }
+
             Interactive();
+            
         }
         
         /**
@@ -201,6 +208,11 @@ package
                 finding.Abort();
                 finding = null;
             }
+            if( null != thumbnail )
+            {
+                thumbnail.Cleanup();
+                thumbnail = null;
+            }
         }
         
         /**
@@ -240,6 +252,9 @@ package
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
             finding.addEventListener( Find.FOUND, HaveVideoFiles );
+
+            thumbnail_template = new ThumbnailTemplate();
+            thumbnail = new Thumbnail(thumbnail_template.mcPlaceholder,THUMB_SIZE);
             Busy();
 
         }
@@ -282,7 +297,43 @@ package
                 trace("Tree");
                 DoVideoFilesTree(finding.results);
             }
-            DoAudio();
+            if( 0 != thumbnail.queue_length )
+            {
+                // Wait for thumbnailing to complete
+                thumbnail.Startup();
+                thumbnail.addEventListener( Event.COMPLETE, VideoFilesComplete );
+                thumbnail.addEventListener( Thumbnail.SNAPSHOT_READY, ThumbnailNext );
+            }
+            else
+            {
+                // Jump to audio task
+                VideoFilesComplete();
+            }
+        }
+        
+        /** Update progress animation with thumbnail status */
+        protected function ThumbnailNext(e:Event=null):void
+        {
+            ui.tfStatus.text = thumbnail.queue_length.toString() + " " + Find.File_nameext(thumbnail.thumb_file);
+
+            // Size elements
+            addChild(thumbnail_template);
+            thumbnail_template.mcSprocketHoles.width = thumbnail_template.mcSprocketHoles.height = THUMB_SIZE;
+
+            // Render to bitmap
+            var bmd : BitmapData = new BitmapData(THUMB_SIZE, thumbnail.video_object.height, false, 0);
+            bmd.draw(thumbnail_template);
+            removeChild(thumbnail_template);
+            
+            // Encode jpeg
+            var jpeg : JPGEncoder = new JPGEncoder(80);
+            var bytes : ByteArray = jpeg.encode(bmd);
+            
+            // Write jpeg
+            var fs:FileStream = new FileStream();
+            fs.open( thumbnail.thumb_file, FileMode.WRITE );
+            fs.writeBytes(bytes,0,bytes.length );
+            fs.close();
         }
         
         /**
@@ -348,6 +399,23 @@ package
                 for( i = 0; i < folders.length; ++i )
                 {
                     folder = folders[i];
+                    
+                    var files : Array = Find.GetChildren( found, folder );
+                    var mp4files : Array = Find.Filter( files, justmp4 );
+                    function justmp4(file:File):Boolean
+                    {
+                        return !Find.File_extension( file ).match(rxMP4);
+                    }
+                    
+                    // Skip over folders that don't have mp4 files.
+                    //trace(mp4files.length, folder.nativePath);
+                    if( 1 == mp4files.length ) 
+                    {
+                        // Just the 'root' folder.
+                        //trace("Empty");
+                        continue;
+                    }
+                    
                     var relative_path : String;
                     var folderparent : String;
                     var foldername : String;
@@ -362,7 +430,7 @@ package
                     else if( 0 == Find.File_Depth( folder, root ) )
                     {
                         relative_path = Find.File_relative( folder, root );
-                        folderparent = root_string+'/'; 
+                        folderparent = ""; 
                         foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
                         folderstyle='style="display:none;"';
                     }
@@ -379,11 +447,10 @@ package
                     seded = seded.replace(/FOLDER_TITLE/g,foldername);
                     seded = seded.replace(/FOLDER_STYLE/g,folderstyle);
                     fs.writeUTFBytes(seded);
-
-                    var files : Array = Find.GetChildren( found, folder );
-                    for( j = 1; j < files.length; ++j )
+                    
+                    for( j = 1; j < mp4files.length; ++j )
                     {
-                        file = files[j];
+                        file = mp4files[j];
 
                         var file_relative_path : String = Find.File_relative( file, root );
                         var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
@@ -401,21 +468,20 @@ package
                             }
                             else
                             {   // Have a jpeg thumbnail
-                                file_thumb = Find.File_newExtension( file, '.jpg' );
+                                file_thumb = Find.File_newExtension( file, '.jpeg' );
                                 if( Find.Exists( files, file_thumb ) )
                                 {   // Have a JPEG thumbnail
                                     filename_thumb = Find.File_relative( file_thumb, root );
                                 }
                                 else
                                 {
-                                    file_thumb = Find.File_newExtension( file, '.jpeg' );
-                                    if( Find.Exists( files, file_thumb ) )
-                                    {   // Have a JPEG thumbnail
-                                        filename_thumb = Find.File_relative( file_thumb, root );
-                                    }
-                                    else
+                                    file_thumb = Find.File_newExtension( file, '.jpg' );
+                                    if( !Find.Exists( files, file_thumb ) )
                                     {   // Have NO thumbnail (make a jpeg)
+                                        trace("Needs:",file_thumb.url);
+                                        thumbnail.AddTask( file, file_thumb )
                                     }
+                                    filename_thumb = Find.File_relative( file_thumb, root );
                                 }
                             }
                             seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
@@ -468,10 +534,24 @@ package
         }
 
         /**
+         * Clean up after video UI and thumbnail generation
+        **/
+        protected function VideoFilesComplete(e:Event=null):void
+        {
+            if( null != thumbnail )
+            {
+                thumbnail.Cleanup();
+                thumbnail = null;
+            }
+            DoAudio();
+        }
+        
+        /**
          * Process audio tree
         **/
         protected function DoAudio(e:Event=null):void
         {
+
             if( !CheckGet( ui.bDoAudio ) )
             {
                 DoImage();
@@ -587,8 +667,12 @@ package
             CheckSet( ui.bDoVideo, share_data.bDoVideo );
             CheckSet( ui.bnVideoAllInOne, share_data.bDoVideoAllInOne );
             root_path_video = new File(share_data.url_video);
+            THUMB_SIZE = share_data.thumb_size;
+            ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+            
             CheckSet( ui.bDoAudio, share_data.bDoAudio );
             root_path_audio = new File(share_data.url_audio);
+            
             CheckSet( ui.bDoImage, share_data.bDoImage );
             root_path_image = new File(share_data.url_image);
             onFolderChanged();
@@ -613,6 +697,8 @@ package
             share_data.url_image = root_path_image.url;
             share_data.bDoVideo = CheckGet( ui.bDoVideo );
             share_data.bDoVideoAllInOne = CheckGet( ui.bnVideoAllInOne );
+            share_data.thumb_size = THUMB_SIZE;
+            
             share_data.bDoAudio = CheckGet( ui.bDoAudio );
             share_data.bDoImage = CheckGet( ui.bDoImage );
             share_data.sign = SO_SIGN;
@@ -651,6 +737,7 @@ package
         {
             root_path_video = new File(ui.tfPathVideo.text);
             root_path_video.canonicalize();
+            THUMB_SIZE = int(ui.tfThumbnailSize.text);
             root_path_image = new File(ui.tfPathImage.text);
             root_path_image.canonicalize();
             root_path_audio = new File(ui.tfPathAudio.text);
