@@ -8,8 +8,9 @@ Added the beginnings of an AIR project to do the same thing, but with a bit easi
 
 If you have Adobe AIR installed, just open the .air file to run it.  If you don't have adobe AIR installed, then install it from somewhere like here...
 
-http://get.adobe.com/air/
 [https://code.google.com/p/videowebscript/source/browse/#svn%2Ftrunk%2FAIR%2Fdeploy The Contact.air app from version control.]
+
+http://get.adobe.com/air/
 
 What's checked in right now generates the video thumbnails in AS3 code.  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification.  The brief freezes while thumbnailing are from the jpeg encoder.  
 
