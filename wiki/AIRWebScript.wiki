@@ -3,20 +3,42 @@ An Adobe AIR version
 
 = Introduction =
 
-Added the beginnings of an AIR project to do the same thing, but with a bit easier and more 'portable' for less technical users.  Nearly identical to the BASH script, except a GUI and a crumb of extra ambition to handle a few other media cases.
+This is the Adobe AIR version of 'making web interfaces for things tool'.  It's not pretty, but it works.
 
 = Details =
 
-If you have Adobe AIR installed, just open the .air file to run it.  If you don't have adobe AIR installed, then install it from somewhere like here...
+If you have Adobe AIR installed, just download and open the Contact.air file to run it.  You may see a lot of 'self signed' warnings.  That's because I used a 'self signed' certificate to build it.  If you don't like it, there's the code, so build it yourself.
 
-[https://code.google.com/p/videowebscript/source/browse/#svn%2Ftrunk%2FAIR%2Fdeploy Get the Contact.air app from version control.]
+ * [https://code.google.com/p/videowebscript/source/browse/#svn%2Ftrunk%2FAIR%2Fdeploy Get the Contact.air app from version control.]
 
-http://get.adobe.com/air/
+If you don't have adobe AIR installed (you open the .air file, and nothing good happens), then install AIR from here, and try again...
 
-What's checked in right now generates the video thumbnails in AS3 code.  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification.  The brief freezes while thumbnailing are from the jpeg encoder.  
+  * http://get.adobe.com/air/
 
-Navigate to folder/tree that you want to index, click 'go', and let it work away at it for a while.  It remembers the settings, so the next time you run it, it will be able to quickly redo the same operation.  This comes in handy as you review the thumbnails it randomly seeks to generate.  Some will... 'suck'.  On a 'fade to black', or pointed at a wall, or blurry, or various other examples.  Just delete the thumbnails you hate, and run the script again, until you can tolerate it.  It doesn't generate thumbnails if they already exist, so within a few tries, you should have a bright set of thumbnail images for the videos.
+Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly, but you need to precisely match the text and case of the folders in your file system, to succeed.  If a path is invalid, the 'Generate' checkbox will uncheck, and a little arrow will flash over it, when you try to 'DO IT'.
 
-The 'All in One' is the only version available.  It is better suited for small trees of mp4 files.
+The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
+
+  * Generate Video Player
+
+All in one index
+
+Check this box to dump the whole index into one html file with accordion paths to hide/show files.  With a BIG tree of files, this is cumbersome, and the load time on the thumbnails can be punishing.  This is a 'one off' sort of thing for sending a few files to someone.
+
+Leave the box unchecked, and an 'index.html' will be written into each folder with its child folders linked on top, and its individual files, below.  This version of indexing should load almost instantly in most cases, but litters your tree with lots of index.html files.  Any folder from the tree will be self-contained.
+
+ * Thumbnails
+
+The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 15~25% of the way in, then captures a frame and writes it out as a JPEG file.
+
+Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see.
+
+= Long-Winded Technical Rants =
+
+What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video.  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
+
+The code is a bit... untidy.  I haven't gone through and cleaned it up.  I definitely need to break some of these processes down by folder in state machines (aka 'green threads'), to keep Flash from hanging on larger operations.
+
+Soon, when I get tired of changing the UI in Flash, I'll provide a Flex/AIR SDK command line build, based on embedding the art and animations.
 
 See Also: [SecurityCaveats]
