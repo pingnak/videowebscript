@@ -83,7 +83,6 @@ package
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
             CheckSetup(ui.bDoVideo);
             CheckSetup(ui.bnVideoAllInOne);
-            
 
             ui.tfPathAudio.addEventListener( Event.CHANGE, onFolderEdited ); 
             ui.bFindPathAudio.addEventListener( MouseEvent.CLICK, BrowsePathAudio );
@@ -147,18 +146,21 @@ package
             /**
              * Do error checks before we launch into process
             **/
+            ui.tfPathVideo.text = root_path_video.nativePath;
             if( CheckGet( ui.bDoVideo ) && (!root_path_video.exists || !root_path_video.isDirectory) )
             {
                 ErrorIndicate(ui.bDoVideo);
                 CheckSet( ui.bDoVideo, false );
                 return;
             }
+            ui.tfPathAudio.text = root_path_audio.nativePath;
             if( CheckGet( ui.bDoAudio ) && (!root_path_audio.exists || !root_path_audio.isDirectory) )
             {
                 CheckSet( ui.bDoAudio, false );
                 ErrorIndicate(ui.bDoAudio);
                 return;
             }
+            ui.tfPathImage.text = root_path_image.nativePath;
             if( CheckGet( ui.bDoImage ) && (!root_path_image.exists || !root_path_image.isDirectory) )
             {
                 CheckSet( ui.bDoImage, false );
@@ -365,10 +367,22 @@ package
 
             try
             {
+                var i : int;
+                var j : int;
+                var file : File;
+                var folder : File;
                 var root : File = found[0];
                 var root_string : String = Find.File_name(root);
                 var main_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
                 var fs:FileStream = new FileStream();
+                
+                // Make a dictionary of the files and paths, to make a quicker 'exists' check
+                var existsLUT : Dictionary = new Dictionary();
+                for( i = 1; i < found.length; ++i )
+                {
+                    file = found[i];
+                    existsLUT[file.nativePath] = file;
+                }                
                 
                 var folders : Array = Find.GetFolders(found);
                 
@@ -381,7 +395,6 @@ package
                 seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                 fs.writeUTFBytes(seded);
                 
-                
                 seded = LoadText(MOVIE_PROLOG);
                 seded = seded.replace(/TITLE_TEXT/g,root_string);
                 fs.writeUTFBytes(seded);
@@ -391,10 +404,6 @@ package
                 var need_sdiv : Boolean = false;
                 
                 // Iterate files + folders
-                var i : int;
-                var j : int;
-                var file : File;
-                var folder : File;
                 var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i");
                 for( i = 0; i < folders.length; ++i )
                 {
@@ -409,94 +418,90 @@ package
                     
                     // Skip over folders that don't have mp4 files.
                     //trace(mp4files.length, folder.nativePath);
-                    if( 1 == mp4files.length ) 
+                    if( 1 < mp4files.length ) 
                     {
-                        // Just the 'root' folder.
-                        //trace("Empty");
-                        continue;
-                    }
-                    
-                    var relative_path : String;
-                    var folderparent : String;
-                    var foldername : String;
-                    var folderstyle : String;
-                    if( 0 == i )
-                    {   // Special case for root path
-                        relative_path = "";
-                        folderparent = "";
-                        foldername = root_string;
-                        folderstyle='';
-                    }
-                    else if( 0 == Find.File_Depth( folder, root ) )
-                    {
-                        relative_path = Find.File_relative( folder, root );
-                        folderparent = ""; 
-                        foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                        folderstyle='style="display:none;"';
-                    }
-                    else
-                    {
-                        relative_path = Find.File_relative( folder, root );
-                        folderparent = Find.File_relative(Find.File_parent( folder ), root )+'/';
-                        foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                        folderstyle='style="display:none;"';
-                    }
-
-                    // Parse folder name depth to indent?
-                    seded = index_folder.replace(/FOLDER_PARENT/g,folderparent);
-                    seded = seded.replace(/FOLDER_TITLE/g,foldername);
-                    seded = seded.replace(/FOLDER_STYLE/g,folderstyle);
-                    fs.writeUTFBytes(seded);
-                    
-                    for( j = 1; j < mp4files.length; ++j )
-                    {
-                        file = mp4files[j];
-
-                        var file_relative_path : String = Find.File_relative( file, root );
-                        var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
-                        var lastdot : int = filename.lastIndexOf('.');
-                        var ext : String = lastdot<0?'':filename.slice(lastdot);
-                        if( ext.match(rxMP4) )
-                        {   // Video file
-                            var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
-                            var file_thumb : File;
-                            var filename_thumb : String;
-                            file_thumb = Find.File_newExtension( file, '.png' );
-                            if( Find.Exists( files, file_thumb ) )
-                            {   // Have a jpeg thumbnail
-                                filename_thumb = Find.File_relative( file_thumb, root );
-                            }
-                            else
-                            {   // Have a jpeg thumbnail
-                                file_thumb = Find.File_newExtension( file, '.jpeg' );
-                                if( Find.Exists( files, file_thumb ) )
-                                {   // Have a JPEG thumbnail
-                                    filename_thumb = Find.File_relative( file_thumb, root );
-                                }
-                                else
-                                {
-                                    file_thumb = Find.File_newExtension( file, '.jpg' );
-                                    if( !Find.Exists( files, file_thumb ) )
-                                    {   // Have NO thumbnail (make a jpeg)
-                                        trace("Needs:",file_thumb.url);
-                                        thumbnail.AddTask( file, file_thumb )
-                                    }
-                                    filename_thumb = Find.File_relative( file_thumb, root );
-                                }
-                            }
-                            seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
-                            seded = seded.replace(/VIDEO_PATH/g,file_relative_path);
-                            seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
-                            fs.writeUTFBytes(seded);
+                        var relative_path : String;
+                        var folderparent : String;
+                        var foldername : String;
+                        var folderstyle : String;
+                        if( 0 == i )
+                        {   // Special case for root path
+                            relative_path = "";
+                            folderparent = "";
+                            foldername = root_string;
+                            folderstyle='';
+                        }
+                        else if( 0 == Find.File_Depth( folder, root ) )
+                        {
+                            relative_path = Find.File_relative( folder, root );
+                            folderparent = ""; 
+                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
+                            folderstyle='style="display:none;"';
                         }
                         else
                         {
-                            // Thumbnail files are mixed in with the mp4, so we don't
-                            // do extra directory tree searches through the file system
-                            // to check for thumbnails' existence
+                            relative_path = Find.File_relative( folder, root );
+                            folderparent = Find.File_relative(Find.File_parent( folder ), root )+'/';
+                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
+                            folderstyle='style="display:none;"';
                         }
+    
+                        // Parse folder name depth to indent?
+                        seded = index_folder.replace(/FOLDER_PARENT/g,folderparent);
+                        seded = seded.replace(/FOLDER_TITLE/g,foldername);
+                        seded = seded.replace(/FOLDER_STYLE/g,folderstyle);
+                        fs.writeUTFBytes(seded);
+                        
+                        for( j = 1; j < mp4files.length; ++j )
+                        {
+                            file = mp4files[j];
+    
+                            var file_relative_path : String = Find.File_relative( file, root );
+                            var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
+                            var lastdot : int = filename.lastIndexOf('.');
+                            var ext : String = lastdot<0?'':filename.slice(lastdot);
+                            if( ext.match(rxMP4) )
+                            {   // Video file
+                                var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
+                                var file_thumb : File;
+                                var filename_thumb : String;
+                                file_thumb = Find.File_newExtension( file, '.png' );
+                                if( file_thumb.nativePath in existsLUT )
+                                {   // Have a jpeg thumbnail
+                                    filename_thumb = Find.File_relative( file_thumb, root );
+                                }
+                                else
+                                {   // Have a jpeg thumbnail
+                                    file_thumb = Find.File_newExtension( file, '.jpeg' );
+                                    if( file_thumb.nativePath in existsLUT )
+                                    {   // Have a JPEG thumbnail
+                                        filename_thumb = Find.File_relative( file_thumb, root );
+                                    }
+                                    else
+                                    {
+                                        file_thumb = Find.File_newExtension( file, '.jpg' );
+                                        if( !file_thumb.nativePath in existsLUT )
+                                        {   // Have NO thumbnail (make a jpeg)
+                                            trace("Needs:",file_thumb.url);
+                                            thumbnail.AddTask( file, file_thumb )
+                                        }
+                                        filename_thumb = Find.File_relative( file_thumb, root );
+                                    }
+                                }
+                                seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
+                                seded = seded.replace(/VIDEO_PATH/g,file_relative_path);
+                                seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
+                                fs.writeUTFBytes(seded);
+                            }
+                            else
+                            {
+                                // Thumbnail files are mixed in with the mp4, so we don't
+                                // do extra directory tree searches through the file system
+                                // to check for thumbnails' existence
+                            }
+                        }
+                        fs.writeUTFBytes("</div>\n");
                     }
-                    fs.writeUTFBytes("</div>\n");
                 }
     
                 // Bottom part of file
@@ -736,12 +741,9 @@ package
         internal function onFolderEdited(e:Event=null):void
         {
             root_path_video = new File(ui.tfPathVideo.text);
-            root_path_video.canonicalize();
             THUMB_SIZE = int(ui.tfThumbnailSize.text);
             root_path_image = new File(ui.tfPathImage.text);
-            root_path_image.canonicalize();
             root_path_audio = new File(ui.tfPathAudio.text);
-            root_path_audio.canonicalize();
         }
 
         /** User navigated a different path */

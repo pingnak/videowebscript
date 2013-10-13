@@ -2,7 +2,7 @@
 <application xmlns="http://ns.adobe.com/air/application/3.8">
     <id>Contact-UI</id>
     <versionNumber>1.0</versionNumber>
-    <filename>Web Contact Sheet Maker</filename>
+    <filename>Web Media Indexer</filename>
     <description>Generate portable web browser interfaces for various media content, similar to what common DLNA servers produce.</description>
     <!-- To localize the description, use the following format for the description element.
 	<description>
@@ -11,7 +11,7 @@
 		<text xml:lang="ja">Japanese App description goes here</text>
 	</description>
 	-->
-    <name>Web Contact Sheet Maker</name>
+    <name>Web Media Indexer</name>
     <!-- To localize the name, use the following format for the name element.
 	<name>
 		<text xml:lang="en">English App name goes here</text>
@@ -41,4 +41,5 @@
         <image32x32>icons/icon32.png</image32x32>
         <image16x16>icons/icon16.png</image16x16>
     </icon>
+    <supportedProfiles>desktop extendedDesktop</supportedProfiles>
 </application>
