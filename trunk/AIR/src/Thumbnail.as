@@ -7,13 +7,14 @@ package
     import flash.display.*;
     import flash.events.*;
     import flash.filesystem.*;
-
-    // I'll have to migrate this out of the flash build, to a flex build
-    //import mx.graphics.codec.*;
     
     /**
      * Generate a thumbnail from an mp4 file.
      * Assumes you already checked whether it existed, before proceeding
+     *
+     * This would be MUCH simplified if I could find an event that definitely 
+     * told me the video had been rendered, and then definitely told me that 
+     * maybe it hadn't been.
      * 
      * Open a video file
      * Seek to a random location in the file
@@ -40,6 +41,8 @@ package
         // A 'playlist' for the thumbnailer to consume, behind the scenes
         internal var queue : Array;
         
+        internal var bSeekHappened : Boolean;
+        
         public function get busy() : Boolean { return 0 != queue.length; }
         public function get queue_length() : int { return queue.length; }
         public function get metadata() : Object { return null == _metadata ? new Object() : _metadata; }
@@ -59,9 +62,10 @@ package
 			connection.connect(null);
 			
 			stream = new NetStream(connection);
-			stream.addEventListener(NetStatusEvent.NET_STATUS, onEvent );
+			stream.addEventListener(NetStatusEvent.NET_STATUS, onNetStatus );
 			stream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, onError );
 			stream.addEventListener(IOErrorEvent.IO_ERROR, onError );
+			stream.addEventListener(Event.VIDEO_FRAME, trace );
 			stream.client = this;
 			
 			video = new Video(thumbsize, thumbsize);
@@ -107,7 +111,8 @@ package
             var queueObj = queue[0];
             videoFile = queueObj.file;
             thumbFile = queueObj.thumb;
-            //stream.close();
+            stream.close();
+            bSeekHappened = false;
 			stream.play( videoFile.url );
         }
         
@@ -122,9 +127,11 @@ package
 		protected function onError(event:Event):void
 		{
 		    trace( event.toString() );
+		    // Skip this
+		    PopTask();
 		}
         
-		protected function onEvent(event:NetStatusEvent):void 
+		protected function onNetStatus(event:NetStatusEvent):void 
 		{
 		    TraceObject( event.toString(), event.info );
 		    switch( event.info.code )
@@ -132,7 +139,29 @@ package
 		    // As far as I can tell, this is the 'last' thing I get, after
 		    // starting, seeking, pausing, so this is what I capture based on
 		    case "NetStream.Video.DimensionChange":
-		        Capture();
+		        //Capture();
+		        break;
+		    case "NetStream.Seek.Notify":
+		        bSeekHappened = true;
+		        break;
+		    case "NetStream.Buffer.Full":
+                if( bSeekHappened )
+                {
+                    // IF the seek we did happened, AND we got this message, we would
+                    // usually (but not always) get NetStream.Video.DimensionChange, and
+                    // could trigger based on that.  But since we don't always get it, 
+                    // this kludge is in place to WAIT A BIT after the buffer fills, 
+                    // because usually that message happened within ~100ms.  FML.
+                    
+                    // Too bad there isn't something like a 'NetStatusEvent.FIRST_FRAME'
+                    // generated after playback starts up from beginning, or after a 
+                    // seek.
+                    var timer : Timer = new Timer( 250, 1 );
+                    timer.addEventListener( TimerEvent.TIMER, Capture );
+                    timer.start();
+                    
+                    bSeekHappened = false;
+                }
 		        break;
 		    }
 		}
@@ -146,13 +175,17 @@ package
 		}
 		public function onMetaData(info:Object):void 
 		{
-		    TraceObject("onMetaData",info);
+		    //TraceObject("onMetaData",info);
+		    trace("onMetaData");
             this._metadata = info;
-            // Pick a frame, any frame, from about 10%~20%
-            stream.seek( (0.1*metadata.duration) + (0.1*metadata.duration*Math.random()) );
+            // Pick a frame, any frame, from about 15%~25%
+            // Hopefully, no 'spoilers' that early in the movie
+            var seek_to : int = (0.15*metadata.duration) + (0.1*metadata.duration*Math.random());
+            stream.seek( seek_to );
             stream.pause();
             video.height = thumbsize * info.height / info.width;
             //video.y = 0.5*(thumbsize-video.height);
+            
 		}
 		public function onPlayStatus(info:Object):void
 		{
@@ -170,9 +203,9 @@ package
 		{
 		    TraceObject("onXMPData",info);
 		}
-		protected static function TraceObject(sz:String, info:Object):void
+		protected function TraceObject(sz:String, info:Object):void
 		{
-		    trace(sz);
+		    trace(sz,':',getTimer(),videoFile.url);
 		    for( var s : String in info ) 
 		        trace("\t",s,info[s]);
 		}
