@@ -402,7 +402,7 @@ package
          * @param tree A tree, like results would return 
          * @param filter A function that returns true if a path should be thrown out
         **/
-        public static function Filter( tree : Array, filter : Function ) : Array
+        public static function Filter( tree : Array, fnFilter : Function ) : Array
         {
             var ret : Array = new Array();
             ret.push(tree[0]);
@@ -411,7 +411,7 @@ package
             for( i = 1; i < tree.length; ++i )
             {
                 f = tree[i];
-                if( !filter(f) )
+                if( !fnFilter(f) )
                 {
                     ret.push(f);
                 }
@@ -427,11 +427,10 @@ package
         **/
         public static function Exists( tree : Array, file : File ) : Boolean
         {
-            var regex : RegExp = new RegExp(file.url,"i");
             var i : int;
             for( i = 0; i < tree.length; ++i )
             {
-                if( tree[i].url.match(regex) )
+                if( 0 == tree[i].url.indexOf(file.url) )
                     return true;
             }
             return false;
@@ -439,4 +438,4 @@ package
         
     }
 }
-    
+

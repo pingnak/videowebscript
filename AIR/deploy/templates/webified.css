@@ -24,11 +24,13 @@
             img.index_thumbnail {
                 width:THUMB_SIZEpx;
                 vertical-align:middle;
+                padding-bottom:8px;
             }
             .folder_entry {
                 color:#00f8f8;
                 font-size:30px;
                 white-space:nowrap;
+                padding-bottom:8px;
             }
             .info_text {
               color: #808080;
