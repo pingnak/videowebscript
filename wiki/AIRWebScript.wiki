@@ -1,0 +1,18 @@
+An Adobe AIR version
+
+= Introduction =
+
+Added the beginnings of an AIR project to do the same thing, but with a bit easier and more 'portable' for less technical users.  Nearly identical to the BASH script, except a GUI and a crumb of extra ambition to handle a few other media cases.
+
+= Details =
+
+If you have Adobe AIR installed, just open the .air file to run it.  If you don't have adobe AIR installed, then install it from somewhere like here...
+
+http://get.adobe.com/air/
+[https://code.google.com/p/videowebscript/source/browse/#svn%2Ftrunk%2FAIR%2Fdeploy The Contact.air app from version control.]
+
+What's checked in right now generates the video thumbnails in AS3 code.  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification.  The brief freezes while thumbnailing are from the jpeg encoder.  
+
+Navigate to folder/tree that you want to index, click 'go', and let it work away at it for a while.  It remembers the settings, so the next time you run it, it will be able to quickly redo the same operation.  This comes in handy as you review the thumbnails it randomly seeks to generate.  Some will... 'suck'.  On a 'fade to black', or pointed at a wall, or blurry, or various other examples.  Just delete the thumbnails you hate, and run the script again, until you can tolerate it.  It doesn't generate thumbnails if they already exist, so within a few tries, you should have a bright set of thumbnail images for the videos.
+
+The 'All in One' is the only version available.  It is better suited for small trees of mp4 files.
