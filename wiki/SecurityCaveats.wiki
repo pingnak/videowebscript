@@ -1,0 +1,20 @@
+#labels Featured
+#Things to consider when deploying your content
+
+= Caveats =
+
+I have some important cautions for you, if your media content is licensed, copyrighted, private, etc.  Like any other electronic means of viewing things, it is easy to inadvertently share your videos with the world.  Take proper precautions.  These are not necessarily 'all' of the precautions you should take.  Just some examples to get you thinking about your liability.
+
+1. Put a password on your wireless router.  Or you'll share it all with everyone within a mile of your wireless network.
+
+2. It would be trivial to configure a web server to use the output of this script.  If you do, make sure either you own all of the content, or that anyone who pings your network router from the outside world doesn't discover a web server with your video collection on it.  You know, configure the firewall right, or configure the web server to require passwords and https communication.
+
+3. If you have to share protected content with others, over a distance, perhaps make sure it's done over a VPN.  
+
+4. Even on your own LAN, you might want to slap a password on access to your video folder.  Just because.
+
+= Special Pleading =
+
+Hey, this is just a script.  It has many valuable uses, and like anything that's useful, it can be used to do 'wrong'.  I take no responsibility for your willful, personal misconduct in distributing copyrighted materials, or other crimes, in whatever jurisdictions that you are in.  
+
+I don't warrant this to work under any circumstances, because it relies on HTML5 'web standards' that aren't standardized at all, and even the BASH shell and related tools vary quite a bit across platforms that support them.
