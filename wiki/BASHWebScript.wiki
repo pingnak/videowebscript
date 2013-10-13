@@ -5,6 +5,8 @@
 
 You like having pure, wizardly shell scripting power at your fingertips, and being able to modify things as you see fit, as you use them, and to fully automate things, with nothing between you and the console-scrolling love?  This is the version for you!
 
+[https://code.google.com/p/videowebscript/source/browse/#svn%2Ftrunk%2FBASH Get the BASH stuff from version control; it's just text files.]
+
 = Details =
 
 BASH is shell script supported by Mac OSX and the various other UNIXes and LINUXes.  If you are a Windows user, you're not necessarily out in the cold. there is always Cygwin or Win-BASH or various other GNU tools ports for windows.  It's possible the little script I have could be adapted to 'dir /s /b' and some of the token pasting iterators that 'CMD' supports, but... I don't feel motivated to.  If you're computer literate enough to use a shell script (or 'batch file'), you can read the script and port it yourself, or just install one of the aforementioned BASHes for Windows, to run this script.
