@@ -23,7 +23,7 @@ package
     public class Contact extends MovieClip
     {
         internal static const SO_PATH : String = "ContactData";
-        internal static const SO_SIGN : String = "CONTACT_SIGN_01";
+        internal static const SO_SIGN : String = "CONTACT_SIGN_00";
 
         /** What to call the 'top level' index file */
         public static var MAIN_INDEX      : String = "index.html";
@@ -157,6 +157,7 @@ package
                 CheckSet( ui.bDoVideo, false );
                 return;
             }
+            /*
             ui.tfPathAudio.text = root_path_audio.nativePath;
             if( CheckGet( ui.bDoAudio ) && (!root_path_audio.exists || !root_path_audio.isDirectory) )
             {
@@ -171,7 +172,7 @@ package
                 ErrorIndicate(ui.bDoImage);
                 return;
             }
-            
+            */
             CommitSharedData();
             
             DoVideo();
@@ -722,9 +723,9 @@ package
             CheckSet( ui.bDoVideo, true );
             CheckSet( ui.bnVideoAllInOne, false );
             root_path_video = File.userDirectory;
-            CheckSet( ui.bDoAudio, true );
+            CheckSet( ui.bDoAudio, false );
             root_path_audio = File.userDirectory;
-            CheckSet( ui.bDoImage, true );
+            CheckSet( ui.bDoImage, false );
             root_path_image = File.userDirectory;
             onFolderChanged();
         }
