@@ -19,7 +19,7 @@ Click the [...] button next to the path, and navigate to your content.  Navigate
 
 The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
 
-  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual video files are, or this will not generate anything like what you want.
+  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual mp4 video files are, or this will not generate anything like what you want.  The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
 
 == Generate Video Player ==
 
