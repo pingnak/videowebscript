@@ -19,15 +19,17 @@ Click the [...] button next to the path, and navigate to your content.  Navigate
 
 The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
 
-  * Generate Video Player
+  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual video files are, or this will not generate anything like what you want.
 
-All in one index
+== Generate Video Player ==
+
+  * All in one index
 
 Check this box to dump the whole index into one html file with accordion paths to hide/show files.  With a BIG tree of files, this is cumbersome, and the load time on the thumbnails can be punishing.  This is a 'one off' sort of thing for sending a few files to someone.
 
 Leave the box unchecked, and an 'index.html' will be written into each folder with its child folders linked on top, and its individual files, below.  This version of indexing should load almost instantly in most cases, but litters your tree with lots of index.html files.  Any folder from the tree will be self-contained.
 
- * Thumbnails
+== Thumbnails ==
 
 The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 15~25% of the way in, then captures a frame and writes it out as a JPEG file.
 
