@@ -6,7 +6,7 @@
              * Load the video when the page finishes loading 
              * http://www.w3.org/2010/05/video/mediaevents.html
              */
-            function playvideo(video_path)
+            function playmedia(video_path)
             {
                 console.log("PLAY:",video_path);
                 now_playing = video_path;
@@ -34,7 +34,7 @@
             {   // Play the first item on the list
                 var playlist = document.getElementsByClassName("index_entry");
                 var path = playlist[0].getAttribute("path");
-                playvideo(path);
+                playmedia(path);
             }
             function playNext()
             {   // Seek list of links for current video
@@ -46,7 +46,7 @@
                 {   
                     item = playlist[i];
                     path = item.getAttribute("path");
-                    // Link actually contains: "javascript: playvideo('VIDEO_PATH');"
+                    // Link actually contains: "javascript: playmedia('MEDIA_PATH');"
                     // Split by quote and pick out the URI from it.
                     if( path == now_playing )
                     {   // Found the current video; look at next.
@@ -54,12 +54,12 @@
                         if( 'undefined' == typeof(nextitem) || nextitem.parentNode != item.parentNode )
                         {
                             console.log("End of videos");
-                            playvideo();
+                            playmedia();
                         }
                         else
                         {
                             path = nextitem.getAttribute("path");
-                            playvideo(path);
+                            playmedia(path);
                         }
                         break;
                     }

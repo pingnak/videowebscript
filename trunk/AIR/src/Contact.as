@@ -131,6 +131,13 @@ package
 
             Interactive();
             
+            // Keep kicking the random number generator
+            addEventListener( Event.ENTER_FRAME, Entropy );
+        }
+
+        internal function Entropy(e:Event=null):void
+        {
+            Math.random();
         }
         
         /**
@@ -297,19 +304,41 @@ package
                 trace("Tree");
                 DoVideoFilesTree(finding.results);
             }
+        }
+
+        /**
+         * Finished exporting video files
+        **/
+        protected function VideoFilesComplete(e:Event=null):void
+        {
+            ui.tfStatus.text = "";
             if( 0 != thumbnail.queue_length )
             {
                 // Wait for thumbnailing to complete
-                thumbnail.Startup();
-                thumbnail.addEventListener( Event.COMPLETE, VideoFilesComplete );
+                thumbnail.addEventListener( Event.COMPLETE, ThumbnailsComplete );
                 thumbnail.addEventListener( Thumbnail.SNAPSHOT_READY, ThumbnailNext );
+                thumbnail.Startup();
             }
             else
             {
                 // Jump to audio task
-                VideoFilesComplete();
+                ThumbnailsComplete();
             }
         }
+        
+        /**
+         * Clean up after video UI and thumbnail generation
+        **/
+        protected function ThumbnailsComplete(e:Event=null):void
+        {
+            if( null != thumbnail )
+            {
+                thumbnail.Cleanup();
+                thumbnail = null;
+            }
+            DoAudio();
+        }
+
         
         /** Update progress animation with thumbnail status */
         protected function ThumbnailNext(e:Event=null):void
@@ -364,7 +393,6 @@ package
         {
             try
             {
-                var i : int;
                 var j : int;
                 var file : File;
                 var folder : File;
@@ -394,9 +422,33 @@ package
                 
                 // Iterate files + folders
                 var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i");
-                for( i = 0; i < folders.length; ++i )
+
+                // Break outer loop up into timed passes, to keep this from blocking
+                var threadTimer : Timer = new Timer( 1,1 );
+                threadTimer.addEventListener( TimerEvent.TIMER, ThreadOnce );
+                threadTimer.start();
+                var folder_iteration : int = 0;
+
+                //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
+                function ThreadOnce(e:Event):void
                 {
-                    folder = folders[i];
+                    if( folder_iteration < folders.length )
+                    {
+                        // Do next pass
+                        threadTimer.reset();
+                        threadTimer.start();
+                    }
+                    else
+                    {
+                        // Break out of 'threaded' loop
+                        // Bottom part of file index file; all done
+                        fs.writeUTFBytes(LoadText(INDEX_EPILOG));
+                        fs.close();
+                        VideoFilesComplete();
+                        return;
+                    }
+                    folder = folders[folder_iteration++];
+                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
                     
                     var files : Array = Find.GetChildren( found, folder );
                     var mp4files : Array = Find.Filter( files, justmp4 );
@@ -413,7 +465,7 @@ package
                         var folderparent : String;
                         var foldername : String;
                         var folderstyle : String;
-                        if( 0 == i )
+                        if( 0 == folder_iteration )
                         {   // Special case for root path
                             relative_path = "";
                             folderparent = "";
@@ -456,8 +508,8 @@ package
                                 var file_thumb : File = CheckThumbnail(file);
                                 var filename_thumb : String = Find.File_relative( file_thumb, root );
                                 
-                                seded = index_file.replace(/VIDEO_IMAGE/g,filename_thumb);
-                                seded = seded.replace(/VIDEO_PATH/g,file_relative_path);
+                                seded = index_file.replace(/MEDIA_IMAGE/g,filename_thumb);
+                                seded = seded.replace(/MEDIA_PATH/g,file_relative_path);
                                 seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
                                 fs.writeUTFBytes(seded);
                             }
@@ -472,9 +524,6 @@ package
                     }
                 }
     
-                // Bottom part of file
-                fs.writeUTFBytes(LoadText(INDEX_EPILOG));
-                fs.close();
             }
             catch( e:Error )
             {
@@ -489,19 +538,19 @@ package
          * index for all.
          *
          * This will definitely load individual pages a lot faster, but you'll
-         * add some more clutter to your directory tree for all of the toc.html
+         * add some more clutter to your directory tree for all of the index.html
          * files.  
          *
          * Simpler UI without folding folders.  Just one index.html at the root
-         * like the other one, but containing only folder to folders containing 
-         * a player and file list.
+         * like the other one, but containing only links to folders containing 
+         * more content.
         **/
         protected function DoVideoFilesTree(found:Array):void
         {
             try
             {
-                var i : int;
-                var j : int;
+                var folder_iteration : int;
+                var iteration : int;
                 var seded : String
                 var folder : File;
 
@@ -510,12 +559,35 @@ package
                 var index_index : String = LoadText(INDEX_INDEX); 
                 var index_file : String = LoadText(INDEX_FILE); 
                 var index_epilog : String = LoadText(INDEX_EPILOG); 
+
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
-                for( i = 0; i < folders.length; ++i )
+                var threadTimer : Timer = new Timer( 1,1 );
+                threadTimer.addEventListener( TimerEvent.TIMER, ThreadOnce );
+                threadTimer.start();
+                folder_iteration = 0;
+
+                //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
+                function ThreadOnce(e:Event):void
                 {
-                    var root : File = folders[i];
+                    if( folder_iteration < folders.length )
+                    {
+                        // Do next pass
+                        threadTimer.reset();
+                        threadTimer.start();
+                    }
+                    else
+                    {
+                        // Break out of 'threaded' loop
+                        // Bottom part of file index file; all done
+                        VideoFilesComplete();
+                        return;
+                    }
+                    
+                    var root : File = folders[folder_iteration++];
+
+                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
                     
                     // Get a list of folders in this folder, files in this folder
                     var curr_files : Array = Find.GetChildren( found, root );
@@ -533,9 +605,9 @@ package
                     fs.writeUTFBytes(seded);
 
                     // Iterate child folders and generate links to them
-                    for( j = 1; j < curr_folders.length; ++j )
+                    for( iteration = 1; iteration < curr_folders.length; ++iteration )
                     {
-                        var curr_folder = curr_folders[j];
+                        var curr_folder = curr_folders[iteration];
                         var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
                         var curr_index_title : String = Find.File_nameext( curr_folder );
                         var curr_index_relative : String = Find.File_relative( curr_index, root );
@@ -548,9 +620,9 @@ package
                     }
                     
                     // Iterate files and generate code + thumbnails
-                    for( j = 0; j < curr_files.length; ++j )
+                    for( iteration = 0; iteration < curr_files.length; ++iteration )
                     {
-                        var curr_file = curr_files[j];
+                        var curr_file = curr_files[iteration];
                         var curr_file_relative : String = Find.File_relative( curr_file, root );
                         var curr_file_title : String = Find.File_name( curr_file );
                         
@@ -559,16 +631,15 @@ package
 
                         // Emit index+code to play file
                         seded = index_file;
-                        seded = seded.replace(/VIDEO_IMAGE/g,curr_file_thumb);
-                        seded = seded.replace(/VIDEO_PATH/g,curr_file_relative);
+                        seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
+                        seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                         seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
                         fs.writeUTFBytes(seded);
                     }
                     
-
-                    // Bottom part of file index file; all done
                     fs.writeUTFBytes(index_epilog);
                     fs.close();
+                    
                 }
     
             }
@@ -579,18 +650,6 @@ package
             }
         }
 
-        /**
-         * Clean up after video UI and thumbnail generation
-        **/
-        protected function VideoFilesComplete(e:Event=null):void
-        {
-            if( null != thumbnail )
-            {
-                thumbnail.Cleanup();
-                thumbnail = null;
-            }
-            DoAudio();
-        }
         
         /**
          * Process audio tree
