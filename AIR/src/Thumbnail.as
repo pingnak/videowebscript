@@ -72,7 +72,6 @@ package
 			stream.addEventListener(NetStatusEvent.NET_STATUS, onNetStatus );
 			stream.addEventListener(AsyncErrorEvent.ASYNC_ERROR, onError );
 			stream.addEventListener(IOErrorEvent.IO_ERROR, onError );
-			stream.addEventListener(Event.VIDEO_FRAME, trace );
 			stream.client = this;
 			
 			video = new Video(thumbsize, thumbsize);
