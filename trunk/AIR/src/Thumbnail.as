@@ -54,7 +54,10 @@ package
         public var jpeg_compression_quality : Number = 90;
         
         /** If file size of images is less than (rejection_threshold*width*height), they are re-done */
-        public var rejection_threshold : Number = 0.25; 
+        public var rejection_threshold : Number = 0.275; 
+
+        public var max_tries : int = 3;
+        internal var num_tries : int;
         
         public function get busy() : Boolean { return 0 != queue.length; }
         public function get queue_length() : int { return queue.length; }
@@ -143,6 +146,7 @@ package
         **/
         public function Startup( e:Event=null ) : void
         {
+			num_tries = max_tries;
             PopTask();
         }
 
@@ -188,7 +192,7 @@ package
                     // Too bad there isn't something like a 'NetStatusEvent.FIRST_FRAME'
                     // generated after playback starts up from beginning, or after a 
                     // seek.
-                    var timer : Timer = new Timer( 200, 1 );
+                    var timer : Timer = new Timer( 250, 1 );
                     timer.addEventListener( TimerEvent.TIMER, Capture );
                     timer.start();
                     bSeekHappened = false;
@@ -206,7 +210,7 @@ package
 		}
 		public function onMetaData(info:Object):void 
 		{
-		    //TraceObject("onMetaData",info);
+		    TraceObject("onMetaData",info);
             this._metadata = info;
 
             video.height = thumbsize * info.height / info.width;
@@ -255,7 +259,6 @@ package
             var timer : Timer = new Timer( 14, 1 );
             timer.addEventListener( TimerEvent.TIMER, DoCapture );
             timer.start();
-            
         }
 
         /**
@@ -283,10 +286,12 @@ package
             // brick wall, or whether the subject is interesting in any way.  
             // Delete the thumbnail yourself, and run again.
             //
+
             var qualityGuess : int = rejection_threshold * video.width * video.height;
-            if( qualityGuess < bytes.length )
+            if( qualityGuess < bytes.length || 0 > --num_tries )
             {
                 //trace("accept:", bytes.length, '/', qualityGuess );                
+                num_tries = max_tries;
 
                 // Write jpeg
                 var fs:FileStream = new FileStream();

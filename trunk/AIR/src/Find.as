@@ -342,15 +342,17 @@ package
             var i : int;
             var f : File;
             var root : File = tree[0];
-            var url : String = path.url;
             var depth : int = File_Depth(path,root);
+            if( root.url != path.url )
+                depth += 1;
             var found : Array = new Array();
+            var url : String = path.url;
             for( i = 0; i < tree.length; ++i )
             {
                 f = tree[i];
-                if( -1 != f.url.indexOf(url) )
+                if( 0 == f.url.indexOf(url) )
                 {
-                    if( max_depth >= File_Depth(f,path)-depth )
+                    if( max_depth >= File_Depth(f,root)-depth )
                     {
                         found.push(f);
                     }
