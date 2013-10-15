@@ -603,7 +603,7 @@ package
                     var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
                     var fs : FileStream = new FileStream();
                     fs.open( curr_index_file, FileMode.WRITE );
-                    var curr_title : String = Find.File_name(root);
+                    var curr_title : String = Find.File_nameext(root);
                     seded = index_prolog;
                     seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                     seded = seded.replace(/TITLE_TEXT/g,curr_title);
