@@ -53,7 +53,7 @@ package
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
         
         /** Width of thumbnails */
-        public static var THUMB_SIZE      : int = 128;
+        public static var THUMB_SIZE      : int = 180;
 
         /** Regular expressions that we accept as 'MP4 content' 
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
@@ -240,6 +240,23 @@ package
                 return;
             }
 
+            // Make sure we don't go way out of range on thumb size
+            if( THUMB_SIZE < 64 )
+            {
+                THUMB_SIZE = 64;
+                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                ErrorIndicate(ui.tfThumbnailSize);
+                return;
+            }
+            if( THUMB_SIZE > 720 )
+            {
+                THUMB_SIZE = 720;
+                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                ErrorIndicate(ui.tfThumbnailSize);
+                return;
+            }
+
+            
             // MP4, PNG, folders
             var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i")
             function filter_mp4_png_folders(file:File):Boolean
@@ -349,19 +366,6 @@ package
             // Size elements
             addChild(thumbnail_template);
 
-            // Render to bitmap
-            var bmd : BitmapData = new BitmapData(THUMB_SIZE, thumbnail.video_object.height, false, 0);
-            bmd.draw(thumbnail_template);
-            
-            // Encode jpeg
-            var jpeg : JPGEncoder = new JPGEncoder(80);
-            var bytes : ByteArray = jpeg.encode(bmd);
-            
-            // Write jpeg
-            var fs:FileStream = new FileStream();
-            fs.open( thumbnail.thumb_file, FileMode.WRITE );
-            fs.writeBytes(bytes,0,bytes.length );
-            fs.close();
         }
 
         /**

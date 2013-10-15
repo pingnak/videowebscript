@@ -50,6 +50,12 @@ package
         
         internal var bSeekHappened : Boolean;
         
+        /** Lossless jpeg */
+        public var jpeg_compression_quality : Number = 90;
+        
+        /** If file size of images is less than (rejection_threshold*width*height), they are re-done */
+        public var rejection_threshold : Number = 0.25; 
+        
         public function get busy() : Boolean { return 0 != queue.length; }
         public function get queue_length() : int { return queue.length; }
         public function get metadata() : Object { return null == _metadata ? new Object() : _metadata; }
@@ -59,7 +65,12 @@ package
         public function get video_object() : Video { return video; }
         public function get video_stream() : NetStream { return stream; }
         
-        public function Thumbnail( mcPlace : MovieClip, thumbsize : uint = 128 )
+        /**
+         * Create a thumbnailer
+         * @param mcPlace Somewhere to play the videos 'on', for preview, to overlay and to get sizing right
+         * @param thumbsize Width of thumbs; height is adjusted to this, to maintain aspect ratio 
+        **/
+        public function Thumbnail( mcPlace : MovieClip, thumbsize : uint = 180 )
         {
             this.thumbsize = thumbsize;
             this.mcPlace = mcPlace;
@@ -75,8 +86,11 @@ package
 			stream.client = this;
 			
 			video = new Video(thumbsize, thumbsize);
+            video.width = video.height = thumbsize;
+            video.smoothing = true;
 			video.attachNetStream( stream );
-			mcPlace.addChild(video);            
+			// Add it to bottom of 'mcPlace' stack, assuming app is drawing on top
+			mcPlace.addChildAt(video,0);            
         }
 
         /**
@@ -117,6 +131,8 @@ package
             var queueObj = queue[0];
             videoFile = queueObj.file;
             thumbFile = queueObj.thumb;
+            video.width = video.height = thumbsize;
+            video.smoothing = true;
             stream.close();
             bSeekHappened = false;
 			stream.play( videoFile.url );
@@ -128,6 +144,16 @@ package
         public function Startup( e:Event=null ) : void
         {
             PopTask();
+        }
+
+        /**
+         * Pick a frame for the thumbnailer
+        **/
+        protected function PickFrame() : void
+        {
+            // Pick a frame, any frame, from about 20%~80%
+            var seek_to : int = (0.2*metadata.duration) + (0.6*metadata.duration*Math.random());
+            stream.seek( seek_to );
         }
 
 		protected function onError(event:Event):void
@@ -162,10 +188,9 @@ package
                     // Too bad there isn't something like a 'NetStatusEvent.FIRST_FRAME'
                     // generated after playback starts up from beginning, or after a 
                     // seek.
-                    var timer : Timer = new Timer( 250, 1 );
+                    var timer : Timer = new Timer( 200, 1 );
                     timer.addEventListener( TimerEvent.TIMER, Capture );
                     timer.start();
-                    
                     bSeekHappened = false;
                 }
 		        break;
@@ -182,16 +207,13 @@ package
 		public function onMetaData(info:Object):void 
 		{
 		    //TraceObject("onMetaData",info);
-		    trace("onMetaData");
             this._metadata = info;
-            // Pick a frame, any frame, from about 15%~25%
-            // Hopefully, no 'spoilers' that early in the movie
-            var seek_to : int = (0.15*metadata.duration) + (0.1*metadata.duration*Math.random());
-            stream.seek( seek_to );
-            stream.pause();
+
             video.height = thumbsize * info.height / info.width;
             //video.y = 0.5*(thumbsize-video.height);
-            
+
+            PickFrame();
+            stream.pause();
 		}
 		public function onPlayStatus(info:Object):void
 		{
@@ -223,14 +245,14 @@ package
             trace("Capture",thumbFile.nativePath);
             if( null == stream )
                 return;
-
+                
             // Let app know to set up any capture decorations
             // Makes the code a touch more 'reusable' by abstracting this
             // Add crap to the template, draw on it, whatever
             dispatchEvent( new Event( SNAPSHOT_READY ) );
             
             // Give UI a chance to refresh after calling back
-            var timer : Timer = new Timer( 10, 1 );
+            var timer : Timer = new Timer( 14, 1 );
             timer.addEventListener( TimerEvent.TIMER, DoCapture );
             timer.start();
             
@@ -242,22 +264,55 @@ package
         protected function DoCapture(e:Event):void
         {
             // Render to bitmap
-            var bmd : BitmapData = new BitmapData(thumbsize, mcPlace.height, false, 0);
+            video.width = thumbsize;
+            video.height = thumbsize * video.videoHeight / video.videoWidth;
+            var bmd : BitmapData = new BitmapData(mcPlace.width, mcPlace.height, false, 0);
             bmd.draw(mcPlace);
             
             // Encode jpeg
-            var jpeg : JPGEncoder = new JPGEncoder(80);
+            var jpeg : JPGEncoder = new JPGEncoder(jpeg_compression_quality);
             var bytes : ByteArray = jpeg.encode(bmd);
-            
-            // Write jpeg
-            var fs:FileStream = new FileStream();
-            fs.open( thumbFile, FileMode.WRITE );
-            fs.writeBytes(bytes,0,bytes.length );
-            fs.close();
 
-            // Remove current queue, see if there's more to do
-            queue.shift();
-            PopTask();
+            //
+            // Automatically re-encode thumbs that are suspiciously tiny in file size
+            //
+            // Solid color, blurry or low content thumbnails are usually 'bad', so we re-do them automatically.
+            // We want high contrast, complicated, noisy thumbnails
+            //
+            // Without 'AI Complete', we can't detect panning over an interesting 
+            // brick wall, or whether the subject is interesting in any way.  
+            // Delete the thumbnail yourself, and run again.
+            //
+            var qualityGuess : int = rejection_threshold * video.width * video.height;
+            if( qualityGuess < bytes.length )
+            {
+                //trace("accept:", bytes.length, '/', qualityGuess );                
+
+                // Write jpeg
+                var fs:FileStream = new FileStream();
+                fs.open( thumbFile, FileMode.WRITE );
+                fs.writeBytes(bytes,0,bytes.length );
+                fs.close();
+
+                // Remove current queue, see if there's more to do
+                queue.shift();
+                PopTask();
+            }
+            else
+            {
+                // Don't write, just try again
+                trace("REJECT:", bytes.length, '/', qualityGuess );
+
+                // I was not able to immediately re-seek and work out when it was safe
+                // to retry a capture, and on multiple retries, the video player would  
+                // tend to quit on me.
+                //
+                // TODO: Figure out how to simply seek around within the file without
+                // starting over, call DoCapture again, and not waste
+                // as much time as starting over from scratch with PopTask.
+                PopTask();
+            }
+            
         }
    
     }
