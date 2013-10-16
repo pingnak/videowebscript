@@ -21,6 +21,10 @@ The app remembers its settings, so the next time you run it, it will be able to 
 
   * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual mp4 video files are, or this will not generate anything like what you want.  The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
 
+=It Says You Didn't Configure The Installer Right!=
+
+Actually, that's Adobe having fits about the self signed certificate being different.  If you manually remove the previous version from the computer, you can install the next (and later) versions, just fine.  
+
 == Generate Video Player ==
 
   * All in one index
@@ -31,9 +35,25 @@ Leave the box unchecked, and an 'index.html' will be written into each folder wi
 
 == Thumbnails ==
 
-The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 15~25% of the way in, then captures a frame and writes it out as a JPEG file.
+The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 20~80% of the way in, then captures a frame and writes it out as a JPEG file.
 
 Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see.
+
+= Tools =
+
+The 'Tools' menu has a few items that needed burying, that could do harm.
+
+First is 'Remove Thumbnails'.  It does what it says.  If you pick that, a suitably noisome 'Are You Sure?' prompt pops up, and demands your permission.  While I took care to delete only jpg files that match an identically named file with the '.(mp4|m4v|m4p|m4r|3gp|3g2)' extension types, you should still use it with care.  
+
+The other one is 'Remove index.html' files.  This one is more dangerous, since it will recursively delete this perfectly common web file name from wherever you launch the tool.  
+
+Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
+
+== Backups == 
+
+I should probably mention the intrinsic value of 'Backups' and version control for your web development.  So I just did.  Back things up, in general, or you'll eventually have some 'regrets' to deal with.  
+
+This tool is 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up' thumbnails, yourself.  A good and timely backup will make this kind of error a lot less annoying.
 
 = Long-Winded Technical Rants =
 
@@ -42,5 +62,15 @@ What's checked in right now generates MP4 video thumbnails in AS3 code, and it's
 The code is a bit... untidy.  I haven't gone through and cleaned it up.  I definitely need to break some of these processes down by folder in state machines (aka 'green threads'), to keep Flash from hanging on larger operations.
 
 Soon, when I get tired of changing the UI in Flash, I'll provide a Flex/AIR SDK command line build, based on embedding the art and animations.
+
+=Building It==
+
+As promised, the source can now be built with Apache Ant, and some recent version of Flex SDK.  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.
+
+You will still need Adobe Flash CS6, or later to change the hideous little UI's appearance.
+
+[https://ant.apache.org/]
+
+[http://www.adobe.com/devnet/flex/flex-sdk-download.html]
 
 See Also: [SecurityCaveats]
