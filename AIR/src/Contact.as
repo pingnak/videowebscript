@@ -10,6 +10,7 @@
 
 package
 {
+    import flash.system.*;
     import flash.utils.*;
     import flash.geom.*;
     import flash.events.*;
@@ -30,17 +31,8 @@ package
 CONFIG::MXMLC_BUILD
 {
         /** Main SWF */
-        [Embed(source="./Contact_UI.swf", symbol="UI_Settings" )]
-        public static const UI_Settings : Class;
-
-        [Embed(source="./Contact_UI.swf", symbol="UI_AreYouSure" )]
-        public static const UI_AreYouSure : Class;
-
-        [Embed(source="./Contact_UI.swf", symbol="ErrorIndicator" )]
-        public static const ErrorIndicator : Class;
-        
-        [Embed(source="./Contact_UI.swf", symbol="ThumbnailTemplate" )]
-        public static const ThumbnailTemplate : Class;
+        [Embed(source="./Contact_UI.swf", mimeType="application/octet-stream")]
+        public static const baMainSwfClass : Class;
 }
 
         /** A global instance to keep track of */
@@ -101,8 +93,24 @@ CONFIG::MXMLC_BUILD
         {
             instance = this;
             
-            ui = new UI_Settings();
+CONFIG::MXMLC_BUILD
+{
+            var loader : Loader = LoadSwfFromByteArray(baMainSwfClass);
+            loader.contentLoaderInfo.addEventListener( Event.INIT, UI_Ready );
+}
+CONFIG::FLASH_AUTHORING
+{
+            UI_Ready();
+}
+
+        }
+        
+        public function UI_Ready(e:Event=null) : void
+        {
+            var cls : Class = GetClass("UI_Settings");
+            ui = new cls();
             addChild(ui);
+
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
@@ -317,7 +325,8 @@ CONFIG::MXMLC_BUILD
             var popupWindow:NativeWindow = new NativeWindow(windowInitOptions);
             
             // create your class
-            var ui:MovieClip = new UI_AreYouSure();
+            var cls : Class = GetClass("UI_AreYouSure");
+            var ui:MovieClip = new cls();
 
             // Text
             ui.tfBody.text = body;
@@ -411,6 +420,7 @@ CONFIG::MXMLC_BUILD
         
         private function Busy() : void
         {
+            ui.gotoAndStop(2);
             ui.gotoAndStop("working");
             ui.tfStatus.text = "...";
             ui.tabChildren = false;
@@ -503,7 +513,8 @@ CONFIG::MXMLC_BUILD
             finding.addEventListener( Find.MORE, FindStatus );
             finding.addEventListener( Find.FOUND, HaveVideoFiles );
 
-            thumbnail_template = new ThumbnailTemplate();
+            var cls : Class = GetClass("ThumbnailTemplate");
+            thumbnail_template = new cls();
             thumbnail = new Thumbnail(thumbnail_template.mcPlaceholder,THUMB_SIZE);
             Busy();
 
@@ -959,6 +970,7 @@ CONFIG::MXMLC_BUILD
             CheckSet( ui.bDoImage, false );
             root_path_image = File.userDirectory;
             onFolderChanged();
+            THUMB_SIZE = 240;
         }
         
         /**
@@ -1124,7 +1136,8 @@ CONFIG::MXMLC_BUILD
         **/
         internal function ErrorIndicate(whereXY:Object) : void
         {
-            var mc : MovieClip = new ErrorIndicator();
+            var cls : Class = GetClass("ErrorIndicator");
+            var mc : MovieClip = new cls();
             if( whereXY is DisplayObject )
             {
                 var bounds : Rectangle = whereXY.getBounds(this);
@@ -1138,7 +1151,31 @@ CONFIG::MXMLC_BUILD
             }
             addChild(mc);
         }
-        
+
+        /**
+         * Load a resource that's embedded 
+        **/
+CONFIG::MXMLC_BUILD
+{
+        public static function LoadSwfFromByteArray( baClass : Class ) : Loader
+        {
+            var ba : ByteArray = new baClass();
+            var loader : Loader = new Loader();
+            var loaderContext:LoaderContext = new LoaderContext(false);
+            loaderContext.checkPolicyFile = false;
+            loaderContext["allowCodeImport"] = true;
+            loaderContext.applicationDomain = ApplicationDomain.currentDomain;
+            loader.loadBytes(ba,loaderContext);
+            return loader;
+        }
+}
+        /**
+         * Resolve a class that may have been loaded
+        **/
+        public static function GetClass( id : String ) : Class
+        {
+            return ApplicationDomain.currentDomain.getDefinition(id) as Class;
+        }
     }
 }
     
