@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+	This is an ant build for the Flex SDK
+
+	Here's what you'll need:
+		1. Adobe Flex SDK (or 'Flex Builder')
+			http://www.adobe.com/cfusion/entitlement/index.cfm?e=flex3sdk
+			http://www.adobe.com/cfusion/entitlement/index.cfm?e=flex4sdk
+		2. ANT
+			http://ant.apache.org/bindownload.cgi
+		3. A JAVA Runtime (both for ANT, and for Flex SDK)
+			http://java.com/en/download/manual.jsp
+			
+	You can point 'flex.dir' at your Flex SDK build tools in ./my.build.properties or ~/ant/my.build.properties
+	Under windoze, '~/ant/my.build.properties' means  C:\Documents And Settings\[youraccountname]\ant\my.build.properties
+	
+	The file would look something like...
+	
+# My OSX/BSD/Linux build settings...
+flex.dir=/Developer/SDKs/Flex
+
+... or (windoze example) ...
+
+# My windoze build settings (Flex Builder user) ...
+flex.dir=C:/Program Files/Adobe/Flex Builder 3/Flex SDK 3
+
+... and you can also override various settings found in 'build.properties' there.
+
+-->
+<project basedir="." name="Ant MXMLC Build" default="release" >
+
+	<!-- Grab external depends -->
+	<property file="${user.home}\ant\my.build.properties"/>
+	<property file=".\my.build.properties"/>
+	<property file="${os.name}.build.properties"/>
+	<property file="build.properties"/>
+	<property environment="env"/>
+
+	<!--
+		Define mxmlc invocation
+	-->
+	<macrodef name="macro-buildexec">
+		<attribute name="main"/>		<!-- The 'main' application class -->
+		<attribute name="target"/>		<!-- Where the built target goes -->
+		<attribute name="src"/>			<!-- Where the preprocessed code goes -->
+		<attribute name="debug"/>		<!-- Debug flag -->
+		<attribute name="release"/>		<!-- Complimentary Release flag -->
+		<attribute name="buildtype"/>	<!-- Air (or not) -->
+		<sequential>
+			<tstamp />
+			<echo>MXMLC @{target}...</echo>
+			<!--
+				We use the java invocation, since the 'exec' chokes on Windoze
+				'mxmlc.exe' vs 'mxmlc' on any other platform.
+			-->
+			<exec executable="mxmlc" searchpath="true" vmlauncher="false" failonerror="true" >
+				<arg line="@{buildtype}" />
+				<!-- Set conditional compile directives and constants -->
+				<arg value="-compiler.define=CONFIG::FLASH_AUTHORING,false" />
+				<arg value="-compiler.define=CONFIG::MXMLC_BUILD,true" />
+				<arg value="-compiler.define=CONFIG::DIKEOUT,false" />
+				<arg value="-compiler.define=CONFIG::DEBUG,@{debug}" />
+				<arg value="-compiler.define=CONFIG::RELEASE,@{release}" />
+				<arg value="-compiler.define=CONFIG::AIR,true" />
+				<arg value="-compiler.define=CONFIG::WEB,false" />
+				<arg value="-compiler.define=CONFIG::WIDE,${app.wide}" />
+				<arg value="-compiler.define=CONFIG::HIGH,${app.high}" />
+				<arg value="-compiler.define=CONFIG::TIME,${DSTAMP}${TSTAMP}" />
+				
+				<!-- 
+					Every kind of warning available...
+					
+					Generated with...
+
+					mxmlc -help advanced | grep warn | grep -v change | sed 's@^\(.*\)$@<arg line="\1=true" />@'
+						
+					To break that BASH command line down for you...
+					
+					mxmlc -help advanced 	Get all help mxmlc has
+					| grep warn				Then find all the warning flags in that
+					| grep -v change		Then exclude the warnings about things new to AS3
+					| sed 's@^\(.*\)$@<arg line="\1=true" Then turn the list into ant args with a regular expression
+				-->
+				<arg line="-compiler.strict=true" />
+				<arg line="-compiler.show-actionscript-warnings=true" />
+				<arg line="-compiler.show-binding-warnings=false" />
+				<arg line="-compiler.warn-assignment-within-conditional=true" />
+				<arg line="-compiler.warn-bad-array-cast=true" />
+				<arg line="-compiler.warn-bad-bool-assignment=true" />
+				<arg line="-compiler.warn-bad-date-cast=true" />
+				<arg line="-compiler.warn-bad-es3-type-method=true" />
+				<arg line="-compiler.warn-bad-es3-type-prop=true" />
+				<arg line="-compiler.warn-bad-nan-comparison=true" />
+				<arg line="-compiler.warn-bad-null-assignment=true" />
+				<arg line="-compiler.warn-bad-null-comparison=true" />
+				<arg line="-compiler.warn-bad-undefined-comparison=true" />
+				<arg line="-compiler.warn-boolean-constructor-with-no-args=false" />
+				<arg line="-compiler.warn-class-is-sealed=true" />
+				<arg line="-compiler.warn-const-not-initialized=true" />
+				<arg line="-compiler.warn-constructor-returns-value=false" />
+				<arg line="-compiler.warn-deprecated-event-handler-error=false" />
+				<arg line="-compiler.warn-deprecated-function-error=true" />
+				<arg line="-compiler.warn-deprecated-property-error=true" />
+				<arg line="-compiler.warn-duplicate-argument-names=true" />
+				<arg line="-compiler.warn-duplicate-variable-def=true" />
+				<arg line="-compiler.warn-import-hides-class=true" />
+				<arg line="-compiler.warn-internal-error=true" />
+				<arg line="-compiler.warn-level-not-supported=true" />
+				<arg line="-compiler.warn-missing-namespace-decl=true" />
+				<arg line="-compiler.warn-negative-uint-literal=true" />
+				<arg line="-compiler.warn-no-type-decl=true" />
+				<arg line="-compiler.warn-slow-text-field-addition=true" />
+				<arg line="-compiler.warn-unlikely-function-value=true" />
+				<arg line="-warnings=true" />
+				<!-- Set 'nice to know' things in metadata -->
+				<arg line="-title '${app.title}'" />
+				<arg line="-description '${app.description}'" />
+				<arg line="-publisher '${app.publisher}'" />
+				<arg line="-creator '${app.creator}'" />
+				<arg line="-language '${app.language}'" />
+				<!-- Set up Application preferences -->
+				<arg line="-default-size ${app.wide} ${app.high}" />
+				<arg line="-default-background-color=#${app.background.color}" />
+				<arg line="-use-network=true" />
+				<arg line="-default-frame-rate=${app.framerate}" />
+				<!-- Set up debug/optimize -->
+				<arg line="-compiler.debug=@{debug}" /> 
+				<arg line="-compiler.optimize=@{release}" /> 
+				<!-- MAIN (must be last on list -->
+				<arg line="--source-path='@{src}'" />
+				<arg line="-o=@{target}"/>
+				<arg line="-file-specs='@{src}/@{main}'" />
+				<arg line="-target-player='${app.fullplayerversion}'" />
+			</exec>
+			<echo/>
+			<echo>BUILD VERSION ${DSTAMP}${TSTAMP}</echo>
+			<echo/>
+		</sequential>
+	</macrodef>
+
+
+	<!-- Self-signed Certificate generation -->
+	<target name="checkcert" >
+		<available property="cert.available" file="${air.certificate}" />
+	</target>
+	
+	<!-- 
+	    This will make a new .p12 file.  If you don't have one already, this makes
+	    another.  If you make a new .p12 file of your own, you may not  be able to 
+	    reinstall your local modifications until you go into your /Applications
+	    folder (or whatever) and remove it, yourself.
+	-->
+	<target name="aircert" description="Build Self-Signed Certificate for AIR" unless="cert.available" depends="checkcert">
+		<sequential>
+            <echo>Cooking up a fake, self-signed development certificate...</echo>
+            <exec executable="adt" searchpath="true" vmlauncher="false" failonerror="true" >
+                <arg line="-certificate"/>
+                <arg line="-cn SelfSigned"/>
+                <arg line="-o 'videowebscript'"/>
+                <arg line="2048-RSA"/>
+                <arg line="${air.certificate}"/>
+                <arg line="${air.cert.password}"/>
+            </exec>
+		</sequential>
+	</target>
+
+	<!-- AIR setup - remove aircert from the depends if you have a certificate -->
+    <target name="release" description="Build AIR Deployable Target" depends="aircert"  >
+		<sequential>
+			<macro-buildexec target="${deploy.path}" src="${source.dir}" main="${source.file}" debug="false" release="true" buildtype="+configname=air" />
+			<echo>AIR Setup...</echo>
+			<exec executable="adt" searchpath="true" vmlauncher="false" failonerror="true" >
+				<arg line="-package"/>
+				<arg line="-storetype ${air.cert.type}"/>
+				<arg line="-keystore ${air.certificate}"/>
+				<arg line="-storepass ${air.cert.password}"/>
+				<arg line="${air.output}"/>		<!-- Output file -->
+				<arg line="${air.config}"/>		<!-- AIR project info -->
+				<arg line="-C ${deploy.dir}"/>	<!-- Change folder -->
+				<arg line="."/> 				<!-- Recursively add everything in deploy -->
+				<!-- Add other files/folders to list -->
+			</exec>
+		</sequential>
+	</target>
+	
+    <target name="run" description="Run AIR Target" depends="release">
+		<sequential>
+			<echo>Running in AIR...</echo>
+			<exec executable="adl" searchpath="true" vmlauncher="false">
+				<arg line="${air.config}"/>
+				<arg line="${deploy.dir}"/>
+			</exec>
+		</sequential>
+	</target>
+
+	<target name="manual" description="Generate documents" depends="release">
+		<sequential>
+			<tstamp />
+			<echo>Generating the manual...</echo>
+			<exec executable="asdoc" searchpath="true" vmlauncher="false" failonerror="true" >
+				<arg value="+flexlib=${flex.dir}/frameworks" />
+				<arg line="-source-path '${source.dir}'"/>
+				<arg line="-doc-sources '${source.dir}'"/>
+				<arg line="-main-title '${app.title}'"/>
+				<arg line="-window-title '${app.title}'"/>
+				<arg line="-target-player='${app.fullplayerversion}'" />
+				<arg value="-compiler.define=Build::DEBUG,false" /> 
+				<arg value="-compiler.define=Build::RELEASE,true" />
+				<arg value="-compiler.define=Build::wide,${app.wide}" />
+				<arg value="-compiler.define=Build::high,${app.high}" />
+				<arg value="-compiler.define=Build::dikeout,false" />
+				<arg value="-compiler.define=Build::time,${DSTAMP}${TSTAMP}" />
+				<arg line="-output '${doc.dir}'"/>
+			</exec>
+		</sequential>
+	</target>
+
+	<target name="zip" description="Make an archive of the project">
+		<sequential>
+			<tstamp />
+			<echo>Archiving project...</echo>
+			<dirname property="dirname" file="${ant.file}"/>
+			<basename property="targetname" file="${dirname}"/>
+			<zip destfile="${basename}_${DSTAMP}${TSTAMP}.zip" level="9" >
+				<fileset dir="." defaultexcludes="true">
+					<!-- Some of these excludes are redundant, but some older versions of ant had problems -->
+					<include name="**" />
+				</fileset>
+			</zip>
+		</sequential>		
+	</target>
+	
+</project>
+

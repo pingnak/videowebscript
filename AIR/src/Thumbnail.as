@@ -56,7 +56,8 @@ package
         /** If file size of images is less than (rejection_threshold*width*height), they are re-done */
         public var rejection_threshold : Number = 0.275; 
 
-        public var max_tries : int = 3;
+        public var attempt : ByteArray;
+        public var max_tries : int = 5;
         internal var num_tries : int;
         
         public function get busy() : Boolean { return 0 != queue.length; }
@@ -131,7 +132,7 @@ package
                 dispatchEvent( new Event( COMPLETE ) );
                 return;
             }
-            var queueObj = queue[0];
+            var queueObj : Object = queue[0];
             videoFile = queueObj.file;
             thumbFile = queueObj.thumb;
             video.width = video.height = thumbsize;
@@ -146,6 +147,7 @@ package
         **/
         public function Startup( e:Event=null ) : void
         {
+            attempt = null;
 			num_tries = max_tries;
             PopTask();
         }
@@ -288,25 +290,14 @@ package
             //
 
             var qualityGuess : int = rejection_threshold * video.width * video.height;
-            if( qualityGuess < bytes.length || 0 > --num_tries )
-            {
-                //trace("accept:", bytes.length, '/', qualityGuess );                
-                num_tries = max_tries;
-
-                // Write jpeg
-                var fs:FileStream = new FileStream();
-                fs.open( thumbFile, FileMode.WRITE );
-                fs.writeBytes(bytes,0,bytes.length );
-                fs.close();
-
-                // Remove current queue, see if there's more to do
-                queue.shift();
-                PopTask();
-            }
-            else
+            if( qualityGuess > bytes.length )
             {
                 // Don't write, just try again
                 trace("REJECT:", bytes.length, '/', qualityGuess );
+                
+                // Elect the 'best' attempt, if we had problems finding a big enough file at accept
+                if( null == attempt || bytes.length > attempt.length ) 
+                    attempt = bytes;
 
                 // I was not able to immediately re-seek and work out when it was safe
                 // to retry a capture, and on multiple retries, the video player would  
@@ -315,8 +306,32 @@ package
                 // TODO: Figure out how to simply seek around within the file without
                 // starting over, call DoCapture again, and not waste
                 // as much time as starting over from scratch with PopTask.
-                PopTask();
+                
+                // Give up after a certain number of tries, WITHOUT generating a thumbnail
+                if( 0 < --num_tries )
+                {
+                    PopTask();
+                    return;
+                }
+                else
+                {
+                    bytes = attempt;
+                }
             }
+
+            //trace("accept:", bytes.length, '/', qualityGuess );                
+            attempt = null;
+            num_tries = max_tries;
+
+            // Write jpeg
+            var fs:FileStream = new FileStream();
+            fs.open( thumbFile, FileMode.WRITE );
+            fs.writeBytes(bytes,0,bytes.length );
+            fs.close();
+
+            // Remove current queue, see if there's more to do
+            queue.shift();
+            PopTask();
             
         }
    

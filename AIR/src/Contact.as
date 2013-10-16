@@ -18,6 +18,7 @@ package
     import flash.media.*;
     import flash.filters.*;
 
+    import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
     
     public class Contact extends MovieClip
@@ -25,6 +26,29 @@ package
         internal static const SO_PATH : String = "ContactData";
         internal static const SO_SIGN : String = "CONTACT_SIGN_00";
 
+
+CONFIG::MXMLC_BUILD
+{
+        /** Main SWF */
+        [Embed(source="./Contact_UI.swf", symbol="UI_Settings" )]
+        public static const UI_Settings : Class;
+
+        [Embed(source="./Contact_UI.swf", symbol="UI_AreYouSure" )]
+        public static const UI_AreYouSure : Class;
+
+        [Embed(source="./Contact_UI.swf", symbol="ErrorIndicator" )]
+        public static const ErrorIndicator : Class;
+        
+        [Embed(source="./Contact_UI.swf", symbol="ThumbnailTemplate" )]
+        public static const ThumbnailTemplate : Class;
+}
+
+        /** A global instance to keep track of */
+        internal static var instance : Contact = null;
+
+        /** Where the main UI lives */
+        internal var ui : MovieClip;
+        
         /** What to call the 'top level' index file */
         public static var MAIN_INDEX      : String = "index.html";
 
@@ -53,7 +77,7 @@ package
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
         
         /** Width of thumbnails */
-        public static var THUMB_SIZE      : int = 180;
+        public static var THUMB_SIZE      : int = 240;
 
         /** Regular expressions that we accept as 'MP4 content' 
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
@@ -62,7 +86,7 @@ package
         public static var REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
 
         /** Regular expressions that we accept as 'MP4 content'*/
-        public static var REGEX_THUMB      : String = ".(png|jpg|jpeg)";
+        public static var REGEX_THUMB      : String = ".(jpg|jpeg)";
         
         internal static var root_path_video : File;
         internal static var root_path_audio : File;
@@ -75,6 +99,10 @@ package
         
         public function Contact()
         {
+            instance = this;
+            
+            ui = new UI_Settings();
+            addChild(ui);
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
@@ -118,6 +146,7 @@ package
                 dobj.alpha = 0.5;
             }
             
+            // Make tab order match depth of objects
             var i : int;
             var dobj : InteractiveObject;
             for( i = 0; i < ui.numChildren; ++i )
@@ -129,16 +158,211 @@ package
                 }
             }
 
+            // Build our menu of doom
+            if( NativeApplication.supportsMenu )
+            { 
+                // Tools Menu
+                var appToolMenu:NativeMenuItem; 
+                appToolMenu = NativeApplication.nativeApplication.menu.addItem(new NativeMenuItem("Tools")); 
+
+                // Tools popup
+                var toolMenu:NativeMenu = new NativeMenu(); 
+                var removeThumbs:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove Thumbnails")); 
+                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove index.html files")); 
+                removeThumbs.addEventListener(Event.SELECT, RemoveThumbs); 
+                removeIndexes.addEventListener(Event.SELECT, RemoveIndexes); 
+                
+                appToolMenu.submenu = toolMenu;
+            }             
             Interactive();
             
             // Keep kicking the random number generator
             addEventListener( Event.ENTER_FRAME, Entropy );
         }
 
+        /**
+         * Keep random output inconsistent
+        **/
         internal function Entropy(e:Event=null):void
         {
             Math.random();
         }
+
+        /**
+         * Invoke thumbnail nuker
+        **/
+        private function RemoveThumbs(event:Event):void 
+        { 
+            if( !root_path_video.exists || !root_path_video.isDirectory )
+            {
+                ErrorIndicate(ui.tfPathVideo);
+                return;
+            }
+
+            var warning : String = "Every JPEG from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
+            AreYouSure( "Remove Video Thumbnail Images", yeah, warning, "DO IT!", "ABORT!" );
+            function yeah():void
+            {
+                trace("Removing Thumbnail Images");
+                function OnlyMP4(file:File):Boolean 
+                {
+                    // No hidden files/folders
+                    if( file.isHidden )
+                        return true;
+                    // Filtering folders HERE would exclude their contents.
+                    if( file.isDirectory )
+                        return false;
+                    var ext : String = Find.File_extension(file);
+                    var found:Array = ext.match(REGEX_MP4);
+                    return null == found;
+                }
+                finding = new Find( root_path_video, OnlyMP4 )
+                finding.addEventListener( Find.FOUND, doit );
+                finding.addEventListener( Find.MORE, FindStatus );
+                function doit(e:Event):void
+                {
+                    // Look for jpg files, like THIS APP would create, and
+                    // ignore jpg files that don't have a corresponding MP4
+                    // file.
+                    var found : Array = Find.GetFiles( finding.results );
+                    trace("Erasing up to",found.length,"files...");
+                    var i : int;
+                    var jpegpath : File;
+                    for( i = 0; i < found.length; ++i )
+                    {
+                        jpegpath = Find.File_newExtension( found[i], ".jpg" );
+                        if( jpegpath.exists )
+                        {
+                            trace(jpegpath.nativePath);
+                            jpegpath.deleteFileAsync();
+                        }
+                    }
+                    instance.Interactive();
+                }
+            }
+        } 
+
+        /**
+         * Invoke index file nuker
+        **/
+        private function RemoveIndexes(event:Event):void 
+        { 
+            if( !root_path_video.exists || !root_path_video.isDirectory )
+            {
+                ErrorIndicate(ui.tfPathVideo);
+                return;
+            }
+
+            var warning : String = "Every "+MAIN_INDEX+" from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
+            AreYouSure( "Remove Video Index Files", yeah, warning, "DO IT!", "ABORT!" );
+            var rxIndex : RegExp = new RegExp(MAIN_INDEX,"i");
+            function yeah():void
+            {
+                trace("Removing Index Files...");
+                function OnlyHTML(file:File):Boolean 
+                { 
+                    // No hidden files/folders
+                    if( file.isHidden )
+                        return true;
+                    // Filtering folders HERE would exclude their contents.
+                    if( file.isDirectory )
+                        return false;
+                    var filename : String = Find.File_nameext(file);
+                    var found:Array = filename.match(rxIndex);
+                    return null == found;
+                }
+                finding = new Find( root_path_video, OnlyHTML );
+                finding.addEventListener( Find.FOUND, doit );
+                finding.addEventListener( Find.MORE, FindStatus );
+                function doit(e:Event):void
+                {
+                    var found : Array = Find.GetFiles( finding.results );
+                    trace("Erasing",found.length,"files...");
+                    var i : int;
+                    for( i = 0; i < found.length; ++i )
+                    {
+                        trace(found[i].nativePath);
+                        found[i].deleteFileAsync();
+                    }
+                    instance.Interactive();
+                }
+            }
+        } 
+        
+        /**
+         * Do a confirmation dialog for dangerous-looking stunts
+         * @param title Window title
+         * @param body  Body text explaining why we're stopping
+         * @param yes   Yes button text
+         * @param no    No button text
+        **/
+        internal static function AreYouSure( title:String, onYes : Function, body:String="Keep going?", yes:String="Yes", no:String="No" ) : void
+        {
+            var bYes : Boolean = false;
+            
+            if( "working" == instance.ui.currentLabel )
+                return;
+            instance.Busy();
+            
+            // create NativeWindowInitOptions
+            var windowInitOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
+            windowInitOptions.type = NativeWindowType.NORMAL;
+            windowInitOptions.minimizable = false;
+            windowInitOptions.resizable = false;
+            windowInitOptions.maximizable = false;
+            windowInitOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
+            windowInitOptions.transparent = false;
+
+            // create new NativeWindow
+            var popupWindow:NativeWindow = new NativeWindow(windowInitOptions);
+            
+            // create your class
+            var ui:MovieClip = new UI_AreYouSure();
+
+            // Text
+            ui.tfBody.text = body;
+            ui.tfYES.text = yes;
+            ui.tfNO.text = no;
+            popupWindow.title = title;
+            
+            ui.bnYES.addEventListener(MouseEvent.CLICK, onConfirm);
+            ui.bnNO.addEventListener(MouseEvent.CLICK, onDeny);
+            popupWindow.addEventListener( Event.CLOSE, onClose );
+            
+            function onClose(e:Event):void
+            {
+                if( !bYes )
+                    instance.Interactive();
+            }
+            function onConfirm(e:Event):void
+            {
+                bYes = true;
+                popupWindow.close();
+                onYes.call(instance);
+            }
+            function onDeny(e:Event):void
+            {
+                popupWindow.close();
+                instance.Interactive();
+            }
+            
+            
+            // for a popup it might be nice to have it activated and on top
+            // resize
+            //popupWindow.width = ui.width;
+            //popupWindow.height = ui.height;
+
+            // add
+            popupWindow.stage.addChild(ui);
+            popupWindow.stage.align = StageAlign.TOP_LEFT;
+            popupWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
+
+            popupWindow.alwaysInFront = true;
+            popupWindow.activate();
+            
+        }
+
+        
         
         /**
          * Do the stuff.
@@ -184,6 +408,7 @@ package
             var found_so_far : int = finding.results.length;
             ui.tfStatus.text = found_so_far.toString();
         }
+        
         private function Busy() : void
         {
             ui.gotoAndStop("working");
@@ -269,7 +494,7 @@ package
                     return false;
                 // Files with .png/.mp4 extensions
                 var ext : String = Find.File_extension(file);
-                return !ext.match( rxMP4 );
+                return null == ext.match( rxMP4 );
             }
             
             finding = new Find( root_path_video, filter_mp4_png_folders );
@@ -297,7 +522,7 @@ package
                 {
                     var fs:FileStream = new FileStream();
                     fs.open(f, FileMode.READ);
-                    var ret = fs.readUTFBytes(fs.bytesAvailable);
+                    var ret : String = fs.readUTFBytes(fs.bytesAvailable);
                     fs.close();
                     return ret;
                 }
@@ -459,7 +684,9 @@ package
                     var mp4files : Array = Find.Filter( files, justmp4 );
                     function justmp4(file:File):Boolean
                     {
-                        return !Find.File_extension( file ).match(rxMP4);
+                        var ext : String = Find.File_extension(file);
+                        var amatch : Array = ext.match( rxMP4 );
+                        return null == amatch ? false : 0 == ext.match( rxMP4 ).length;
                     }
                     
                     // Skip over folders that don't have mp4 files.
@@ -506,7 +733,7 @@ package
                             var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
                             var lastdot : int = filename.lastIndexOf('.');
                             var ext : String = lastdot<0?'':filename.slice(lastdot);
-                            if( ext.match(rxMP4) )
+                            if( null != ext.match(rxMP4) )
                             {   // Video file
                                 var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
                                 
@@ -612,7 +839,7 @@ package
                     // Iterate child folders and generate links to them
                     for( iteration = 1; iteration < curr_folders.length; ++iteration )
                     {
-                        var curr_folder = curr_folders[iteration];
+                        var curr_folder : File  = curr_folders[iteration];
                         var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
                         var curr_index_title : String = Find.File_nameext( curr_folder );
                         var curr_index_relative : String = Find.File_relative( curr_index, root );
@@ -627,7 +854,7 @@ package
                     // Iterate files and generate code + thumbnails
                     for( iteration = 0; iteration < curr_files.length; ++iteration )
                     {
-                        var curr_file = curr_files[iteration];
+                        var curr_file : File = curr_files[iteration];
                         var curr_file_relative : String = Find.File_relative( curr_file, root );
                         var curr_file_title : String = Find.File_name( curr_file );
                         

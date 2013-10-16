@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<application xmlns="http://ns.adobe.com/air/application/3.8">
-    <id>Contact-UI</id>
+<application xmlns="http://ns.adobe.com/air/application/3.4">
+    <id>Contact</id>
     <versionNumber>1.0</versionNumber>
-    <filename>Web Media Indexer</filename>
+    <filename>Contact</filename>
     <description>Generate portable web browser interfaces for various media content, similar to what common DLNA servers produce.</description>
     <!-- To localize the description, use the following format for the description element.
 	<description>
@@ -11,7 +11,7 @@
 		<text xml:lang="ja">Japanese App description goes here</text>
 	</description>
 	-->
-    <name>Web Media Indexer</name>
+    <name>Contact</name>
     <!-- To localize the name, use the following format for the name element.
 	<name>
 		<text xml:lang="en">English App name goes here</text>
@@ -19,9 +19,9 @@
 		<text xml:lang="ja">Japanese App name goes here</text>
 	</name>
 	-->
-    <copyright>https://code.google.com/p/videowebscript/</copyright>
+    <copyright>Open Source, Permissive</copyright>
     <initialWindow>
-        <content>Contact_UI.swf</content>
+        <content>Contact.swf</content>
         <systemChrome>standard</systemChrome>
         <transparent>false</transparent>
         <visible>true</visible>

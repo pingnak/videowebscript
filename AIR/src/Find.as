@@ -245,7 +245,7 @@ package
         /** Get extension from file, with '.' still on it */
         public static function File_extension( file : File ) : String
         {
-            var url = file.url;
+            var url : String = file.url;
             var index : int = url.lastIndexOf('.');
             if( -1 == index )
                 return "";
@@ -255,7 +255,7 @@ package
         /** Name of file File without extension */
         public static function File_name( file : File ) : String
         {
-            var url = File_nameext(file);
+            var url : String = File_nameext(file);
             var index : int = url.lastIndexOf('.');
             if( -1 == index )
                 return url;
@@ -265,7 +265,7 @@ package
         /** Name of file File and extension */
         public static function File_nameext( file : File ) : String
         {
-            var url = file.url;
+            var url : String = file.url;
             var index : int = url.lastIndexOf('/');
             if( -1 == index )
                 return "";
@@ -275,7 +275,7 @@ package
         /** Get path to folder containing this File, including its terminating '/' */
         public static function File_parent( file : File ) : File
         {
-            var url = file.url;
+            var url : String = file.url;
             var index : int = url.lastIndexOf('/');
             if( -1 == index )
                 return file;
@@ -285,7 +285,7 @@ package
         /** Get path to folder containing this File, including its terminating '/' */
         public static function File_AddPath( file : File, name:String = "" ) : File
         {
-            var url = file.url;
+            var url : String = file.url;
             if( '/' == url.charAt(url.length-1) )
             {
                 return new File(url + name);
@@ -300,7 +300,7 @@ package
             {
                 ext = '.' + ext;
             }
-            var url = file.url;
+            var url : String = file.url;
             var index : int = url.lastIndexOf('.');
             if( -1 == index )
                 return new File( url + ext );
@@ -327,7 +327,8 @@ package
         {
             const regex : RegExp = /\//g;
             var rel : String = File_relative( file, root );
-            return rel.match(regex).length;
+            var aret : Array = rel.match(regex);
+            return null == aret ? 0 : aret.length;
         }
 
         /**
