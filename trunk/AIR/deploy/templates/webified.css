@@ -25,6 +25,8 @@
                 width:THUMB_SIZEpx;
                 vertical-align:middle;
                 padding-bottom:8px;
+                padding-left:32px;
+                padding-right:8px;
             }
             .folder_entry {
                 color:#00f8f8;
