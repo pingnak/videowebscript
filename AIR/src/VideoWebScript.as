@@ -645,6 +645,8 @@ CONFIG::FLASH_AUTHORING
                         index_content += seded;
                     }
 
+                    index_content += index_epilog;
+                    
                     // Now write out index file in one pass
                     var fs : FileStream = new FileStream();
                     fs.open( curr_index_file, FileMode.WRITE );
