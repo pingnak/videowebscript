@@ -7,9 +7,6 @@ package
     import flash.display.*;
     import flash.events.*;
     import flash.filesystem.*;
-
-    // I'll have to migrate this out of the flash build, to a flex build
-    //import mx.graphics.codec.*;
     
     /**
      * Generate a thumbnail from an mp4 file.
@@ -22,7 +19,7 @@ package
      * Open a video file
      * Seek to a random location in the file
      * Capture a frame
-     * Save a jpeg/png JPEGEncoder/PNGEncoder
+     * Save a jpeg/png JPGEncoder/PNGEncoder
      * http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/media/Video.html
      *
      * Kind of evolved to a queue of thumbnails, since everything is asynchronous
@@ -258,7 +255,7 @@ package
             dispatchEvent( new Event( SNAPSHOT_READY ) );
             
             // Give UI a chance to refresh after calling back
-            var timer : Timer = new Timer( 14, 1 );
+            var timer : Timer = new Timer( 33, 1 );
             timer.addEventListener( TimerEvent.TIMER, DoCapture );
             timer.start();
         }
@@ -271,11 +268,14 @@ package
             // Render to bitmap
             video.width = thumbsize;
             video.height = thumbsize * video.videoHeight / video.videoWidth;
+
+            // Render to bitmap
             var bmd : BitmapData = new BitmapData(mcPlace.width, mcPlace.height, false, 0);
             bmd.draw(mcPlace);
             
             // Encode jpeg
-            var jpeg : JPGEncoder = new JPGEncoder(jpeg_compression_quality);
+            var jpeg : JPGEncoder;
+            jpeg = new JPGEncoder(jpeg_compression_quality);
             var bytes : ByteArray = jpeg.encode(bmd);
 
             //
