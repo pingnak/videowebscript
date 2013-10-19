@@ -53,7 +53,11 @@ The other one is 'Remove index.html' files.  This one is more dangerous, since i
 
 Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
 
-For instance, I had typed "find . -name '*.jpg' -exec rm -v \{\} \;", after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow', and enter, and realized I had done that in my 'home' folder.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
+For instance, I had typed... 
+{{{
+find . -name '*.jpg' -exec rm -v \{\} \;
+}}}
+... after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow', and enter, and realized I had done that in my 'home' folder.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
 
 = BACK UP YOUR DATA =
 
