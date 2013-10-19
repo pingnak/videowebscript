@@ -131,6 +131,7 @@ flex.dir=C:/Program Files/Adobe/Flex Builder 3/Flex SDK 3
 				<arg line="-o=@{target}"/>
 				<arg line="-file-specs='@{src}/@{main}'" />
 				<arg line="-target-player='${app.fullplayerversion}'" />
+				
 			</exec>
 			<echo/>
 			<echo>BUILD VERSION ${DSTAMP}${TSTAMP}</echo>
@@ -187,12 +188,68 @@ flex.dir=C:/Program Files/Adobe/Flex Builder 3/Flex SDK 3
 		<sequential>
 			<echo>Running in AIR...</echo>
 			<exec executable="adl" searchpath="true" vmlauncher="false">
+			    <arg line="-profile desktop" />
 				<arg line="${air.config}"/>
 				<arg line="${deploy.dir}"/>
 			</exec>
 		</sequential>
 	</target>
 
+    <target name="debug" description="Debug instrumentated build" depends="aircert">
+		<sequential>
+			<macro-buildexec target="${deploy.path}" src="${source.dir}" main="${source.file}" debug="true" release="false" buildtype="+configname=air" />
+		</sequential>
+	</target>
+	
+    <target name="runtrace" description="Run debug target outside of debugger" depends="debug">
+        	<property name="flashlog" value="${env.HOME}/Library/Preferences/Macromedia/Flash Player/Logs/flashlog.txt"/>
+
+		<sequential>
+			<echo>Running debug in console (need POSIX stdout handling, or flash trace watcher to do this right)...</echo>
+
+			<echo message="Trace output for ${air.output}" file="${flashlog}" append="false" />
+			
+		    <echo>Launching app...</echo>
+			<exec executable="adl" searchpath="true" vmlauncher="false" spawn="true" >
+			    <arg line="-profile desktop" />
+				<arg line="${air.config}"/>
+				<arg line="${deploy.dir}"/>
+			</exec>
+
+			<!-- Pop up a little trace window -->
+			<exec executable="tail" searchpath="true" vmlauncher="false">
+				<arg line='-F "${flashlog}"'/>
+			</exec>
+			
+		</sequential>
+	</target>
+	
+	<target name="rundebug" description="Build and run in debugger" depends="debug">
+		<sequential>
+		    <echo>Launching debugger...</echo>
+			<!-- We need to launch a shell into a new environment, or ant kills it -->
+			<exec executable="xterm" osfamily="UNIX" searchpath="true" vmlauncher="false">
+				<arg line="-e fdb ${deploy.path}"/>
+			</exec>
+			
+			<!-- Use start to get a new shell running for the debug session. -->
+			<exec executable="cmd" osfamily="WINDOWS" searchpath="true" vmlauncher="false">
+				<arg line="/c"/>
+				<arg line="start"/>
+				<arg line="fdb"/>
+				<arg line="${deploy.path}"/>
+			</exec>
+
+		    <echo>Launching app...</echo>
+			<exec executable="adl" searchpath="true" vmlauncher="false">
+			    <arg line="-profile desktop" />
+				<arg line="${air.config}"/>
+				<arg line="${deploy.dir}"/>
+			</exec>
+
+		</sequential>
+	</target>
+	
 	<target name="manual" description="Generate documents" depends="release">
 		<sequential>
 			<tstamp />
