@@ -73,6 +73,13 @@ CONFIG::MXMLC_BUILD
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
         
+        /** Offset for folder depths */
+        public static var FOLDER_DEPTH : int = 64;
+        
+        /** Offset for files in folders */
+        public static var FILE_DEPTH : int = 32;
+        
+        
         /** Regular expressions that we accept as 'MP4 content' 
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
             or DRM, or other proprietary extensions in them.   
@@ -414,42 +421,40 @@ CONFIG::FLASH_AUTHORING
         {
             try
             {
-                var j : int;
-                var file : File;
-                var folder : File;
-                var root : File = found[0];
-                var root_string : String = Find.File_name(root);
-
-                var folders : Array = Find.GetFolders(found);
-
-                // Top part of file
-                var main_index_content : String = LoadText(INDEX_TOPMOST); 
-                var seded : String
-                seded = LoadText(INDEX_CSS);
-                seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
-                main_index_content += seded;
-                
-                seded = LoadText(MOVIE_PROLOG);
-                seded = seded.replace(/TITLE_TEXT/g,root_string);
-                main_index_content += seded;
-
-                var index_file : String = LoadText(INDEX_FILE); 
+                // Preload the various template elements we'll be writing for each folder/file
+                var index_prolog : String = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS) + LoadText(MOVIE_PROLOG); 
                 var index_folder : String = LoadText(INDEX_FOLDER); 
-                var need_sdiv : Boolean = false;
-                
-                // Iterate files + folders
-                var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i");
+                var index_file   : String = LoadText(INDEX_FILE);
+                var index_epilog : String = LoadText(INDEX_EPILOG); 
 
-                // Break outer loop up into timed passes, to keep this from blocking
+                var root : File = found[0];
+                var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
+
+                // Get a list of folders in this folder, files in this folder
+                var curr_folders : Array = Find.GetFolders(found);
+                
+                var index_content : String = "";
+                var seded : String;
+                seded = index_prolog;
+                seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                seded = seded.replace(/TITLE_TEXT/g,Find.File_nameext(root));
+                index_content = seded;
+
+                var folder_curr : int; 
+                var prev_depth : int = 0;
+
+                // Iterate all of the folders
                 var threadTimer : Timer = new Timer( 1,1 );
                 threadTimer.addEventListener( TimerEvent.TIMER, ThreadOnce );
                 threadTimer.start();
-                var folder_iteration : int = 0;
+                folder_curr = 1;
 
-                //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
-                function ThreadOnce(e:Event):void
+                //for( folder_curr = 1; folder_curr < curr_folders.length; ++folder_curr )
+                function ThreadOnce(e:Event=null):void
                 {
-                    if( folder_iteration < folders.length )
+                    ui.tfStatus.text = folder_curr.toString()+"/"+curr_folders.length.toString();
+
+                    if( folder_curr < curr_folders.length )
                     {
                         // Do next pass
                         threadTimer.reset();
@@ -458,93 +463,71 @@ CONFIG::FLASH_AUTHORING
                     else
                     {
                         // Break out of 'threaded' loop
+                        
                         // Bottom part of file index file; all done
-                        main_index_content += LoadText(INDEX_EPILOG);
-                        var main_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
-                        var fs:FileStream = new FileStream();
+                        while( prev_depth-- > 0 )
+                        {
+                            index_content += "</div>\n";
+                        }
+                        index_content += index_epilog;
+                        
                         // Now write out index file in one pass
-                        fs.open( main_index_file, FileMode.WRITE );
-                        fs.writeUTFBytes(main_index_content);
+                        var fs : FileStream = new FileStream();
+                        fs.open( curr_index_file, FileMode.WRITE );
+                        fs.writeUTFBytes(index_content);
                         fs.close();
+
                         VideoFilesComplete();
                         return;
                     }
-                    folder = folders[folder_iteration++];
-                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
                     
-                    var files : Array = Find.GetChildren( found, folder );
-                    var mp4files : Array = Find.Filter( files, justmp4 );
-                    function justmp4(file:File):Boolean
+                    var curr_folder : File = curr_folders[folder_curr++];
+                    var curr_depth : int = Find.File_Depth(curr_folder,root);
+                    while( prev_depth >= curr_depth )
                     {
-                        var ext : String = Find.File_extension(file);
-                        var amatch : Array = ext.match( rxMP4 );
-                        return null == amatch ? false : 0 == ext.match( rxMP4 ).length;
+                        // Close off div when depth goes back down
+                        index_content += "</div>\n";
+                        prev_depth--;
                     }
+                    prev_depth = curr_depth;
                     
-                    // Skip over folders that don't have mp4 files.
-                    //trace(mp4files.length, folder.nativePath);
-                    if( 1 < mp4files.length ) 
+                    var total_at_this_depth : Array = Find.GetChildren( found, curr_folder, 1000 );
+                    if( total_at_this_depth.length > 1 )
                     {
-                        var relative_path : String;
-                        var folderparent : String;
-                        var foldername : String;
-                        var folderstyle : String;
-                        if( 0 == folder_iteration )
-                        {   // Special case for root path
-                            relative_path = "";
-                            folderparent = "";
-                            foldername = root_string;
-                            folderstyle='';
-                        }
-                        else if( 0 == Find.File_Depth( folder, root ) )
+                        // Emit index for child folder
+                        var curr_folder_title : String = Find.File_nameext( curr_folder );
+                        var curr_folder_parent : File = Find.File_parent(curr_folder);
+                        var curr_folder_relative : String = Find.File_relative( curr_folder, root );
+
+                        seded = index_folder;
+                        var parent_path : String = Find.File_relative(curr_folder_parent,root);
+                        seded = seded.replace(/FOLDER_PARENT/g,''==parent_path?'':parent_path+'/');
+                        seded = seded.replace(/FOLDER_PATH/g,curr_folder_relative);
+                        seded = seded.replace(/FOLDER_TITLE/g,curr_folder_title );
+                        seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(FOLDER_DEPTH*curr_depth).toString()+'px;');
+                        index_content += seded;
+
+                        var curr_files : Array = Find.GetChildren( total_at_this_depth, curr_folder );
+                        curr_files = Find.GetFiles(curr_files);
+
+                        var iteration : int;
+                        for( iteration = 0; iteration < curr_files.length; ++iteration )
                         {
-                            relative_path = Find.File_relative( folder, root );
-                            folderparent = ""; 
-                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                            folderstyle='style="display:none;"';
+                            var curr_file : File = curr_files[iteration];
+                            var curr_file_relative : String = Find.File_relative( curr_file, root );
+                            var curr_file_title : String = Find.File_name( curr_file );
+                            
+                            var file_thumb : File = CheckThumbnail(curr_file);
+                            var curr_file_thumb : String = Find.File_relative( file_thumb, root );
+
+                            // Emit index+code to play file
+                            seded = index_file;
+                            seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
+                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
+                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(FILE_DEPTH+(FOLDER_DEPTH*curr_depth)).toString()+'px;');
+                            index_content += seded;
                         }
-                        else
-                        {
-                            relative_path = Find.File_relative( folder, root );
-                            folderparent = Find.File_relative(Find.File_parent( folder ), root )+'/';
-                            foldername = relative_path.slice(1+relative_path.lastIndexOf('/'));
-                            folderstyle='style="display:none;"';
-                        }
-    
-                        // Parse folder name depth to indent?
-                        seded = index_folder.replace(/FOLDER_PARENT/g,folderparent);
-                        seded = seded.replace(/FOLDER_TITLE/g,foldername);
-                        seded = seded.replace(/FOLDER_STYLE/g,folderstyle);
-                        main_index_content += seded;
-                        
-                        for( j = 1; j < mp4files.length; ++j )
-                        {
-                            file = mp4files[j];
-    
-                            var file_relative_path : String = Find.File_relative( file, root );
-                            var filename : String = file_relative_path.slice(1+file_relative_path.lastIndexOf('/'));
-                            var lastdot : int = filename.lastIndexOf('.');
-                            var ext : String = lastdot<0?'':filename.slice(lastdot);
-                            if( null != ext.match(rxMP4) )
-                            {   // Video file
-                                var filename_noext : String = -1 == lastdot ? filename : filename.slice(0,lastdot);
-                                
-                                var file_thumb : File = CheckThumbnail(file);
-                                var filename_thumb : String = Find.File_relative( file_thumb, root );
-                                
-                                seded = index_file.replace(/MEDIA_IMAGE/g,filename_thumb);
-                                seded = seded.replace(/MEDIA_PATH/g,file_relative_path);
-                                seded = seded.replace(/MOVIE_TITLE/g,filename_noext);
-                                main_index_content += seded;
-                            }
-                            else
-                            {
-                                // Thumbnail files are mixed in with the mp4, so we don't
-                                // do extra directory tree searches through the file system
-                                // to check for thumbnails' existence
-                            }
-                        }
-                        main_index_content += "</div>\n";
                     }
                 }
     
@@ -553,7 +536,9 @@ CONFIG::FLASH_AUTHORING
             {
                 trace(e);
                 ErrorIndicate(ui.tfPathVideo);
+                Interactive();
             }
+            // Fall out; timer threads are in charge
         }
 
         
@@ -583,7 +568,6 @@ CONFIG::FLASH_AUTHORING
                 var index_index : String = LoadText(INDEX_INDEX); 
                 var index_file : String = LoadText(INDEX_FILE); 
                 var index_epilog : String = LoadText(INDEX_EPILOG); 
-
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -638,6 +622,7 @@ CONFIG::FLASH_AUTHORING
                         seded = index_index;
                         seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                         seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                        seded = seded.replace(/FOLDER_STYLE/g,'');
                         index_content += seded;
                     }
                     
@@ -656,6 +641,7 @@ CONFIG::FLASH_AUTHORING
                         seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
                         seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                         seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                        seded = seded.replace(/FILE_STYLE/g,'');
                         index_content += seded;
                     }
 
