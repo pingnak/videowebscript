@@ -38,7 +38,7 @@ The app remembers its settings, so the next time you run it, it will be able to 
 
   * 'Generate TOC.html' Checkbox
 
-This will generate a second index at the root of the video tree, linked to all of the folders' index.html files listed as the folders.  If yo don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
+This will generate a second index at the root of the video tree, linked to all of the folders' index.html files listed as the folders.  If you don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
 
   * '♫' Checkbox
 
