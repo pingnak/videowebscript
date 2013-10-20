@@ -170,6 +170,8 @@ flex.dir=C:/Program Files/Adobe/Flex Builder 3/Flex SDK 3
 		<sequential>
 			<macro-buildexec target="${deploy.path}" src="${source.dir}" main="${source.file}" debug="false" release="true" buildtype="+configname=air" />
 			<echo>AIR Setup...</echo>
+			<!-- Air file mysteriously grows each time.  So delete it, first. -->
+			<delete file="${air.output}" />
 			<exec executable="adt" searchpath="true" vmlauncher="false" failonerror="true" >
 				<arg line="-package"/>
 				<arg line="-storetype ${air.cert.type}"/>
