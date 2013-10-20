@@ -43,6 +43,9 @@ CONFIG::MXMLC_BUILD
         /** What to call the 'top level' index file */
         public static var MAIN_INDEX      : String = "index.html";
 
+        /** What to call the 'TOC' file that has all of the index.htmls in it */
+        public static var MAIN_TOC        : String = "TOC.html";
+        
         /** Where to look for script template content */
         public static var SCRIPT_TEMPLATES: String ="templates/"
 
@@ -55,8 +58,8 @@ CONFIG::MXMLC_BUILD
         /** Start of movie player and available content */
         public static var MOVIE_PROLOG    : String = SCRIPT_TEMPLATES+"index_prolog.html";
         
-        /** End of movie player html file */
-        public static var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
+        /** Table of contents file */
+        public static var TOC_PROLOG      : String = SCRIPT_TEMPLATES+"TOC_prolog.html";
         
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
@@ -67,14 +70,14 @@ CONFIG::MXMLC_BUILD
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
-        /** Where to find the contact sheet viewer */
-        public static var VIDEOSCRIPT_PROLOG  : String = SCRIPT_TEMPLATES+"index_contact_prolog.html";
-        
+        /** End of movie player html file */
+        public static var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
+
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
         
         /** Offset for folder depths */
-        public static var FOLDER_DEPTH : int = 64;
+        public static var FOLDER_DEPTH : int = 32;
         
         /** Offset for files in folders */
         public static var FILE_DEPTH : int = 32;
@@ -124,10 +127,10 @@ CONFIG::FLASH_AUTHORING
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
-            CheckSetup(ui.bnVideoAllInOne);
+            CheckSetup(ui.bnTOC);
             CheckSetup(ui.bnCompletionTone);
             
-            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoIt );
+            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoVideo );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
             LoadSharedData();
 
@@ -190,45 +193,7 @@ CONFIG::FLASH_AUTHORING
             Math.random();
         }
         
-        /**
-         * Do the stuff.
-        **/
-        internal function DoIt(e:Event=null):void
-        {
-            trace("Doit",root_path_video.nativePath);
 
-            /**
-             * Do parameter checks before we launch into processes
-            **/
-            ui.tfPathVideo.text = root_path_video.nativePath;
-
-            if( !root_path_video.exists || !root_path_video.isDirectory )
-            {
-                ErrorIndicate(ui.tfPathVideo);
-                return;
-            }
-            // Make sure we don't go way out of range on thumb size
-            if( THUMB_SIZE < 64 )
-            {
-                THUMB_SIZE = 64;
-                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-                ErrorIndicate(ui.tfThumbnailSize);
-                return;
-            }
-            if( THUMB_SIZE > 360 )
-            {
-                THUMB_SIZE = 360;
-                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-                ErrorIndicate(ui.tfThumbnailSize);
-                return;
-            }
-
-            CommitSharedData();
-            
-            DoVideo();
-            
-            
-        }
         internal function FindStatus(e:Event):void
         {
             //var list : Array = Find.FindBlock(root_path_video);
@@ -285,6 +250,36 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoVideo(e:Event=null):void
         {
+            trace("DoVideo",root_path_video.nativePath);
+
+            /**
+             * Do parameter checks before we launch into processes
+            **/
+            ui.tfPathVideo.text = root_path_video.nativePath;
+
+            if( !root_path_video.exists || !root_path_video.isDirectory )
+            {
+                ErrorIndicate(ui.tfPathVideo);
+                return;
+            }
+            // Make sure we don't go way out of range on thumb size
+            if( THUMB_SIZE < 64 )
+            {
+                THUMB_SIZE = 64;
+                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                ErrorIndicate(ui.tfThumbnailSize);
+                return;
+            }
+            if( THUMB_SIZE > 360 )
+            {
+                THUMB_SIZE = 360;
+                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                ErrorIndicate(ui.tfThumbnailSize);
+                return;
+            }
+
+            CommitSharedData();
+            
             // MP4, PNG, folders
             var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i")
             function filter_mp4_png_folders(file:File):Boolean
@@ -310,45 +305,12 @@ CONFIG::FLASH_AUTHORING
             Busy();
 
         }
-
-        /**
-         * Load a text file (e.g. HTML template parts)
-        **/
-        protected function LoadText( path:String ) : String
-        {
-            try
-            {
-                var root : File = File.applicationDirectory;
-                var f : File = Find.File_AddPath(root,path);
-                if( f.exists && !f.isDirectory )
-                {
-                    var fs:FileStream = new FileStream();
-                    fs.open(f, FileMode.READ);
-                    var ret : String = fs.readUTFBytes(fs.bytesAvailable);
-                    fs.close();
-                    return ret;
-                }
-            }
-            catch(e:Error)
-            {
-                trace(e);
-            }
-            return "";
-        }
         
         /** Folder find is done.  Now decide what to do with it.  */
         protected function HaveVideoFiles(e:Event=null):void
         {
-            if( CheckGet( ui.bnVideoAllInOne ) )
-            {
-                trace("Monolithic");
-                DoVideoFilesMonolithic(finding.results);
-            }
-            else
-            {
-                trace("Tree");
-                DoVideoFilesTree(finding.results);
-            }
+            trace("Tree");
+            DoVideoFilesTree(finding.results);
         }
 
         /**
@@ -407,15 +369,220 @@ CONFIG::FLASH_AUTHORING
             }
             return file_thumb;
         }
-
         
         /**
-         * One index.html file for the whole tree
+         * Recursively generates files for each folder, and generates a master
+         * index for all.
          *
-         * Tidy, but if there's a lot of files, especially over network, the 
-         * load time for the page could suffer.
+         * This will definitely load individual pages a lot faster, but you'll
+         * add some more clutter to your directory tree for all of the index.html
+         * files.  
+         *
+         * Simpler UI without folding folders.  Just one index.html at the root
+         * like the other one, but containing only links to folders containing 
+         * more content.
+        **/
+        protected function DoVideoFilesTree(found:Array):void
+        {
+            try
+            {
+                // Preload the various template elements we'll be writing for each folder/file
+                var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
+                var index_prolog : String   = index_top + LoadText(MOVIE_PROLOG); 
+                var index_index : String    = LoadText(INDEX_INDEX); 
+                var index_file : String     = LoadText(INDEX_FILE); 
+                var index_epilog : String   = LoadText(INDEX_EPILOG); 
+                
+                // Iterate all of the folders
+                var folders : Array = Find.GetFolders(found);
+                var threadTimer : Timer = new Timer( 1,1 );
+                threadTimer.addEventListener( TimerEvent.TIMER, ThreadPassFolder );
+                threadTimer.start();
+
+                var folder_iteration : int = 0;
+                //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
+                function ThreadPassFolder(e:Event):void
+                {
+                    if( folder_iteration < folders.length )
+                    {
+                        // Do next pass
+                        threadTimer.reset();
+                        threadTimer.start();
+                    }
+                    else
+                    {
+                        // Break out of 'threaded' loop
+                        // Bottom part of file index file; all done
+                        threadTimer = new Timer( 1,1 );
+                        threadTimer.addEventListener( TimerEvent.TIMER, ThreadComplete );
+                        threadTimer.start();
+                        return;
+                    }
+                    
+                    var iteration : int;
+                    var seded : String
+                    var folder : File;
+                    var root : File = folders[folder_iteration++];
+
+                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
+
+                    // Don't write index files in folders with no video content
+                    var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
+                    var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
+                    if( total_files_at_this_depth.length > 1 )
+                    {
+                        // Get a list of folders in this folder, files in this folder
+                        var curr_files : Array = Find.GetChildren( found, root );
+                        var curr_folders : Array = Find.GetFolders(curr_files);
+                        curr_files = Find.GetFiles(curr_files);
+                        
+                        // Create and build top half of index file
+                        var curr_title : String = Find.File_nameext(root);
+                        seded = index_prolog;
+                        seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                        seded = seded.replace(/TITLE_TEXT/g,curr_title);
+                        var index_content : String = seded;
+    
+                        // Iterate child folders and generate links to them
+                        for( iteration = 1; iteration < curr_folders.length; ++iteration )
+                        {
+                            var curr_folder : File  = curr_folders[iteration];
+    
+                            // Filter folders with no movies in any children from lists
+                            total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
+                            total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
+                            if( total_files_at_this_depth.length > 1 )
+                            {
+                                var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                                var curr_index_title : String = Find.File_nameext( curr_folder );
+                                var curr_index_relative : String = Find.File_relative( curr_index, root );
+        
+                                // Emit index for child folder
+                                seded = index_index;
+                                seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                                seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                                seded = seded.replace(/FOLDER_STYLE/g,'');
+                                index_content += seded;
+                            }
+                        }
+                        
+                        // Iterate files and generate code + thumbnails
+                        for( iteration = 0; iteration < curr_files.length; ++iteration )
+                        {
+                            var curr_file : File = curr_files[iteration];
+                            var curr_file_relative : String = Find.File_relative( curr_file, root );
+                            var curr_file_title : String = Find.File_name( curr_file );
+                            
+                            var file_thumb : File = CheckThumbnail(curr_file);
+                            var curr_file_thumb : String = Find.File_relative( file_thumb, root );
+    
+                            // Emit index+code to play file
+                            seded = index_file;
+                            seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
+                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
+                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_STYLE/g,'');
+                            index_content += seded;
+                            
+                        }
+    
+                        index_content += index_epilog;
+                        
+                        // Now write out index file in one pass
+                        var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
+                        var fs : FileStream = new FileStream();
+                        fs.open( curr_index_file, FileMode.WRITE );
+                        fs.writeUTFBytes(index_content);
+                        fs.close();
+                    }
+                    
+                }
+
+                function ThreadComplete(e:Event=null):void
+                {
+                    // If user wanted a flattened table of contents, make one.
+                    if( CheckGet( ui.bnTOC ) )
+                    {
+                        DoTOC(found);
+                    }
+                    VideoFilesComplete();
+                }
+            }
+            catch( e:Error )
+            {
+                trace(e);
+                ErrorIndicate(ui.tfPathVideo);
+                Interactive();
+            }
+            // Fall out; timer threads are in charge
+        }
+
+        /**
+         * Iterate through folders and generate a flattened Table of Contents 
+         * of index.html files, throughout the tree.
+         *
+        **/
+        protected function DoTOC(found:Array):void
+        {
+            var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
+            var TOC_prolog : String     = index_top + LoadText(TOC_PROLOG); 
+            var index_index : String    = LoadText(INDEX_INDEX); 
+            var index_epilog : String   = LoadText(INDEX_EPILOG); 
+
+            var folders : Array = Find.GetFolders(found);
+            var root : File = folders[0];
+            var curr_title : String = Find.File_nameext(root);
+            var seded : String;
+            seded = TOC_prolog;
+            seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+            seded = seded.replace(/TITLE_TEXT/g,curr_title);
+            var index_content : String = seded;
+            var folder_iteration : int;
+            for( folder_iteration = 1; folder_iteration < folders.length; ++folder_iteration )
+            {
+                // Create and build top half of index file
+                var curr_folder : File  = folders[folder_iteration];
+                var curr_index_file : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                if( curr_index_file.exists )
+                {
+                    var curr_depth : int = Find.File_Depth(curr_folder,root);
+                    var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                    var curr_index_title : String = Find.File_nameext( curr_folder );
+                    var curr_index_relative : String = Find.File_relative( curr_index, root );
+
+                    // Emit index for child folder
+                    seded = index_index;
+                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
+                    index_content += seded;
+                }
+            }
+            
+            index_content += index_epilog;
+            
+            // Now write out index file in one pass
+            var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
+            var fs : FileStream = new FileStream();
+            fs.open( toc_file, FileMode.WRITE );
+            fs.writeUTFBytes(index_content);
+            fs.close();
+        }
+
+        /**
+         * One index.html file to rule them all, and in the darkness bind them
+         *
+         * Tidy in the file system, but if there's a lot of files, especially  
+         * over network, the load time for the page could suffer.
          *
          * UI is a big list of folders, that 'open' to reveal files.
+         *
+         * It's ugly, and that's why it's not supported
+         * I'm just keeping it for this version, for reference
+         *
+         * Actually, I was proud of getting it to work without recursion
+         * outside of Find, but it's probably a goner, if I can't think of
+         * a reason to keep/save it.
         **/
         protected function DoVideoFilesMonolithic(found:Array):void
         {
@@ -541,139 +708,13 @@ CONFIG::FLASH_AUTHORING
             // Fall out; timer threads are in charge
         }
 
-        
-        /**
-         * Recursively generates files for each folder, and generates a master
-         * index for all.
-         *
-         * This will definitely load individual pages a lot faster, but you'll
-         * add some more clutter to your directory tree for all of the index.html
-         * files.  
-         *
-         * Simpler UI without folding folders.  Just one index.html at the root
-         * like the other one, but containing only links to folders containing 
-         * more content.
-        **/
-        protected function DoVideoFilesTree(found:Array):void
-        {
-            try
-            {
-                var folder_iteration : int;
-                var iteration : int;
-                var seded : String
-                var folder : File;
-
-                // Preload the various template elements we'll be writing for each folder/file
-                var index_prolog : String = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS) + LoadText(MOVIE_PROLOG); 
-                var index_index : String = LoadText(INDEX_INDEX); 
-                var index_file : String = LoadText(INDEX_FILE); 
-                var index_epilog : String = LoadText(INDEX_EPILOG); 
-                
-                // Iterate all of the folders
-                var folders : Array = Find.GetFolders(found);
-                var threadTimer : Timer = new Timer( 1,1 );
-                threadTimer.addEventListener( TimerEvent.TIMER, ThreadOnce );
-                threadTimer.start();
-                folder_iteration = 0;
-
-                //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
-                function ThreadOnce(e:Event):void
-                {
-                    if( folder_iteration < folders.length )
-                    {
-                        // Do next pass
-                        threadTimer.reset();
-                        threadTimer.start();
-                    }
-                    else
-                    {
-                        // Break out of 'threaded' loop
-                        // Bottom part of file index file; all done
-                        VideoFilesComplete();
-                        return;
-                    }
-                    
-                    var root : File = folders[folder_iteration++];
-                    var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
-
-                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
-                    
-                    // Get a list of folders in this folder, files in this folder
-                    var curr_files : Array = Find.GetChildren( found, root );
-                    var curr_folders : Array = Find.GetFolders(curr_files);
-                    curr_files = Find.GetFiles(curr_files);
-                    
-                    // Create and build top half of index file
-                    var curr_title : String = Find.File_nameext(root);
-                    seded = index_prolog;
-                    seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
-                    seded = seded.replace(/TITLE_TEXT/g,curr_title);
-                    var index_content : String = seded;
-
-                    // Iterate child folders and generate links to them
-                    for( iteration = 1; iteration < curr_folders.length; ++iteration )
-                    {
-                        var curr_folder : File  = curr_folders[iteration];
-                        var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
-                        var curr_index_title : String = Find.File_nameext( curr_folder );
-                        var curr_index_relative : String = Find.File_relative( curr_index, root );
-
-                        // Emit index for child folder
-                        seded = index_index;
-                        seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                        seded = seded.replace(/FOLDER_STYLE/g,'');
-                        index_content += seded;
-                    }
-                    
-                    // Iterate files and generate code + thumbnails
-                    for( iteration = 0; iteration < curr_files.length; ++iteration )
-                    {
-                        var curr_file : File = curr_files[iteration];
-                        var curr_file_relative : String = Find.File_relative( curr_file, root );
-                        var curr_file_title : String = Find.File_name( curr_file );
-                        
-                        var file_thumb : File = CheckThumbnail(curr_file);
-                        var curr_file_thumb : String = Find.File_relative( file_thumb, root );
-
-                        // Emit index+code to play file
-                        seded = index_file;
-                        seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
-                        seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
-                        seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
-                        seded = seded.replace(/FILE_STYLE/g,'');
-                        index_content += seded;
-                    }
-
-                    index_content += index_epilog;
-                    
-                    // Now write out index file in one pass
-                    var fs : FileStream = new FileStream();
-                    fs.open( curr_index_file, FileMode.WRITE );
-                    fs.writeUTFBytes(index_content);
-                    fs.close();
-                    
-                }
-    
-            }
-            catch( e:Error )
-            {
-                trace(e);
-                ErrorIndicate(ui.tfPathVideo);
-                Interactive();
-            }
-            // Fall out; timer threads are in charge
-        }
-
-
-
         /**
          * Reset persistent settings
         **/
         protected function ResetSharedData() : Object
         {
             root_path_video = File.userDirectory;
-            CheckSet( ui.bnVideoAllInOne, false );
+            CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
             THUMB_SIZE = 240;
             return CommitSharedData();
@@ -719,7 +760,7 @@ CONFIG::FLASH_AUTHORING
             
             // Decode the saved data
             root_path_video = new File(share_data.url_video);
-            CheckSet( ui.bnVideoAllInOne, share_data.bDoVideoAllInOne );
+            CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
 
             THUMB_SIZE = share_data.thumb_size;
@@ -743,7 +784,7 @@ CONFIG::FLASH_AUTHORING
 
             // Copy data to our save 'object
             share_data.url_video = root_path_video.url;
-            share_data.bDoVideoAllInOne = CheckGet( ui.bnVideoAllInOne );
+            share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.thumb_size = THUMB_SIZE;
             
@@ -1032,6 +1073,31 @@ CONFIG::MXMLC_BUILD
             return new cls();
         }
 
+        /**
+         * Load a text file (e.g. HTML template parts)
+        **/
+        protected function LoadText( path:String ) : String
+        {
+            try
+            {
+                var root : File = File.applicationDirectory;
+                var f : File = Find.File_AddPath(root,path);
+                if( f.exists && !f.isDirectory )
+                {
+                    var fs:FileStream = new FileStream();
+                    fs.open(f, FileMode.READ);
+                    var ret : String = fs.readUTFBytes(fs.bytesAvailable);
+                    fs.close();
+                    return ret;
+                }
+            }
+            catch(e:Error)
+            {
+                trace(e);
+            }
+            return "";
+        }
+        
         /**
          * Play a Sound
          * @param id What sound to play (matches export in Flash)
