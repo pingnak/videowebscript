@@ -24,9 +24,7 @@ Actually, that's Adobe having fits about the self signed certificate being diffe
 Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly, but you need to precisely match the text and case of the folders in your file system, to succeed.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.  This will cause three things to happen, in order:
 
   # It searches for files and folders in the path.  On a locally connected hard disk, this will be quick.  Over a network, this can take a minute.
-
   # It generates an index.html in each folder, with links to child folders.  Or one big index.html that kind of sucks.  Either way, this will usually finish in under a minute.
-
   # It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files.
 
 The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
