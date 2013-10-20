@@ -21,11 +21,14 @@ Actually, that's Adobe having fits about the self signed certificate being diffe
 
 = Using It =
 
-Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly, but you need to precisely match the text and case of the folders in your file system, to succeed.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.  This will cause three things to happen, in order:
+Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.  
+
+'DO IT' will cause several things to happen, in order:
 
   # It searches for files and folders in the path.  On a locally connected hard disk, this will be quick.  Over a network, this can take a minute.
-  # It generates an index.html in each folder, with links to child folders.  Or one big index.html that kind of sucks.  Either way, this will usually finish in under a minute.
-  # It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files.
+  # It generates an index.html in each folder, with links to child folders.
+  # If you picked 'Generate TOC.html', it will generate a second index at the root, with a flattened version of the folder tree's index.html file links.
+  # It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files, but will be quicker on successive passes, as it does not re-create existing images.
 
 The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
 
@@ -33,11 +36,9 @@ The app remembers its settings, so the next time you run it, it will be able to 
 
   * The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
 
-  * 'All in one index' Checkbox
+  * 'Generate TOC.html' Checkbox
 
-Check this box to dump the whole index into one html file with accordion paths to hide/show files.  With a BIG tree of files, this is cumbersome, and the load time on the thumbnails can be punishing.  This is a 'one off' sort of thing for sending a few files to someone.  This is pretty ugly, at the moment, so you'll probably want to leave it unchecked.
-
-Leave the box unchecked, and an 'index.html' will be written into each folder with its child folders linked on top, and its individual files, below.  This version of indexing should load almost instantly in most cases, but places index.html files in each folder.  Any folder from the tree will be self-contained, along with its children.  Use the browser's own 'back' button, to go back, from higher level trees.
+This will generate a second index at the root of the video tree, linked to all of the folders' index.html files listed as the folders.  If yo don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
 
   * '♫' Checkbox
 
@@ -53,7 +54,7 @@ The tool will not re-generate thumbnails that already exist.  It opens the video
 
 Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see on the pages.
 
-A simplistic heuristic based on the size of the jpeg file is applied. to at least discover nearly solid-colored scenes, and try again automatically, so you're a bit more likely to have complaints about the context of the thumbnails, than them being a blurry pan of a stucco wall.
+A simple heuristic based on the size of the jpeg file is applied. to at least discover nearly solid-colored, or very low contrast scenes, and try again automatically, so you're a bit more likely to have complaints about the context of the thumbnails, than them being a blurry pan of a stucco wall, or the tail end of a fade.
 
 = Tools =
 
@@ -65,7 +66,7 @@ The other one is 'Remove index.html' files.  This one is more dangerous, since i
 
 Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
 
-These tools are 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are (in my opinion) somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up' thumbnails, yourself.  A good and timely backup will make this kind of error a lot less annoying.
+These tools are 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are (in my opinion) somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up thumbnails', yourself.  A good and timely backup will make this kind of error a lot less annoying.
 
 For instance, I had typed... 
 {{{
@@ -77,7 +78,7 @@ find . -name '*.jpg' -exec rm -v \{\} \;
 
 What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video (in other words, I found no other examples of this, in the wild).  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
 
-==Building It==
+= Building It =
 
 The source can be built with Apache Ant, and some recent version of Flex SDK.  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.
 
