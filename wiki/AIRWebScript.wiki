@@ -9,7 +9,7 @@ This is the Adobe AIR version of 'making web interfaces for things tool'.  It's 
 
 If you have Adobe AIR installed, just download and open the Contact.air file to run it.  You may see a lot of 'self signed' warnings.  That's because I used a 'self signed' certificate to build it.  If you don't like it, there's the code, so build it yourself.
 
- * [https://videowebscript.googlecode.com/svn/trunk/AIR/deploy/MP4/VideoWebScript.air Get the VideoWebScript.air app from version control.]
+ * [https://videowebscript.googlecode.com/svn/trunk/AIR/videowebscript/deploy/VideoWebScript.air Get the VideoWebScript.air app from version control.]
 
 If you don't have adobe AIR installed (you open the .air file, and nothing good happens), then install AIR from here, and try again...
 
