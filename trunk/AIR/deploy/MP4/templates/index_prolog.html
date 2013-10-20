@@ -65,29 +65,6 @@
                     }
                 }
             }
-            // When a onclick="javascript: toggleNextDiv(this);" calls this, the DIV following that link is hidden/shown
-            function toggleNextDiv(link)
-            {
-                var nextdiv = link;
-                while ( nextdiv = nextdiv.nextSibling ) {
-                    if( "titles" == nextdiv.id ) {
-                        if(nextdiv.style.display == 'none') 
-                        {
-                            nextdiv.style.display = 'block';
-                            window.setTimeout(snapback, 10);
-                        } 
-                        else 
-                        {
-                            nextdiv.style.display = 'none';
-                        }                
-                        break;
-                    }
-                }
-                function snapback()
-                {
-                    link.scrollIntoView();
-                }
-            }
         </script>
         </head>
 	<body>
