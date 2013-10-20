@@ -67,17 +67,17 @@ The other one is 'Remove index.html' files.  This one is more dangerous, since i
 
 Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
 
+These tools are 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are (in my opinion) somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up' thumbnails, yourself.  A good and timely backup will make this kind of error a lot less annoying.
+
 For instance, I had typed... 
 {{{
 find . -name '*.jpg' -exec rm -v \{\} \;
 }}}
-... after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow', and enter, and realized I had done that in my 'home' folder.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
+... after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow' (repeat last command), and enter, and realized I had done that in my 'home' folder, which is where the shell opens, by default.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
 
 = Long-Winded Technical Rants =
 
 What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video (in other words, I found no other examples of this, in the wild).  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
-
-The code is a bit... untidy.  I haven't gone through and cleaned it up.  I definitely need to break some of these processes down by folder in state machines (aka 'green threads'), to keep Flash from hanging on larger operations.
 
 ==Building It==
 
