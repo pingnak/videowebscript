@@ -25,7 +25,7 @@ package
     public class VideoWebScript extends MovieClip
     {
         internal static const SO_PATH : String = "VideoWebScriptData";
-        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_00";
+        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_01";
 
 CONFIG::MXMLC_BUILD
 {
@@ -64,9 +64,6 @@ CONFIG::MXMLC_BUILD
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
-        /** Accordion movie folder link */
-        public static var INDEX_FOLDER    : String = SCRIPT_TEMPLATES+"index_folder.html";
-
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
@@ -76,11 +73,8 @@ CONFIG::MXMLC_BUILD
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
         
-        /** Offset for folder depths */
+        /** Offset for folder depths in TOC file */
         public static var FOLDER_DEPTH : int = 32;
-        
-        /** Offset for files in folders */
-        public static var FILE_DEPTH : int = 32;
         
         
         /** Regular expressions that we accept as 'MP4 content' 
@@ -92,10 +86,13 @@ CONFIG::MXMLC_BUILD
         /** Regular expressions that we accept as 'MP4 content'*/
         public static var REGEX_JPEG       : String = ".(jpg|jpeg)";
         
+        /** Path to do the job in */
         internal static var root_path_video : File;
-        
+
+        /** Finder while searching files/folders */
         internal static var finding : Find;
-        
+
+        /** Thumbnailer */        
         internal static var thumbnail : Thumbnail;
         
         public function VideoWebScript()
@@ -103,12 +100,12 @@ CONFIG::MXMLC_BUILD
             instance = this;
             
 CONFIG::MXMLC_BUILD
-{
+{           // Decode+initialize the swf content the UI was made of
             var loader : Loader = LoadSwfFromByteArray(baMainSwfClass);
             loader.contentLoaderInfo.addEventListener( Event.INIT, UI_Ready );
 }
 CONFIG::FLASH_AUTHORING
-{
+{           // Built in Flash, so it's already loaded+initialized
             UI_Ready();
 }
 
@@ -120,8 +117,7 @@ CONFIG::FLASH_AUTHORING
         **/        
         public function UI_Ready(e:Event=null) : void
         {
-            var cls : Class = GetClass("UI_Settings");
-            ui = new cls();
+            ui = GetMovieClip("UI_Settings");
             addChild(ui);
 
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
@@ -570,145 +566,6 @@ CONFIG::FLASH_AUTHORING
         }
 
         /**
-         * One index.html file to rule them all, and in the darkness bind them
-         *
-         * Tidy in the file system, but if there's a lot of files, especially  
-         * over network, the load time for the page could suffer.
-         *
-         * UI is a big list of folders, that 'open' to reveal files.
-         *
-         * It's ugly, and that's why it's not supported
-         * I'm just keeping it for this version, for reference
-         *
-         * Actually, I was proud of getting it to work without recursion
-         * outside of Find, but it's probably a goner, if I can't think of
-         * a reason to keep/save it.
-        **/
-        protected function DoVideoFilesMonolithic(found:Array):void
-        {
-            try
-            {
-                // Preload the various template elements we'll be writing for each folder/file
-                var index_prolog : String = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS) + LoadText(MOVIE_PROLOG); 
-                var index_folder : String = LoadText(INDEX_FOLDER); 
-                var index_file   : String = LoadText(INDEX_FILE);
-                var index_epilog : String = LoadText(INDEX_EPILOG); 
-
-                var root : File = found[0];
-                var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
-
-                // Get a list of folders in this folder, files in this folder
-                var curr_folders : Array = Find.GetFolders(found);
-                
-                var index_content : String = "";
-                var seded : String;
-                seded = index_prolog;
-                seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
-                seded = seded.replace(/TITLE_TEXT/g,Find.File_nameext(root));
-                index_content = seded;
-
-                var folder_curr : int; 
-                var prev_depth : int = 0;
-
-                // Iterate all of the folders
-                var threadTimer : Timer = new Timer( 1,1 );
-                threadTimer.addEventListener( TimerEvent.TIMER, ThreadOnce );
-                threadTimer.start();
-                folder_curr = 1;
-
-                //for( folder_curr = 1; folder_curr < curr_folders.length; ++folder_curr )
-                function ThreadOnce(e:Event=null):void
-                {
-                    ui.tfStatus.text = folder_curr.toString()+"/"+curr_folders.length.toString();
-
-                    if( folder_curr < curr_folders.length )
-                    {
-                        // Do next pass
-                        threadTimer.reset();
-                        threadTimer.start();
-                    }
-                    else
-                    {
-                        // Break out of 'threaded' loop
-                        
-                        // Bottom part of file index file; all done
-                        while( prev_depth-- > 0 )
-                        {
-                            index_content += "</div>\n";
-                        }
-                        index_content += index_epilog;
-                        
-                        // Now write out index file in one pass
-                        var fs : FileStream = new FileStream();
-                        fs.open( curr_index_file, FileMode.WRITE );
-                        fs.writeUTFBytes(index_content);
-                        fs.close();
-
-                        VideoFilesComplete();
-                        return;
-                    }
-                    
-                    var curr_folder : File = curr_folders[folder_curr++];
-                    var curr_depth : int = Find.File_Depth(curr_folder,root);
-                    while( prev_depth >= curr_depth )
-                    {
-                        // Close off div when depth goes back down
-                        index_content += "</div>\n";
-                        prev_depth--;
-                    }
-                    prev_depth = curr_depth;
-                    
-                    var total_at_this_depth : Array = Find.GetChildren( found, curr_folder, 1000 );
-                    if( total_at_this_depth.length > 1 )
-                    {
-                        // Emit index for child folder
-                        var curr_folder_title : String = Find.File_nameext( curr_folder );
-                        var curr_folder_parent : File = Find.File_parent(curr_folder);
-                        var curr_folder_relative : String = Find.File_relative( curr_folder, root );
-
-                        seded = index_folder;
-                        var parent_path : String = Find.File_relative(curr_folder_parent,root);
-                        seded = seded.replace(/FOLDER_PARENT/g,''==parent_path?'':parent_path+'/');
-                        seded = seded.replace(/FOLDER_PATH/g,curr_folder_relative);
-                        seded = seded.replace(/FOLDER_TITLE/g,curr_folder_title );
-                        seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(FOLDER_DEPTH*curr_depth).toString()+'px;');
-                        index_content += seded;
-
-                        var curr_files : Array = Find.GetChildren( total_at_this_depth, curr_folder );
-                        curr_files = Find.GetFiles(curr_files);
-
-                        var iteration : int;
-                        for( iteration = 0; iteration < curr_files.length; ++iteration )
-                        {
-                            var curr_file : File = curr_files[iteration];
-                            var curr_file_relative : String = Find.File_relative( curr_file, root );
-                            var curr_file_title : String = Find.File_name( curr_file );
-                            
-                            var file_thumb : File = CheckThumbnail(curr_file);
-                            var curr_file_thumb : String = Find.File_relative( file_thumb, root );
-
-                            // Emit index+code to play file
-                            seded = index_file;
-                            seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
-                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
-                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
-                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(FILE_DEPTH+(FOLDER_DEPTH*curr_depth)).toString()+'px;');
-                            index_content += seded;
-                        }
-                    }
-                }
-    
-            }
-            catch( e:Error )
-            {
-                trace(e);
-                ErrorIndicate(ui.tfPathVideo);
-                Interactive();
-            }
-            // Fall out; timer threads are in charge
-        }
-
-        /**
          * Reset persistent settings
         **/
         protected function ResetSharedData() : Object
@@ -970,8 +827,7 @@ CONFIG::FLASH_AUTHORING
             var popupWindow:NativeWindow = new NativeWindow(windowInitOptions);
             
             // create your class
-            var cls : Class = GetClass("UI_AreYouSure");
-            var ui:MovieClip = new cls();
+            var ui:MovieClip = GetMovieClip("UI_AreYouSure");
 
             // Text
             ui.tfBody.text = body;
@@ -1021,8 +877,7 @@ CONFIG::FLASH_AUTHORING
         **/
         internal function ErrorIndicate(whereXY:Object) : void
         {
-            var cls : Class = GetClass("ErrorIndicator");
-            var mc : MovieClip = new cls();
+            var mc : MovieClip = GetMovieClip("ErrorIndicator");
             if( whereXY is DisplayObject )
             {
                 var bounds : Rectangle = whereXY.getBounds(this);
@@ -1065,7 +920,7 @@ CONFIG::MXMLC_BUILD
         }
 
         /**
-         * Get a display object
+         * Get a DisplayObject from class name
         **/
         public static function GetDisplayObject( id : String ) : DisplayObject
         {
@@ -1073,6 +928,15 @@ CONFIG::MXMLC_BUILD
             return new cls();
         }
 
+        /**
+         * Get a MovieClip from class name
+        **/
+        public static function GetMovieClip( id : String ) : MovieClip
+        {
+            var cls : Class = ApplicationDomain.currentDomain.getDefinition(id) as Class;
+            return new cls();
+        }
+        
         /**
          * Load a text file (e.g. HTML template parts)
         **/
