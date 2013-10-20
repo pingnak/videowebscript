@@ -15,41 +15,55 @@ If you don't have adobe AIR installed (you open the .air file, and nothing good 
 
   * http://get.adobe.com/air/
 
-Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly, but you need to precisely match the text and case of the folders in your file system, to succeed.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.
-
-The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
-
-  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual mp4 video files are, or this will not generate anything like what you want.
-
-  * The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
-
-=It Says You Didn't Configure The Installer Right!=
+= It Says I Didn't Configure The Installer Right! =
 
 Actually, that's Adobe having fits about the self signed certificate being different.  If you manually remove the previous version from the computer, you can install the next (and later) versions, just fine.  
 
-= Video Player =
+= Using It =
 
-  * All in one index
+Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly, but you need to precisely match the text and case of the folders in your file system, to succeed.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.  This will cause three things to happen, in order:
+
+  # It searches for files and folders in the path.  On a locally connected hard disk, this will be quick.  Over a network, this can take a minute.
+
+  # It generates an index.html in each folder, with links to child folders.  Or one big index.html that kind of sucks.  Either way, this will usually finish in under a minute.
+
+  # It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files.
+
+The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
+
+  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual mp4 video files are, or this will not generate anything like what you want.  In fact, the first times you run it, point at some small subset of your video collection, to see how it works quickly, and how your settings look, before committing to doing the rest..
+
+  * The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
+
+  * 'All in one index' Checkbox
 
 Check this box to dump the whole index into one html file with accordion paths to hide/show files.  With a BIG tree of files, this is cumbersome, and the load time on the thumbnails can be punishing.  This is a 'one off' sort of thing for sending a few files to someone.  This is pretty ugly, at the moment, so you'll probably want to leave it unchecked.
 
-Leave the box unchecked, and an 'index.html' will be written into each folder with its child folders linked on top, and its individual files, below.  This version of indexing should load almost instantly in most cases, but litters your tree with lots of index.html files.  Any folder from the tree will be self-contained.
+Leave the box unchecked, and an 'index.html' will be written into each folder with its child folders linked on top, and its individual files, below.  This version of indexing should load almost instantly in most cases, but places index.html files in each folder.  Any folder from the tree will be self-contained, along with its children.  Use the browser's own 'back' button, to go back, from higher level trees.
+
+  * '♫' Checkbox
+
+Uncheck this if the little 'beep-boop' tone after it does something annoys you.  Since processing can take a while, an audible prompt lets you know it's done... or otherwise stopped.
+
+  * Thumbnail Size
+
+Enter a number, or leave it alone.  Smaller thumbnails load faster, and fit more files on screen, but it's harder to see what they're a thumbnail of.  Bigger thumbnails make the interface unwieldy, and html page loads pretty slow, over a network.
 
 = Thumbnails =
 
 The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 20~80% of the way in, then captures a frame and writes it out as a JPEG file.
 
-Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see.
+Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see on the pages.
 
-A dumb heuristic based on the size of the jpeg file is applied. to at least discover nearly solid-colored scenes, and try again.
+A simplistic heuristic based on the size of the jpeg file is applied. to at least discover nearly solid-colored scenes, and try again automatically, so you're a bit more likely to have complaints about the context of the thumbnails, than them being a blurry pan of a stucco wall.
 
 = Tools =
 
 The 'Tools' menu has a few items that needed burying, that could do harm.
 
-First is 'Remove Thumbnails'.  It does what it says.  If you pick that, a suitably noisome 'Are You Sure?' prompt pops up, and demands your permission.  While I took care to delete only jpg files that match an identically named file with the '.(mp4|m4v|m4p|m4r|3gp|3g2)' extension types, you should still use it with care.  
+First is 'Remove Thumbnails'.  It does what it says.  If you pick that, a suitably noisome 'Are You Sure?' prompt pops up, and demands your permission.  While I took care to delete only jpg files that match an identically named file with the '.(mp4|m4v|m4p|m4r|3gp|3g2)' extension types, you should still use it with care, or it could 'throw away' images that just happened to match this pattern.
 
-The other one is 'Remove index.html' files.  This one is more dangerous, since it will recursively delete this perfectly common web file name from wherever you launch the tool.  
+The other one is 'Remove index.html' files.  This one is more dangerous, since it will recursively delete this perfectly common, default web file name from wherever you launch the tool.  
 
 Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
 
@@ -59,19 +73,13 @@ find . -name '*.jpg' -exec rm -v \{\} \;
 }}}
 ... after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow', and enter, and realized I had done that in my 'home' folder.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
 
-= BACK UP YOUR DATA =
-
-I should probably mention the intrinsic value of 'Backups' and version control for your web development.  So I just did.  Back things up, in general, or you'll eventually have some 'regrets' to deal with.  
-
-This tool is 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are (in my opinion) somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up' thumbnails, yourself.  A good and timely backup will make this kind of error a lot less annoying.
-
 = Long-Winded Technical Rants =
 
 What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video (in other words, I found no other examples of this, in the wild).  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
 
 The code is a bit... untidy.  I haven't gone through and cleaned it up.  I definitely need to break some of these processes down by folder in state machines (aka 'green threads'), to keep Flash from hanging on larger operations.
 
-=Building It==
+==Building It==
 
 The source can be built with Apache Ant, and some recent version of Flex SDK.  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.
 
