@@ -88,12 +88,14 @@ What's checked in right now generates MP4 video thumbnails in AS3 code, and it's
 
 = Building It =
 
-The source can be built with Apache Ant, and some recent version of Flex SDK.  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.
+The source can be built with Apache Ant, and some recent version of Flex SDK (both require a Java runtime environment).  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.  The build script will generate a self signed certificate for your AIR app, if you don't have one.  Once you've built your own, you'll probably encounter the same problem, where the certificate doesn't match, so AIR won't install your app.  Just remove the previous version, yourself, and you'll be able to install the new one.
 
 You will still need Adobe Flash CS6, or later to change the hideous little UI's appearance.
 
 [https://ant.apache.org/]
 
 [http://www.adobe.com/devnet/flex/flex-sdk-download.html]
+
+
 
 See Also: [SecurityCaveats]
