@@ -191,9 +191,7 @@ package
                     // Too bad there isn't something like a 'NetStatusEvent.FIRST_FRAME'
                     // generated after playback starts up from beginning, or after a 
                     // seek.
-                    var timer : Timer = new Timer( 250, 1 );
-                    timer.addEventListener( TimerEvent.TIMER, Capture );
-                    timer.start();
+                    applet.setTimeout(Capture,250);
                     bSeekHappened = false;
                 }
 		        break;
@@ -255,15 +253,13 @@ package
             dispatchEvent( new Event( SNAPSHOT_READY ) );
             
             // Give UI a chance to refresh after calling back
-            var timer : Timer = new Timer( 33, 1 );
-            timer.addEventListener( TimerEvent.TIMER, DoCapture );
-            timer.start();
+            applet.setTimeout(DoCapture);
         }
 
         /**
          * Write a captured image
         **/
-        protected function DoCapture(e:Event):void
+        protected function DoCapture(e:Event=null):void
         {
             // Render to bitmap
             video.width = thumbsize;
