@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!--
+   Build/archive
+-->
+
+<project basedir="." name="${output.file}" default="build" >
+
+	<target name="build" description="Build all the other build.xml files"  >
+        <sequential>
+            <subant target="">
+                <fileset dir="." includes="*/build.xml"/>
+            </subant>
+        </sequential>
+	</target>
+
+    <target name="zip" description="Zip up all the files with all their contents,">
+        <tstamp />
+        <sequential>
+            <subant target="zip" failonerror="true">
+                <fileset dir="." includes="*/build.xml"/>
+            </subant>
+        </sequential>
+    </target>
+
+	
+</project>
+

@@ -22,10 +22,10 @@ package
     import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
     
-    public class VideoWebScript extends MovieClip
+    public class VideoWebScript extends applet
     {
         internal static const SO_PATH : String = "VideoWebScriptData";
-        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_01";
+        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_00";
 
 CONFIG::MXMLC_BUILD
 {
@@ -33,9 +33,6 @@ CONFIG::MXMLC_BUILD
         [Embed(source="./VideoWebScript_UI.swf", mimeType="application/octet-stream")]
         public static const baMainSwfClass : Class;
 }
-
-        /** A global instance to keep track of */
-        internal static var instance : VideoWebScript = null;
 
         /** Where the main UI lives */
         internal var ui : MovieClip;
@@ -87,13 +84,13 @@ CONFIG::MXMLC_BUILD
         public static var REGEX_JPEG       : String = ".(jpg|jpeg)";
         
         /** Path to do the job in */
-        internal static var root_path_video : File;
+        internal var root_path_video : File;
 
         /** Finder while searching files/folders */
-        internal static var finding : Find;
+        internal var finding : Find;
 
         /** Thumbnailer */        
-        internal static var thumbnail : Thumbnail;
+        internal var thumbnail : Thumbnail;
         
         public function VideoWebScript()
         {
@@ -101,7 +98,7 @@ CONFIG::MXMLC_BUILD
             
 CONFIG::MXMLC_BUILD
 {           // Decode+initialize the swf content the UI was made of
-            var loader : Loader = LoadSwfFromByteArray(baMainSwfClass);
+            var loader : Loader = LoadFromByteArray(new baMainSwfClass());
             loader.contentLoaderInfo.addEventListener( Event.INIT, UI_Ready );
 }
 CONFIG::FLASH_AUTHORING
@@ -119,41 +116,20 @@ CONFIG::FLASH_AUTHORING
         {
             ui = GetMovieClip("UI_Settings");
             addChild(ui);
+            SortTabs(ui);
 
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfThumbnailSize.maxChars = 3;
+            ui.tfThumbnailSize.restrict = "0-9";
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
+            ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnTOC);
             CheckSetup(ui.bnCompletionTone);
             
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoVideo );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
             LoadSharedData();
-
-            // A nice disabler helper
-            function DisableIt(dobj:DisplayObject):void
-            {
-                if( dobj is InteractiveObject )
-                {
-                    var iobj : InteractiveObject = dobj as InteractiveObject;
-                    iobj.tabEnabled = iobj.mouseEnabled = false; 
-                    if( iobj is DisplayObjectContainer )
-                        ( iobj as DisplayObjectContainer ).mouseChildren = false;
-                }
-                dobj.alpha = 0.5;
-            }
-            
-            // Make tab order match depth of objects
-            var i : int;
-            var dobj : InteractiveObject;
-            for( i = 0; i < ui.numChildren; ++i )
-            {
-                dobj = ui.getChildAt(i) as InteractiveObject;
-                if( null != dobj )
-                {
-                    dobj.tabIndex = i;
-                }
-            }
 
             // Build our menu of doom
             if( NativeApplication.supportsMenu )
@@ -177,18 +153,7 @@ CONFIG::FLASH_AUTHORING
             ui.tfStatus.text = "";
             ui.tabChildren = true;
             
-            // Keep kicking the random number generator
-            addEventListener( Event.ENTER_FRAME, Entropy );
         }
-
-        /**
-         * Keep random output inconsistent
-        **/
-        internal function Entropy(e:Event=null):void
-        {
-            Math.random();
-        }
-        
 
         internal function FindStatus(e:Event):void
         {
@@ -197,14 +162,14 @@ CONFIG::FLASH_AUTHORING
             ui.tfStatus.text = found_so_far.toString();
         }
         
-        private function Busy() : void
+        public override function Busy(e:Event=null) : void
         {
             ui.gotoAndStop(2);
             ui.gotoAndStop("working");
             ui.tfStatus.text = "...";
             ui.tabChildren = false;
         }
-        private function Interactive() : void
+        public override function Interactive(e:Event=null) : void
         {
             ui.gotoAndStop("interactive");
             ui.tfStatus.text = "";
@@ -215,12 +180,18 @@ CONFIG::FLASH_AUTHORING
                 PlaySound("fxBeepBoop");
             }
         }
+        public override function isBusy() : Boolean
+        {
+            return "working" == ui.currentLabel;
+        }
+        
 
         /**
          * Process halted or error
         **/
         internal function Aborted(e:Event):void
         {
+            AbortTimeouts();
             Interactive();
         }
 
@@ -229,6 +200,7 @@ CONFIG::FLASH_AUTHORING
         **/
         internal function Abort(e:Event):void
         {
+            AbortTimeouts();
             if( null != finding )
             {
                 finding.Abort();
@@ -255,7 +227,7 @@ CONFIG::FLASH_AUTHORING
 
             if( !root_path_video.exists || !root_path_video.isDirectory )
             {
-                ErrorIndicate(ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
                 return;
             }
             // Make sure we don't go way out of range on thumb size
@@ -263,14 +235,14 @@ CONFIG::FLASH_AUTHORING
             {
                 THUMB_SIZE = 64;
                 ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-                ErrorIndicate(ui.tfThumbnailSize);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 return;
             }
             if( THUMB_SIZE > 360 )
             {
                 THUMB_SIZE = 360;
                 ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-                ErrorIndicate(ui.tfThumbnailSize);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 return;
             }
 
@@ -391,27 +363,22 @@ CONFIG::FLASH_AUTHORING
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
-                var threadTimer : Timer = new Timer( 1,1 );
-                threadTimer.addEventListener( TimerEvent.TIMER, ThreadPassFolder );
-                threadTimer.start();
+                setTimeout( ThreadPassFolder );
 
                 var folder_iteration : int = 0;
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
-                function ThreadPassFolder(e:Event):void
+                function ThreadPassFolder():void
                 {
                     if( folder_iteration < folders.length )
                     {
                         // Do next pass
-                        threadTimer.reset();
-                        threadTimer.start();
+                        setTimeout( ThreadPassFolder );
                     }
                     else
                     {
                         // Break out of 'threaded' loop
                         // Bottom part of file index file; all done
-                        threadTimer = new Timer( 1,1 );
-                        threadTimer.addEventListener( TimerEvent.TIMER, ThreadComplete );
-                        threadTimer.start();
+                        setTimeout( ThreadComplete );
                         return;
                     }
                     
@@ -494,7 +461,7 @@ CONFIG::FLASH_AUTHORING
                     
                 }
 
-                function ThreadComplete(e:Event=null):void
+                function ThreadComplete():void
                 {
                     // If user wanted a flattened table of contents, make one.
                     if( CheckGet( ui.bnTOC ) )
@@ -507,7 +474,7 @@ CONFIG::FLASH_AUTHORING
             catch( e:Error )
             {
                 trace(e);
-                ErrorIndicate(ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
                 Interactive();
             }
             // Fall out; timer threads are in charge
@@ -570,7 +537,8 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function ResetSharedData() : Object
         {
-            root_path_video = File.userDirectory;
+            root_path_video = File.desktopDirectory;
+            onFolderChanged();
             CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
             THUMB_SIZE = 240;
@@ -617,6 +585,10 @@ CONFIG::FLASH_AUTHORING
             
             // Decode the saved data
             root_path_video = new File(share_data.url_video);
+            if( !root_path_video.exists )
+                root_path_video = File.desktopDirectory;
+            onFolderChanged();
+
             CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
 
@@ -661,6 +633,13 @@ CONFIG::FLASH_AUTHORING
             root_path_video.addEventListener(Event.SELECT, onFolderChanged);
             root_path_video.browseForDirectory("Choose a folder");
         }
+        
+        /** Open an OS Finder/Explorer/whatever browser */
+        internal function OpenFolder(e:Event=null):void
+        {
+            root_path_video.openWithDefaultApplication();
+        }
+        
 
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
         internal function onFolderEdited(e:Event=null):void
@@ -674,29 +653,6 @@ CONFIG::FLASH_AUTHORING
         {
             ui.tfPathVideo.text = root_path_video.nativePath; 
         }
-        
-        /** Get check box state */
-        internal static function CheckGet(mc:MovieClip):Boolean
-        {
-            return "on" == mc.currentLabel;
-        }
-        
-        /** Get check box state */
-        internal static function CheckSet(mc:MovieClip,state:Boolean):void
-        {
-            mc.gotoAndStop( state ? "on" : "off" );
-        }
-
-        /** Get check box state */
-        internal static function CheckSetup(mc:MovieClip, initialState : Boolean = false):void
-        {
-            mc.addEventListener( MouseEvent.CLICK, HandleCheck );
-            mc.gotoAndStop( initialState ? "on" : "off" );
-            function HandleCheck(e:MouseEvent):void
-            {
-                mc.gotoAndStop("on" == mc.currentLabel ? "off" : "on" ); 
-            }
-        }
 
         /**
          * Invoke thumbnail nuker
@@ -705,12 +661,12 @@ CONFIG::FLASH_AUTHORING
         { 
             if( !root_path_video.exists || !root_path_video.isDirectory )
             {
-                ErrorIndicate(ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
                 return;
             }
 
             var warning : String = "Every JPEG from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
-            AreYouSure( "Remove Video Thumbnail Images", yeah, warning, "DO IT!", "ABORT!" );
+            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Video Thumbnail Images", yeah, warning, "DO IT!", "ABORT!" );
             function yeah():void
             {
                 trace("Removing Thumbnail Images");
@@ -747,7 +703,7 @@ CONFIG::FLASH_AUTHORING
                             jpegpath.deleteFileAsync();
                         }
                     }
-                    instance.Interactive();
+                    Interactive();
                 }
             }
         } 
@@ -759,12 +715,12 @@ CONFIG::FLASH_AUTHORING
         { 
             if( !root_path_video.exists || !root_path_video.isDirectory )
             {
-                ErrorIndicate(ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
                 return;
             }
 
             var warning : String = "Every "+MAIN_INDEX+" from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
-            AreYouSure( "Remove Video Index Files", yeah, warning, "DO IT!", "ABORT!" );
+            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Video Index Files", yeah, warning, "DO IT!", "ABORT!" );
             var rxIndex : RegExp = new RegExp(MAIN_INDEX,"i");
             function yeah():void
             {
@@ -794,186 +750,11 @@ CONFIG::FLASH_AUTHORING
                         trace(found[i].nativePath);
                         found[i].deleteFileAsync();
                     }
-                    instance.Interactive();
+                    Interactive();
                 }
             }
         } 
         
-        /**
-         * Do a confirmation dialog for dangerous-looking stunts
-         * @param title Window title
-         * @param body  Body text explaining why we're stopping
-         * @param yes   Yes button text
-         * @param no    No button text
-        **/
-        internal static function AreYouSure( title:String, onYes : Function, body:String="Keep going?", yes:String="Yes", no:String="No" ) : void
-        {
-            var bYes : Boolean = false;
-            
-            if( "working" == instance.ui.currentLabel )
-                return;
-            instance.Busy();
-            
-            // create NativeWindowInitOptions
-            var windowInitOptions:NativeWindowInitOptions = new NativeWindowInitOptions();
-            windowInitOptions.type = NativeWindowType.NORMAL;
-            windowInitOptions.minimizable = false;
-            windowInitOptions.resizable = false;
-            windowInitOptions.maximizable = false;
-            windowInitOptions.systemChrome = NativeWindowSystemChrome.STANDARD;
-            windowInitOptions.transparent = false;
-
-            // create new NativeWindow
-            var popupWindow:NativeWindow = new NativeWindow(windowInitOptions);
-            
-            // create your class
-            var ui:MovieClip = GetMovieClip("UI_AreYouSure");
-
-            // Text
-            ui.tfBody.text = body;
-            ui.tfYES.text = yes;
-            ui.tfNO.text = no;
-            popupWindow.title = title;
-            
-            ui.bnYES.addEventListener(MouseEvent.CLICK, onConfirm);
-            ui.bnNO.addEventListener(MouseEvent.CLICK, onDeny);
-            popupWindow.addEventListener( Event.CLOSE, onClose );
-            
-            function onClose(e:Event):void
-            {
-                if( !bYes )
-                    instance.Interactive();
-            }
-            function onConfirm(e:Event):void
-            {
-                bYes = true;
-                popupWindow.close();
-                onYes.call(instance);
-            }
-            function onDeny(e:Event):void
-            {
-                popupWindow.close();
-                instance.Interactive();
-            }
-            
-            
-            // for a popup it might be nice to have it activated and on top
-            // resize
-            //popupWindow.width = ui.width;
-            //popupWindow.height = ui.height;
-
-            // add
-            popupWindow.stage.addChild(ui);
-            popupWindow.stage.align = StageAlign.TOP_LEFT;
-            popupWindow.stage.scaleMode = StageScaleMode.NO_SCALE;
-
-            popupWindow.alwaysInFront = true;
-            popupWindow.activate();
-            
-        }
-        
-        /**
-         * Flash an error indicator
-        **/
-        internal function ErrorIndicate(whereXY:Object) : void
-        {
-            var mc : MovieClip = GetMovieClip("ErrorIndicator");
-            if( whereXY is DisplayObject )
-            {
-                var bounds : Rectangle = whereXY.getBounds(this);
-                mc.x = 0.5*(bounds.left+bounds.right);
-                mc.y = 0.5*(bounds.top+bounds.bottom);
-            }
-            else
-            {
-                mc.x = whereXY.x;
-                mc.y = whereXY.y;
-            }
-            addChild(mc);
-            PlaySound("fxBeepBoop");
-        }
-
-        
-        /**
-         * Load a resource that's embedded 
-        **/
-CONFIG::MXMLC_BUILD
-{
-        public static function LoadSwfFromByteArray( baClass : Class ) : Loader
-        {
-            var ba : ByteArray = new baClass();
-            var loader : Loader = new Loader();
-            var loaderContext:LoaderContext = new LoaderContext(false);
-            loaderContext.checkPolicyFile = false;
-            loaderContext["allowCodeImport"] = true;
-            loaderContext.applicationDomain = ApplicationDomain.currentDomain;
-            loader.loadBytes(ba,loaderContext);
-            return loader;
-        }
-}
-        /**
-         * Resolve a class that may have been loaded
-        **/
-        public static function GetClass( id : String ) : Class
-        {
-            return ApplicationDomain.currentDomain.getDefinition(id) as Class;
-        }
-
-        /**
-         * Get a DisplayObject from class name
-        **/
-        public static function GetDisplayObject( id : String ) : DisplayObject
-        {
-            var cls : Class = ApplicationDomain.currentDomain.getDefinition(id) as Class;
-            return new cls();
-        }
-
-        /**
-         * Get a MovieClip from class name
-        **/
-        public static function GetMovieClip( id : String ) : MovieClip
-        {
-            var cls : Class = ApplicationDomain.currentDomain.getDefinition(id) as Class;
-            return new cls();
-        }
-        
-        /**
-         * Load a text file (e.g. HTML template parts)
-        **/
-        protected function LoadText( path:String ) : String
-        {
-            try
-            {
-                var root : File = File.applicationDirectory;
-                var f : File = Find.File_AddPath(root,path);
-                if( f.exists && !f.isDirectory )
-                {
-                    var fs:FileStream = new FileStream();
-                    fs.open(f, FileMode.READ);
-                    var ret : String = fs.readUTFBytes(fs.bytesAvailable);
-                    fs.close();
-                    return ret;
-                }
-            }
-            catch(e:Error)
-            {
-                trace(e);
-            }
-            return "";
-        }
-        
-        /**
-         * Play a Sound
-         * @param id What sound to play (matches export in Flash)
-         * @params... Parameters to pass to Sound.Play
-         * @return SoundChannel from play()
-        **/
-        public static function PlaySound( id : String, ...params ) : SoundChannel
-        {
-            var cls : Class = ApplicationDomain.currentDomain.getDefinition(id) as Class;
-            var sound : Sound = new cls();
-            return sound.play.apply(id,params);
-        }
     }
 }
     

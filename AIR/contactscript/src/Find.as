@@ -135,13 +135,11 @@ package
                     // Sort results...
                     final_result.sortOn("nativePath");
                     // Delay completion slightly.
-                    function InAMoment(e:Event):void
+                    function InAMoment(e:Event=null):void
                     {
                         dispatchEvent( new Event(FOUND) );
                     }
-                    var timer : Timer = new Timer(25,1);
-                    timer.addEventListener( TimerEvent.TIMER_COMPLETE, InAMoment );
-                    timer.start();
+                    applet.setTimeout(InAMoment);
                     return;
                 }
 
@@ -186,9 +184,7 @@ package
                 dispatchEvent( new Event(MORE) );
 
                 // Delay dispatch of next event, to keep them from getting crossed
-                var timer : Timer = new Timer(1,1);
-                timer.addEventListener( TimerEvent.TIMER_COMPLETE, FindNext );
-                timer.start();
+                applet.setTimeout(FindNext);
             }
             catch(e:Error)
             {
