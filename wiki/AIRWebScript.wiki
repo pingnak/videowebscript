@@ -48,6 +48,14 @@ Uncheck this if the little 'beep-boop' tone after it does something annoys you. 
 
 Enter a number, or leave it alone.  Smaller thumbnails load faster, and fit more files on screen, but it's harder to see what they're a thumbnail of.  Bigger thumbnails make the interface unwieldy, and html page loads pretty slow, over a network.
 
+  * [...] 
+
+Use folder explorer to set path.
+
+  * [{{{*}}}] 
+
+Open OS Finder/Explorer/File Manager/etc. file browser on the current path.
+
 = Thumbnails =
 
 The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 20~80% of the way in, then captures a frame and writes it out as a JPEG file.
