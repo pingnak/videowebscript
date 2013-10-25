@@ -483,7 +483,6 @@ CONFIG::FLASH_AUTHORING
         /**
          * Iterate through folders and generate a flattened Table of Contents 
          * of index.html files, throughout the tree.
-         *
         **/
         protected function DoTOC(found:Array):void
         {
@@ -496,6 +495,7 @@ CONFIG::FLASH_AUTHORING
             var root : File = folders[0];
             var curr_title : String = Find.File_nameext(root);
             var seded : String;
+            var bExportedLinks : Boolean = false;
             seded = TOC_prolog;
             seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
             seded = seded.replace(/TITLE_TEXT/g,curr_title);
@@ -518,18 +518,25 @@ CONFIG::FLASH_AUTHORING
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
+                    bExportedLinks = true;
                     index_content += seded;
                 }
             }
             
             index_content += index_epilog;
-            
-            // Now write out index file in one pass
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
-            var fs : FileStream = new FileStream();
-            fs.open( toc_file, FileMode.WRITE );
-            fs.writeUTFBytes(index_content);
-            fs.close();
+            if( bExportedLinks )
+            {
+                // Now write out index file in one pass
+                var fs : FileStream = new FileStream();
+                fs.open( toc_file, FileMode.WRITE );
+                fs.writeUTFBytes(index_content);
+                fs.close();
+            }
+            else
+            {
+                toc_file.moveToTrashAsync();
+            }
         }
 
         /**
@@ -700,7 +707,7 @@ CONFIG::FLASH_AUTHORING
                         if( jpegpath.exists )
                         {
                             trace(jpegpath.nativePath);
-                            jpegpath.deleteFileAsync();
+                            jpegpath.moveToTrashAsync();
                         }
                     }
                     Interactive();
@@ -748,7 +755,7 @@ CONFIG::FLASH_AUTHORING
                     for( i = 0; i < found.length; ++i )
                     {
                         trace(found[i].nativePath);
-                        found[i].deleteFileAsync();
+                        found[i].moveToTrashAsync();
                     }
                     Interactive();
                 }
