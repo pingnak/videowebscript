@@ -341,6 +341,65 @@ package
             _timeouts = new Dictionary();
         }
 
+        /**
+         * Encode data to Base64 format
+        **/
+        public static function BytesToBase64( ba:ByteArray, length:uint = uint.MAX_VALUE ):String
+        {
+            var result:String = "";
+            var remains : uint = Math.min( ba.length-ba.position, length );
+            var encodes : String = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+            var shift : uint = 0;
+            while( 3 <= remains )
+            {
+                shift =  (ba.readByte()&0xff) << 16;
+                shift |= (ba.readByte()&0xff) << 8;
+                shift |= (ba.readByte()&0xff);
+                result += encodes.charAt((shift>>18) & 0x3f);
+                result += encodes.charAt((shift>>12) & 0x3f);
+                result += encodes.charAt((shift>> 6) & 0x3f);
+                result += encodes.charAt(shift & 0x3f);
+                remains -= 3;
+            }
+            switch( remains )
+            {
+            case 2:
+                shift =  (ba.readByte()&0xff) << 16;
+                shift |= (ba.readByte()&0xff) << 8;
+                result += encodes.charAt((shift>>18) & 0x3f);
+                result += encodes.charAt((shift>>12) & 0x3f);
+                result += encodes.charAt((shift>> 6) & 0x3f);
+                result += '=';
+                break;
+            case 1:
+                shift = (ba.readByte()&0xff) << 16;
+                result += encodes.charAt((shift>>18) & 0x3f);
+                result += encodes.charAt((shift>>12) & 0x3f);
+                result += '==';
+                break;
+            case 0:
+                break;
+            }
+            return result;
+        }
+
+        /**
+         * Trace common download status events
+        **/
+        public static function TraceDownload( loader : EventDispatcher ) : void
+        {
+            if( loader is Loader )
+                loader = (loader as Loader).contentLoaderInfo;
+            loader.addEventListener( IOErrorEvent.IO_ERROR, trace );
+            loader.addEventListener( SecurityErrorEvent.SECURITY_ERROR, trace );
+CONFIG::DEBUG {
+            loader.addEventListener( Event.OPEN, trace );
+            loader.addEventListener( Event.COMPLETE, trace );
+            loader.addEventListener( Event.INIT, trace );
+            loader.addEventListener( HTTPStatusEvent.HTTP_STATUS, trace );
+            // loader.addEventListener( ProgressEvent.PROGRESS, trace );
+}
+        }        
         
     }
 }

@@ -16,15 +16,21 @@ a:active    { color:#20ffff; text-decoration: none; }
     white-space:nowrap;
     text-align:center;
 }
+.image_viewer {
+    width:100%;
+    padding-bottom:8px;
+    padding-top:8px;
+}
 .index_entry {
     color:#00ffff;
-    font-size:30px;
+    font-size:25px;
     white-space:nowrap;
-    padding-left:16px;
+    text-align:center;
 }
 img.index_thumbnail {
     width:THUMB_SIZEpx;
     vertical-align:middle;
+    text-align:center;
     padding-bottom:8px;
     padding-right:8px;
 }
