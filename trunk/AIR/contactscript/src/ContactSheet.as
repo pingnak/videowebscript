@@ -439,166 +439,171 @@ trace(curr_title);
                             var anyexif : Object = new Object();
                             var exif : ExifInfo = new ExifInfo(jpeg_loaded);
                             var bHasGPS : Boolean = false;
-                            EXIFSubstitutions(exif.ifds.primary);
-                            EXIFSubstitutions(exif.ifds.exif);
-                            EXIFSubstitutions(exif.ifds.gps);
-                            EXIFSubstitutions(exif.ifds.interoperability);
-                            EXIFSubstitutions(exif.ifds.thumbnail);
-                            function EXIFSubstitutions( ifd:IFD ):void 
+                            var bHasEXIF : Boolean = null != exif.ifds;
+                            if( bHasEXIF )
                             {
-                                if( null == ifd )
-                                    return;
-                                var entry : String;
-                                for( entry in ifd )
+                                EXIFSubstitutions(exif.ifds.primary);
+                                EXIFSubstitutions(exif.ifds.exif);
+                                EXIFSubstitutions(exif.ifds.gps);
+                                EXIFSubstitutions(exif.ifds.interoperability);
+                                EXIFSubstitutions(exif.ifds.thumbnail);
+                                function EXIFSubstitutions( ifd:IFD ):void 
                                 {
-                                    anyexif[entry] = ifd[entry];
-                                    var pattern : RegExp = new RegExp("EXIF:"+entry,'g');
-                                    var value : String = String(ifd[entry]);
-                                    var split : Array;
-                                    var degrees : int;
-                                    var minutes : int;
-                                    var seconds : Number;
-                                    var ref : String;
-                                    var llref : Number;
-                                    var tmp : Number;
-                                    //trace(entry,ifd[entry]);
-                                    // Try to 'fix' values that were less than human friendly
-                                    switch(entry)
+                                    if( null == ifd )
+                                        return;
+                                    var entry : String;
+                                    for( entry in ifd )
                                     {
-                                    case "GPSLatitude":
-                                        split = value.split(",");
-                                        degrees = int(split[0]);
-                                        minutes = int(split[1]);
-                                        seconds = Number(split[2]);
-                                        llref = degrees+(minutes/60)+(seconds/3600);
-                                        ref = "GPSLatitudeRef" in ifd ? ifd["GPSLatitudeRef"] : "N";
-                                        if( "S" == ref )
-                                            llref = -llref;
-                                        value = llref.toString();
-                                        bHasGPS = true;
-                                        break;
-                                    case "GPSLongitude":
-                                        split = value.split(",");
-                                        degrees = int(split[0]);
-                                        minutes = int(split[1]);
-                                        seconds = Number(split[2]);
-                                        llref = degrees+(minutes/60)+(seconds/3600);
-                                        ref = "GPSLongitudeRef" in ifd ? ifd["GPSLongitudeRef"] : "W";
-                                        if( "W" == ref )
-                                            llref = -llref;
-                                        value = llref.toString();
-                                        bHasGPS = true;
-                                        break;
-                                    case "GPSAltitude":
-                                        value = value + "m ("+int(3.28084*Number(value))+" feet)"; 
-                                        break;
-                                    case "Orientation":
-                                        switch(int(ifd[entry]))
+                                        anyexif[entry] = ifd[entry];
+                                        var pattern : RegExp = new RegExp("EXIF:"+entry,'g');
+                                        var value : String = String(ifd[entry]);
+                                        var split : Array;
+                                        var degrees : int;
+                                        var minutes : int;
+                                        var seconds : Number;
+                                        var ref : String;
+                                        var llref : Number;
+                                        var tmp : Number;
+                                        //trace(entry,ifd[entry]);
+                                        // Try to 'fix' values that were less than human friendly
+                                        switch(entry)
                                         {
-                                        case 1:
-                                            value = "Normal";
+                                        case "GPSLatitude":
+                                            split = value.split(",");
+                                            degrees = int(split[0]);
+                                            minutes = int(split[1]);
+                                            seconds = Number(split[2]);
+                                            llref = degrees+(minutes/60)+(seconds/3600);
+                                            ref = "GPSLatitudeRef" in ifd ? ifd["GPSLatitudeRef"] : "N";
+                                            if( "S" == ref )
+                                                llref = -llref;
+                                            value = llref.toString();
+                                            bHasGPS = true;
                                             break;
-                                        case 8:
-                                            value = "Rotate CCW";
+                                        case "GPSLongitude":
+                                            split = value.split(",");
+                                            degrees = int(split[0]);
+                                            minutes = int(split[1]);
+                                            seconds = Number(split[2]);
+                                            llref = degrees+(minutes/60)+(seconds/3600);
+                                            ref = "GPSLongitudeRef" in ifd ? ifd["GPSLongitudeRef"] : "W";
+                                            if( "W" == ref )
+                                                llref = -llref;
+                                            value = llref.toString();
+                                            bHasGPS = true;
                                             break;
-                                        case 3:
-                                            value = "Upside-down";
+                                        case "GPSAltitude":
+                                            value = value + "m ("+int(3.28084*Number(value))+" feet)"; 
                                             break;
-                                        case 6:
-                                            value = "Rotated CW";
+                                        case "Orientation":
+                                            switch(int(ifd[entry]))
+                                            {
+                                            case 1:
+                                                value = "Normal";
+                                                break;
+                                            case 8:
+                                                value = "Rotate CCW";
+                                                break;
+                                            case 3:
+                                                value = "Upside-down";
+                                                break;
+                                            case 6:
+                                                value = "Rotated CW";
+                                                break;
+                                            case 2:
+                                                value = "H-Flip";
+                                                break;
+                                            case 4:
+                                                value = "V-Flip";
+                                                break;
+                                            case 5:
+                                                value = "Transpose";
+                                                break;
+                                            case 7:
+                                                value = "Transverse";
+                                                break;
+                                            }
                                             break;
-                                        case 2:
-                                            value = "H-Flip";
+                                        case "ExposureProgram":
+                                            switch(int(ifd[entry]))
+                                            {
+                                            case 0: 
+                                                value = "Not defined";
+                                                break;
+                                            case 1:
+                                                value = "Manual";
+                                                break;
+                                            case 2:
+                                                value = "Normal";
+                                                break;
+                                            case 3:
+                                                value = "Aperture priority";
+                                                break;
+                                            case 4:
+                                                value = "Shutter priority";
+                                                break;
+                                            case 5:
+                                                value = "Creative";
+                                                break;
+                                            case 6:
+                                                value = "Action";
+                                                break;
+                                            case 7:
+                                                value = "Portrait";
+                                                break;
+                                            case 8:
+                                                value = "Landscape";
+                                                break;
+                                            }
                                             break;
-                                        case 4:
-                                            value = "V-Flip";
+                                        case "Flash":
+                                            if( 0 != (int(ifd[entry]) & 1)) 
+                                            {
+                                                value = "Fired";
+                                            }
+                                            else 
+                                            {
+                                                value = "Did Not Fire";
+                                            }
                                             break;
-                                        case 5:
-                                            value = "Transpose";
+                                            
+                                        case "ExposureTime":
+                                            bHasEXIF = true; // We'll use this as the basis of 'have camera details'
+                                            tmp = Number(value);
+                                            if( tmp < 1 )
+                                            {
+                                                value = '1/'+int(1/tmp);
+                                            }
+                                            else
+                                            {
+                                                tmp = 0.001 * int((tmp+0.0004)*1000);
+                                                value = tmp.toString();
+                                            }
+                                            /*
+                                            tmp = int(1000000*Number(value)+0.5);
+                                            tmp /= 1000;
+                                            value = tmp.toString()+'ms';
+                                            */
                                             break;
-                                        case 7:
-                                            value = "Transverse";
+                                        default:
                                             break;
                                         }
-                                        break;
-                                    case "ExposureProgram":
-                                        switch(int(ifd[entry]))
-                                        {
-                                        case 0: 
-                                            value = "Not defined";
-                                            break;
-                                        case 1:
-                                            value = "Manual";
-                                            break;
-                                        case 2:
-                                            value = "Normal";
-                                            break;
-                                        case 3:
-                                            value = "Aperture priority";
-                                            break;
-                                        case 4:
-                                            value = "Shutter priority";
-                                            break;
-                                        case 5:
-                                            value = "Creative";
-                                            break;
-                                        case 6:
-                                            value = "Action";
-                                            break;
-                                        case 7:
-                                            value = "Portrait";
-                                            break;
-                                        case 8:
-                                            value = "Landscape";
-                                            break;
-                                        }
-                                        break;
-                                    case "Flash":
-                                        if( 0 != (int(ifd[entry]) & 1)) 
-                                        {
-                                            value = "Fired";
-                                        }
-                                        else 
-                                        {
-                                            value = "Did Not Fire";
-                                        }
-                                        break;
-                                        
-                                    case "ExposureTime":
-                                        tmp = Number(value);
-                                        if( tmp < 1 )
-                                        {
-                                            value = '1/'+int(1/tmp);
-                                        }
-                                        else
-                                        {
-                                            tmp = 0.001 * int((tmp+0.0004)*1000);
-                                            value = tmp.toString();
-                                        }
-                                        /*
-                                        tmp = int(1000000*Number(value)+0.5);
-                                        tmp /= 1000;
-                                        value = tmp.toString()+'ms';
-                                        */
-                                        break;
-                                    default:
-                                        break;
+                                        seded = seded.replace(pattern,value);
                                     }
-                                    seded = seded.replace(pattern,value);
                                 }
+                                var s : String;
+                                for( s in anyexif )
+                                if( String(anyexif[s]).length < 100 )
+                                    trace(s,anyexif[s]);
+                                if( !("FNumber" in anyexif) )
+                                {
+                                    seded = seded.replace(/EXIF:FNumber/g,"N/A");
+                                }
+                                
+                                seded = seded.replace(/GPS_LINK_CUSTOM/g,bHasGPS?'':'display:none;');
                             }
-                            var s : String;
-                            for( s in anyexif )
-                            if( String(anyexif[s]).length < 100 )
-                                trace(s,anyexif[s]);
-                            if( !("FNumber" in anyexif) )
-                            {
-                                seded = seded.replace(/EXIF:FNumber/g,"N/A");
-                            }
-                                                            
-                            
-                            seded = seded.replace(/GPS_LINK_CUSTOM/g,bHasGPS?'':'display:none;');
-                            
+                            seded = seded.replace(/EXIF_DATA_STYLE/g,bHasEXIF?'':'display:none;');
+
                             var loading : Loader = new Loader();
                             loading.contentLoaderInfo.addEventListener( Event.COMPLETE, EncodeImage );
                             jpeg_loaded.position = 0;
@@ -659,6 +664,10 @@ trace(curr_title);
                                         break;
                                     }
                                 }
+                                else
+                                {
+                                    seded = seded.replace(/ORIENT_ANGLE/g,0);
+                                }
                                 bmThumbnail.draw( loading, matrix, null, null, null, true );
                                 
                                 var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
@@ -694,6 +703,10 @@ trace(curr_title);
                             applet.setTimeout(ThreadPassFolder);
                         }
                     }
+                    else
+                    {
+                        applet.setTimeout(ThreadPassFolder);
+                    }
                     
                 }
 
@@ -722,7 +735,6 @@ trace(curr_title);
         /**
          * Iterate through folders and generate a flattened Table of Contents 
          * of index.html files, throughout the tree.
-         *
         **/
         protected function DoTOC(found:Array):void
         {
@@ -735,6 +747,7 @@ trace(curr_title);
             var root : File = folders[0];
             var curr_title : String = Find.File_nameext(root);
             var seded : String;
+            var bExportedLinks : Boolean = false;
             seded = TOC_prolog;
             seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
             seded = seded.replace(/TITLE_TEXT/g,curr_title);
@@ -757,18 +770,25 @@ trace(curr_title);
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
+                    bExportedLinks = true;
                     index_content += seded;
                 }
             }
             
             index_content += index_epilog;
-            
-            // Now write out index file in one pass
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
-            var fs : FileStream = new FileStream();
-            fs.open( toc_file, FileMode.WRITE );
-            fs.writeUTFBytes(index_content);
-            fs.close();
+            if( bExportedLinks )
+            {
+                // Now write out index file in one pass
+                var fs : FileStream = new FileStream();
+                fs.open( toc_file, FileMode.WRITE );
+                fs.writeUTFBytes(index_content);
+                fs.close();
+            }
+            else
+            {
+                toc_file.moveToTrashAsync();
+            }
         }
 
         /**
@@ -937,7 +957,7 @@ trace(curr_title);
                     for( i = 0; i < found.length; ++i )
                     {
                         trace(found[i].nativePath);
-                        found[i].deleteFileAsync();
+                        found[i].moveToTrashAsync();
                     }
                     instance.Interactive();
                 }
