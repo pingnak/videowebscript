@@ -6,7 +6,7 @@
     import flash.events.*;
     import flash.display.*;
     import flash.text.*;
-    import flash.media.*;
+    import flash.net.*;
     import flash.filters.*;
 
     import flash.desktop.NativeApplication; 
@@ -50,10 +50,7 @@ CONFIG::MXMLC_BUILD
         public static var INDEX_CSS       : String = SCRIPT_TEMPLATES+"webified.css";
         
         /** Start of movie player and available content */
-        public static var MOVIE_PROLOG    : String = SCRIPT_TEMPLATES+"index_prolog.html";
-        
-        /** Table of contents file */
-        public static var TOC_PROLOG      : String = SCRIPT_TEMPLATES+"TOC_prolog.html";
+        public static var CONTACT_PROLOG  : String = SCRIPT_TEMPLATES+"index_prolog.html";
         
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
@@ -62,8 +59,14 @@ CONFIG::MXMLC_BUILD
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
         /** End of movie player html file */
-        public static var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
+        public static var CONTACT_EPILOG  : String = SCRIPT_TEMPLATES+"index_epilog.html";
 
+        /** Table of contents file begin */
+        public static var TOC_PROLOG      : String = SCRIPT_TEMPLATES+"TOC_prolog.html";
+
+        /** Table of contents file end */
+        public static var TOC_EPILOG      : String = SCRIPT_TEMPLATES+"TOC_epilog.html";
+        
         /** Width of thumbnails for image */
         public static var THUMB_SIZE      : int = 240;
 
@@ -74,7 +77,7 @@ CONFIG::MXMLC_BUILD
         public static var FOLDER_DEPTH : int = 32;
         
         /** Regular expressions that we accept as 'JPEG content'*/
-        public static var REGEX_JPEG       : String = ".(jpg|jpeg)";
+        public static var REGEX_JPEG       : String = ".(jpg|jpeg|png|swf|gif)";
         
         /** Path to do the job in */
         internal var root_path_image : File;
@@ -205,6 +208,7 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoImages(e:Event=null):void
         {
+            var bHaveError : Boolean = false;
             trace("DoImages",root_path_image.nativePath);
 
             /**
@@ -215,7 +219,7 @@ CONFIG::FLASH_AUTHORING
             if( !root_path_image.exists || !root_path_image.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathImages);
-                return;
+                bHaveError = true;
             }
             // Make sure we don't go way out of range on thumb size
             if( THUMB_SIZE < 64 )
@@ -223,14 +227,14 @@ CONFIG::FLASH_AUTHORING
                 THUMB_SIZE = 64;
                 ui.tfThumbnailSize.text = THUMB_SIZE.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
-                return;
+                bHaveError = true;
             }
-            if( THUMB_SIZE > 360 )
+            if( THUMB_SIZE > 500 )
             {
-                THUMB_SIZE = 360;
+                THUMB_SIZE = 500;
                 ui.tfThumbnailSize.text = THUMB_SIZE.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
-                return;
+                bHaveError = true;
             }
             
             if( COLUMNS < 1 )
@@ -238,15 +242,17 @@ CONFIG::FLASH_AUTHORING
                 COLUMNS = 1;
                 ui.tfColumns.text = COLUMNS.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfColumns);
-                return;
+                bHaveError = true;
             }
             if( COLUMNS * THUMB_SIZE > 8192 )
             {
                 COLUMNS = int(8192 / THUMB_SIZE);
                 ui.tfColumns.text = COLUMNS.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfColumns);
-                return;
+                bHaveError = true;
             }
+            if( bHaveError )
+                return;
                 
             CommitSharedData();
             
@@ -305,29 +311,27 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoImageFileTree(found:Array):void
         {
-            try
+            //try
             {
                 // Preload the various template elements we'll be writing for each folder/file
                 var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
-                var index_prolog : String   = index_top + LoadText(MOVIE_PROLOG); 
+                var index_prolog : String   = index_top + LoadText(CONTACT_PROLOG); 
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_file : String     = LoadText(INDEX_FILE); 
-                var index_epilog : String   = LoadText(INDEX_EPILOG); 
+                var index_epilog : String   = LoadText(CONTACT_EPILOG); 
+
+                var jpgEncoder : JPGEncoder = new JPGEncoder(90);
+                var bmThumbnail : BitmapData = new BitmapData(THUMB_SIZE,THUMB_SIZE,false,0x000000);
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
-                applet.setTimeout(ThreadPassFolder);
 
                 var folder_iteration : int = 0;
+                applet.setTimeout(ThreadPassFolder);
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
                 {
-                    if( folder_iteration < folders.length )
-                    {
-                        // Do next pass
-                        applet.setTimeout(ThreadPassFolder);
-                    }
-                    else
+                    if( folder_iteration >= folders.length )
                     {
                         // Break out of 'threaded' loop
                         // Bottom part of file index file; all done
@@ -358,6 +362,7 @@ CONFIG::FLASH_AUTHORING
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
+trace(curr_title);
     
                         // Iterate child folders and generate links to them
                         for( iteration = 1; iteration < curr_folders.length; ++iteration )
@@ -372,7 +377,7 @@ CONFIG::FLASH_AUTHORING
                                 var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
-        
+
                                 // Emit index for child folder
                                 seded = index_index;
                                 seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
@@ -382,22 +387,101 @@ CONFIG::FLASH_AUTHORING
                             }
                         }
                         
+                        // Start image state
+                        iteration = 0;
+                        applet.setTimeout(ThreadPassImage);
                         // Iterate files and generate code + thumbnails
-                        for( iteration = 0; iteration < curr_files.length; ++iteration )
+                        function ThreadPassImage():void
                         {
-                            var curr_file : File = curr_files[iteration];
+                            ui.tfStatus.text = "Folders:"+folder_iteration.toString()+"/"+folders.length.toString() + " Files:" + iteration.toString()+"/"+curr_files.length.toString();
+                            if( iteration >= curr_files.length )
+                            {
+                                // Break out of 'threaded' loop
+                                // Bottom part of file index file; all done
+                                applet.setTimeout(ThisFolderComplete);
+                                return;
+                            }
+
+                            if( 0 == iteration )
+                            {
+                                seded = "<tr>\n<td>"+index_file+"</td>";
+                            }
+                            else if( 0 == (iteration % COLUMNS) )
+                            {
+                                seded = "</tr><tr>\n<td>"+index_file+"</td>";
+                            }
+                            else
+                            {
+                                seded = "<td>"+index_file+"</td>";
+                            }
+                            
+                            var curr_file : File = curr_files[iteration++];
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
+
+                            trace("ThreadPassImage:", curr_file.nativePath);
+                            
+                            seded = seded.replace(/FILE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_STYLE/g,'');
+                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
+                            
+                            var loading : Loader = new Loader();
+                            loading.contentLoaderInfo.addEventListener( Event.COMPLETE, EncodeImage );
+                            // Give us diagnostic info
+                            applet.TraceDownload(loading);
+                            loading.load(new URLRequest(curr_file.url));
+                            function EncodeImage(e:Event):void
+                            {
+                                trace("EncodeImage:");
+                                bmThumbnail.fillRect( bmThumbnail.rect, 0x000000 );
+                                var scale : Number;
+                                var offset : Number;
+                                var matrix : Matrix;
+                                if( loading.width > loading.height )
+                                {
+                                    scale = THUMB_SIZE / loading.width;
+                                    offset = 0.5 * (THUMB_SIZE-(loading.height*scale));
+                                    matrix = new Matrix( scale,0,0,scale, 0,offset );
+                                }
+                                else
+                                {
+                                    scale = THUMB_SIZE / loading.height;
+                                    offset = 0.5 * (THUMB_SIZE-(loading.width*scale));
+                                    matrix = new Matrix( scale,0,0,scale, offset,0 );
+                                }
+                                bmThumbnail.draw( loading, matrix, null, null, null, true );
+                                
+                                // Determine if matrix should be rotated, to show the image upright
+                                
+                                var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
+                                jpegdata.position = 0;
+
+                                trace("Encoded...",jpegdata.length);
+                                var curr_thumbnail : String = "data:image/jpeg;base64," + applet.BytesToBase64(jpegdata);
+                                seded = seded.replace(/THUMB_BASE64/,curr_thumbnail);
+                                
+                                loading.unload();
+                                index_content += seded;
+
+                                // Do next pass on next image, when this returns
+                                applet.setTimeout(ThreadPassImage);
+                            }
+                            
                         }
-    
-                        index_content += index_epilog;
-                        
-                        // Now write out index file in one pass
-                        var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
-                        var fs : FileStream = new FileStream();
-                        fs.open( curr_index_file, FileMode.WRITE );
-                        fs.writeUTFBytes(index_content);
-                        fs.close();
+                        function ThisFolderComplete():void
+                        {
+                            index_content += index_epilog;
+                            
+                            // Now write out index file in one pass
+                            var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
+                            var fs : FileStream = new FileStream();
+                            fs.open( curr_index_file, FileMode.WRITE );
+                            fs.writeUTFBytes(index_content);
+                            fs.close();
+                            
+                            // Do next pass of folder iteration
+                            applet.setTimeout(ThreadPassFolder);
+                        }
                     }
                     
                 }
@@ -412,15 +496,18 @@ CONFIG::FLASH_AUTHORING
                     ImageFilesComplete();
                 }
             }
+            /*
             catch( e:Error )
             {
                 trace(e);
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathImages);
                 Interactive();
             }
+            */
             // Fall out; timer threads are in charge
         }
 
+        
         /**
          * Iterate through folders and generate a flattened Table of Contents 
          * of index.html files, throughout the tree.
@@ -431,7 +518,7 @@ CONFIG::FLASH_AUTHORING
             var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
             var TOC_prolog : String     = index_top + LoadText(TOC_PROLOG); 
             var index_index : String    = LoadText(INDEX_INDEX); 
-            var index_epilog : String   = LoadText(INDEX_EPILOG); 
+            var index_epilog : String   = LoadText(TOC_EPILOG); 
 
             var folders : Array = Find.GetFolders(found);
             var root : File = folders[0];

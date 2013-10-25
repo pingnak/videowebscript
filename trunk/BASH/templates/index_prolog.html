@@ -10,6 +10,7 @@
             {
                 console.log("PLAY:",video_path);
                 now_playing = video_path;
+                var title = document.getElementById("title");
                 var video = document.getElementById("videoplayer");
                 if( 'undefined' == typeof(now_playing) )
                 {
@@ -25,7 +26,6 @@
                 video.play();
                 video.addEventListener( "ended", playNext );
                 // Show title
-                var title = document.getElementById("title");
                 title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
                 // Show video
                 window.scrollTo(0,0);

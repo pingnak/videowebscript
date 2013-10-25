@@ -1,83 +1,35 @@
 		</style>
         <title>TITLE_TEXT</title>
         <script type="text/javascript">
-            var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
-            /* 
-             * Load the video when the page finishes loading 
-             * http://www.w3.org/2010/05/video/mediaevents.html
-             */
-            function playmedia(video_path)
+            var original_title = "Images In TITLE_TEXT";   // Original title, before play list monkeyed with it
+            function showme(image_path)
             {
-                console.log("PLAY:",video_path);
-                now_playing = video_path;
-                var video = document.getElementById("videoplayer");
-                if( 'undefined' == typeof(now_playing) )
+                var title = document.getElementById("title");
+                var viewer = document.getElementById("viewer");
+                if( 'undefined' == typeof(viewer) )
                 {
                     title.innerHTML = original_title;
-                    video.style.display = 'none';
+                    viewer.style.display = 'none';
                     return;
                 }
-                video.style.display = '';
-                var video_type='video/'+now_playing.split('.').pop();
-                video.setAttribute("src",now_playing);
-                video.setAttribute("type".video_type);
-                video.load();
-                video.play();
-                video.addEventListener( "ended", playNext );
-                // Show title
-                var title = document.getElementById("title");
-                title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
-                // Show video
+                title.innerHTML = image_path;
+                viewer.innerHTML = '<a href="#" onclick="javascript: hideme();"><img class="image_viewer" src="' + image_path + '" /></a>';
                 window.scrollTo(0,0);
             }
-            function playFirst()
-            {   // Play the first item on the list
-                var playlist = document.getElementsByClassName("index_entry");
-                var path = playlist[0].getAttribute("path");
-                playmedia(path);
-            }
-            function playNext()
-            {   // Seek list of links for current video
-                var playlist = document.getElementsByClassName("index_entry");
-                var item;
-                var nextitem;
-                var link;
-                for( i = 0; i < playlist.length; ++i )
-                {   
-                    item = playlist[i];
-                    path = item.getAttribute("path");
-                    // Link actually contains: "javascript: playmedia('MEDIA_PATH');"
-                    // Split by quote and pick out the URI from it.
-                    if( path == now_playing )
-                    {   // Found the current video; look at next.
-                        nextitem = playlist[i+1];
-                        if( 'undefined' == typeof(nextitem) || nextitem.parentNode != item.parentNode )
-                        {
-                            console.log("End of videos");
-                            playmedia();
-                        }
-                        else
-                        {
-                            path = nextitem.getAttribute("path");
-                            playmedia(path);
-                        }
-                        break;
-                    }
-                }
+            function hideme()
+            {
+                var title = document.getElementById("title");
+                var viewer = document.getElementById("viewer");
+                title.innerHTML = original_title;
+                viewer.innerHTML = "";
             }
         </script>
         </head>
 	<body>
-    <video id="videoplayer" width="100%" controls style="display:none;" >
-        Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
-        <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
-        <a href="http://www.apple.com/safari/">Safari</a><br/>
-        <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
-        <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
-        <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
-        <a href="http://www.w3schools.com/html/html5_video.asp">More info about compatibility...</a><br/>
-    </video>
-	<br/>
-	<div id="title" class="title">Titles Available In TITLE_TEXT</div>
-	<br/>
-	<div id="playlist">
+	<div id="viewer" >
+	</div>
+	<div id="title" class="title">Images In TITLE_TEXT</div>
+    </div>	
+	<div id="thumbnails">
+	<table border="0" align="center">
+	
