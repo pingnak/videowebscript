@@ -11,6 +11,10 @@
 
     import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
+
+    // https://github.com/bashi/exif-as3
+    import jp.shichiseki.exif.IFD;
+    import jp.shichiseki.exif.ExifInfo;
     
     /**
      * Contact sheet generator
@@ -77,7 +81,7 @@ CONFIG::MXMLC_BUILD
         public static var FOLDER_DEPTH : int = 32;
         
         /** Regular expressions that we accept as 'JPEG content'*/
-        public static var REGEX_JPEG       : String = ".(jpg|jpeg|png|swf|gif)";
+        public static var REGEX_JPEG       : String = ".(jpg|jpeg|png|gif)";
         
         /** Path to do the job in */
         internal var root_path_image : File;
@@ -425,46 +429,255 @@ trace(curr_title);
                             seded = seded.replace(/FILE_STYLE/g,'');
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                             
+                            var jpeg_loaded : ByteArray = new ByteArray();
+                            var fs_jpeg : FileStream = new FileStream();
+                            fs_jpeg.open( curr_file, FileMode.READ );
+                            fs_jpeg.readBytes(jpeg_loaded);
+                            fs_jpeg.close();
+
+                            // Generate EXIF
+                            var anyexif : Object = new Object();
+                            var exif : ExifInfo = new ExifInfo(jpeg_loaded);
+                            var bHasGPS : Boolean = false;
+                            EXIFSubstitutions(exif.ifds.primary);
+                            EXIFSubstitutions(exif.ifds.exif);
+                            EXIFSubstitutions(exif.ifds.gps);
+                            EXIFSubstitutions(exif.ifds.interoperability);
+                            EXIFSubstitutions(exif.ifds.thumbnail);
+                            function EXIFSubstitutions( ifd:IFD ):void 
+                            {
+                                if( null == ifd )
+                                    return;
+                                var entry : String;
+                                for( entry in ifd )
+                                {
+                                    anyexif[entry] = ifd[entry];
+                                    var pattern : RegExp = new RegExp("EXIF:"+entry,'g');
+                                    var value : String = String(ifd[entry]);
+                                    var split : Array;
+                                    var degrees : int;
+                                    var minutes : int;
+                                    var seconds : Number;
+                                    var ref : String;
+                                    var llref : Number;
+                                    var tmp : Number;
+                                    //trace(entry,ifd[entry]);
+                                    // Try to 'fix' values that were less than human friendly
+                                    switch(entry)
+                                    {
+                                    case "GPSLatitude":
+                                        split = value.split(",");
+                                        degrees = int(split[0]);
+                                        minutes = int(split[1]);
+                                        seconds = Number(split[2]);
+                                        llref = degrees+(minutes/60)+(seconds/3600);
+                                        ref = "GPSLatitudeRef" in ifd ? ifd["GPSLatitudeRef"] : "N";
+                                        if( "S" == ref )
+                                            llref = -llref;
+                                        value = llref.toString();
+                                        bHasGPS = true;
+                                        break;
+                                    case "GPSLongitude":
+                                        split = value.split(",");
+                                        degrees = int(split[0]);
+                                        minutes = int(split[1]);
+                                        seconds = Number(split[2]);
+                                        llref = degrees+(minutes/60)+(seconds/3600);
+                                        ref = "GPSLongitudeRef" in ifd ? ifd["GPSLongitudeRef"] : "W";
+                                        if( "W" == ref )
+                                            llref = -llref;
+                                        value = llref.toString();
+                                        bHasGPS = true;
+                                        break;
+                                    case "GPSAltitude":
+                                        value = value + "m ("+int(3.28084*Number(value))+" feet)"; 
+                                        break;
+                                    case "Orientation":
+                                        switch(int(ifd[entry]))
+                                        {
+                                        case 1:
+                                            value = "Normal";
+                                            break;
+                                        case 8:
+                                            value = "Rotate CCW";
+                                            break;
+                                        case 3:
+                                            value = "Upside-down";
+                                            break;
+                                        case 6:
+                                            value = "Rotated CW";
+                                            break;
+                                        case 2:
+                                            value = "H-Flip";
+                                            break;
+                                        case 4:
+                                            value = "V-Flip";
+                                            break;
+                                        case 5:
+                                            value = "Transpose";
+                                            break;
+                                        case 7:
+                                            value = "Transverse";
+                                            break;
+                                        }
+                                        break;
+                                    case "ExposureProgram":
+                                        switch(int(ifd[entry]))
+                                        {
+                                        case 0: 
+                                            value = "Not defined";
+                                            break;
+                                        case 1:
+                                            value = "Manual";
+                                            break;
+                                        case 2:
+                                            value = "Normal";
+                                            break;
+                                        case 3:
+                                            value = "Aperture priority";
+                                            break;
+                                        case 4:
+                                            value = "Shutter priority";
+                                            break;
+                                        case 5:
+                                            value = "Creative";
+                                            break;
+                                        case 6:
+                                            value = "Action";
+                                            break;
+                                        case 7:
+                                            value = "Portrait";
+                                            break;
+                                        case 8:
+                                            value = "Landscape";
+                                            break;
+                                        }
+                                        break;
+                                    case "Flash":
+                                        if( 0 != (int(ifd[entry]) & 1)) 
+                                        {
+                                            value = "Fired";
+                                        }
+                                        else 
+                                        {
+                                            value = "Did Not Fire";
+                                        }
+                                        break;
+                                        
+                                    case "ExposureTime":
+                                        tmp = Number(value);
+                                        if( tmp < 1 )
+                                        {
+                                            value = '1/'+int(1/tmp);
+                                        }
+                                        else
+                                        {
+                                            tmp = 0.001 * int((tmp+0.0004)*1000);
+                                            value = tmp.toString();
+                                        }
+                                        /*
+                                        tmp = int(1000000*Number(value)+0.5);
+                                        tmp /= 1000;
+                                        value = tmp.toString()+'ms';
+                                        */
+                                        break;
+                                    default:
+                                        break;
+                                    }
+                                    seded = seded.replace(pattern,value);
+                                }
+                            }
+                            var s : String;
+                            for( s in anyexif )
+                            if( String(anyexif[s]).length < 100 )
+                                trace(s,anyexif[s]);
+                            if( !("FNumber" in anyexif) )
+                            {
+                                seded = seded.replace(/EXIF:FNumber/g,"N/A");
+                            }
+                                                            
+                            
+                            seded = seded.replace(/GPS_LINK_CUSTOM/g,bHasGPS?'':'display:none;');
+                            
                             var loading : Loader = new Loader();
                             loading.contentLoaderInfo.addEventListener( Event.COMPLETE, EncodeImage );
+                            jpeg_loaded.position = 0;
+                            loading.loadBytes(jpeg_loaded);
+                            
                             // Give us diagnostic info
                             applet.TraceDownload(loading);
-                            loading.load(new URLRequest(curr_file.url));
+                            //loading.load(new URLRequest(curr_file.url));
                             function EncodeImage(e:Event):void
                             {
+                                
                                 bmThumbnail.fillRect( bmThumbnail.rect, 0x000000 );
                                 var scale : Number;
-                                var offset : Number;
+                                var offsetX : Number;
+                                var offsetY : Number;
                                 var matrix : Matrix;
-                                if( loading.width > loading.height )
+
+                                scale = THUMB_SIZE / loading.width;
+                                offsetY = 0.5 * (THUMB_SIZE-(loading.height*scale));
+                                matrix = new Matrix( scale,0,0,scale, offsetX,offsetY );
+                                // Determine if matrix should be rotated, to show the image upright
+                                if( "Orientation" in anyexif )
                                 {
-                                    scale = THUMB_SIZE / loading.width;
-                                    offset = 0.5 * (THUMB_SIZE-(loading.height*scale));
-                                    matrix = new Matrix( scale,0,0,scale, 0,offset );
-                                }
-                                else
-                                {
-                                    scale = THUMB_SIZE / loading.height;
-                                    offset = 0.5 * (THUMB_SIZE-(loading.width*scale));
-                                    matrix = new Matrix( scale,0,0,scale, offset,0 );
+                                    switch( anyexif.Orientation )
+                                    {
+                                    case 1:     // Right-side up
+                                        matrix = new Matrix();
+                                        matrix.scale(scale,scale);
+                                        matrix.translate(0, offsetY);
+                                        seded = seded.replace(/ORIENT_ANGLE/g,0);
+                                        break;
+                                    case 8:     // Rotated clockwise
+                                        matrix = new Matrix();
+                                        matrix.scale(scale,scale);
+                                        matrix.rotate(-0.5*Math.PI);
+                                        matrix.translate(offsetY, THUMB_SIZE);
+                                        seded = seded.replace(/ORIENT_ANGLE/g,-90);
+                                        break;
+                                    case 3:     // Upside-down
+                                        matrix = new Matrix();
+                                        matrix.scale(scale,scale);
+                                        matrix.rotate(Math.PI);
+                                        matrix.translate(THUMB_SIZE, THUMB_SIZE-offsetY);
+                                        seded = seded.replace(/ORIENT_ANGLE/g,180);
+                                        break;
+                                    case 6:     // Rotated counter-clockwise
+                                        matrix = new Matrix();
+                                        matrix.scale(scale,scale);
+                                        matrix.rotate(0.5*Math.PI);
+                                        matrix.translate(THUMB_SIZE-offsetY, 0);
+                                        seded = seded.replace(/ORIENT_ANGLE/g,90);
+                                        break;
+                                        // Oddball orientations
+                                    case 2: //H-Flip
+                                    case 4: //V-Flip
+                                    case 5: //Transpose
+                                    case 7: //Transverse
+                                        break;
+                                    }
                                 }
                                 bmThumbnail.draw( loading, matrix, null, null, null, true );
-                                
-                                // Determine if matrix should be rotated, to show the image upright
                                 
                                 var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
                                 jpegdata.position = 0;
 
                                 var curr_thumbnail : String = "data:image/jpeg;base64," + applet.BytesToBase64(jpegdata);
                                 seded = seded.replace(/THUMB_BASE64/,curr_thumbnail);
+
                                 
                                 loading.unload();
                                 index_content += seded;
 
                                 // Do next pass on next image, when this returns
                                 applet.setTimeout(ThreadPassImage);
+                                
+                                
                             }
                             
+    
                         }
                         function ThisFolderComplete():void
                         {

@@ -1,5 +1,30 @@
-<div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href="#" onclick="javascript: showme(this.parentNode.getAttribute('path'));">
+<div path="MEDIA_PATH" style='FILE_STYLE' >
+    <a href="#" onclick="javascript: showme(this.parentNode.getAttribute('path'),ORIENT_ANGLE);">
     <img class="index_thumbnail" src="THUMB_BASE64" /></a>
-    <br/>FILE_TITLE
+    <br/><div class="index_entry">FILE_TITLE</div>
+    <div class="details">
+        <table border="0" align="center">
+        <tr><td>DateTime</td><td>EXIF:DateTime</td>
+        <tr><td>ISOSpeedRatings</td><td>EXIF:ISOSpeedRatings</td>
+        <tr><td>ExposureTime</td><td>EXIF:ExposureTime</td>
+        <tr><td>FNumber</td><td>EXIF:FNumber</td>
+        <tr><td>FocalLength</td><td>EXIF:FocalLength</td>
+        <tr><td>Exposure Program</td><td>EXIF:ExposureProgram</td>
+        <!--
+        <tr><td>Flash</td><td>EXIF:Flash</td>
+        <tr><td>Model</td><td>EXIF:Model</td>
+        <tr><td>Make</td><td>EXIF:Make</td>
+        <tr><td>Orientation</td><td>EXIF:Orientation</td>
+        <tr><td>Software</td><td>EXIF:Software</td>
+        <tr><td>PixelXDimension</td><td>EXIF:PixelXDimension</td>
+        <tr><td>PixelYDimension</td><td>EXIF:PixelYDimension</td>
+        -->
+        </table>
+        <div class="gps_links" style='GPS_LINK_CUSTOM'>
+        <a target="_blank" href="http://maps.google.com/?ll=EXIF:GPSLatitude,EXIF:GPSLongitude&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
+        <a target="_blank" href="http://www.openstreetmap.org/?mlat=EXIF:GPSLatitude&mlon=-EXIF:GPSLongitude&zoom=18&layers=M">OSM</a>&nbsp;&nbsp;
+        <a target="_blank" href="http://maps.yahoo.com/place/?lat=EXIF:GPSLatitude&lon=EXIF:GPSLongitude&zoom=18&q1=EXIF:GPSLatitude,EXIF:GPSLongitude">Yahoo Maps</a>&nbsp;&nbsp;
+        <a target="_blank" href="http://bing.com/maps/default.aspx?cp=EXIF:GPSLatitude~EXIF:GPSLongitude&dir=EXIF:GPSImgDirection&lvl=18&style=h&q=EXIF:GPSLatitude,EXIF:GPSLongitude">Bing Maps</a>
+        </div>
+    </div>
 </div>
