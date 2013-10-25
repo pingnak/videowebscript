@@ -1,0 +1,27 @@
+#summary One-sentence summary of this page.
+
+= Introduction =
+
+This does more or less the same thing as 'videowebscript', but with your JPEG photographs.
+
+= Details =
+
+[https://videowebscript.googlecode.com/svn/trunk/AIR/contactscript/deploy/ContactSheet.air You can get the contact sheet maker here.]
+
+[http://get.adobe.com/air/ If you run it, and nothing good happens, you'll need Adobe AIR.]
+
+This works just the same, only a little different.  Rather than generate thumbnails along-side the images, it bakes them into the index.html pages, at a slight additional cost in storage, but very conveniently for having some tidy place to keep them all.
+
+The tool cooks up EXIF data, and generates GPS links (if present) for the images.  
+
+Click the little thumbnails, see big image at top of page.  Click big image, it collapses to just the thumbnails.
+
+This is beta quality, and there are going to be bugs, for a bit.
+
+  * [...] Pick a path.
+  * [*] Open path in your OS' file browser.
+  * [♫] Checkbox enable 'ding dong' at end.
+  * Thumbnail size Sets how big the thumbnails will be.
+  * Columns sets how many columns across, per row of thumbnails.
+
+It builds just like the other project.  I probably need to make a way to export the html templates, so it's easier to customize the appearance and behavior of what this spits out.
