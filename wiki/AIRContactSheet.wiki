@@ -19,7 +19,7 @@ Click the little thumbnails, see big image at top of page.  Click big image, it 
 This is beta quality, and there are going to be bugs, for a bit.
 
   * [...] Pick a path.
-  * [*] Open path in your OS' file browser.
+  * [{{{*}}}] Open path in your OS' file browser.
   * [♫] Checkbox enable 'ding dong' at end.
   * Thumbnail size Sets how big the thumbnails will be.
   * Columns sets how many columns across, per row of thumbnails.
