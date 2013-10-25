@@ -432,7 +432,6 @@ trace(curr_title);
                             loading.load(new URLRequest(curr_file.url));
                             function EncodeImage(e:Event):void
                             {
-                                trace("EncodeImage:");
                                 bmThumbnail.fillRect( bmThumbnail.rect, 0x000000 );
                                 var scale : Number;
                                 var offset : Number;
@@ -456,7 +455,6 @@ trace(curr_title);
                                 var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
                                 jpegdata.position = 0;
 
-                                trace("Encoded...",jpegdata.length);
                                 var curr_thumbnail : String = "data:image/jpeg;base64," + applet.BytesToBase64(jpegdata);
                                 seded = seded.replace(/THUMB_BASE64/,curr_thumbnail);
                                 
