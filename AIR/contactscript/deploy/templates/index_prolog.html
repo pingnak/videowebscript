@@ -2,7 +2,7 @@
         <title>TITLE_TEXT</title>
         <script type="text/javascript">
             var original_title = "Images In TITLE_TEXT";   // Original title, before play list monkeyed with it
-            function showme(image_path)
+            function showme(image_path,rot)
             {
                 var title = document.getElementById("title");
                 var viewer = document.getElementById("viewer");
@@ -13,8 +13,17 @@
                     return;
                 }
                 title.innerHTML = image_path;
-                viewer.innerHTML = '<a href="#" onclick="javascript: hideme();"><img class="image_viewer" src="' + image_path + '" /></a>';
-                window.scrollTo(0,0);
+                var img_width="100%";
+                if( 90 == rot || -90 == rot )
+                {
+                    setTimeout(fixHeight,12);
+                }
+                viewer.innerHTML = '<a href="#" onclick="javascript: hideme();"><img style="width:100%;-ms-transform:rotate('+rot+'deg);-webkit-transform:rotate('+rot+'deg);transform:rotate('+rot+'deg);" src="' + image_path + '" /></a>';
+            }
+            function fixHeight()
+            {
+                viewer.firstChild.style.width='auto';
+                viewer.firstChild.style.height='100%';
             }
             function hideme()
             {
@@ -26,7 +35,7 @@
         </script>
         </head>
 	<body>
-	<div id="viewer" >
+	<div id="viewer" class="image_viewer" >
 	</div>
 	<div id="title" class="title">Images In TITLE_TEXT</div>
     </div>	
