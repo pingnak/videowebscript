@@ -10,14 +10,14 @@ a:visited   { color:#00ffff; text-decoration: none; }
 a:hover     { color:#00ffff; text-decoration: underline; }
 a:active    { color:#20ffff; text-decoration: none; }
 .image_viewer {
-    display:inline-block;
-    overflow:hidden;
+    left:0px;
+    top:0px;
     width:100%;
     height:auto;
 }
 img.image_box {
-    vertical-align:middle;
-    text-align:center;
+    left:0px;
+    top:0px;
     width:100%;
     height:auto;
 }

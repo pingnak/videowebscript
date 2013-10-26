@@ -366,14 +366,13 @@ CONFIG::FLASH_AUTHORING
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
-trace(curr_title);
     
                         // Iterate child folders and generate links to them
                         for( iteration = 1; iteration < curr_folders.length; ++iteration )
                         {
                             var curr_folder : File  = curr_folders[iteration];
     
-                            // Filter folders with no movies in any children from lists
+                            // Filter folders with no pictures in any children from lists
                             total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
                             total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
                             if( total_files_at_this_depth.length > 1 )
