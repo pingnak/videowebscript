@@ -55,13 +55,16 @@ CONFIG::MXMLC_BUILD
         
         /** Start of movie player and available content */
         public static var CONTACT_PROLOG  : String = SCRIPT_TEMPLATES+"index_prolog.html";
-        
-        /** A movie file link with player logic */
-        public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
+        /** Separate HTML into a block that is separately loadable */
+        public static var INDEX_TABLE     : String = SCRIPT_TEMPLATES+"index_thumbnails.html";
+        
+        /** A movie file link with player logic */
+        public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
+        
         /** End of movie player html file */
         public static var CONTACT_EPILOG  : String = SCRIPT_TEMPLATES+"index_epilog.html";
 
@@ -320,7 +323,8 @@ CONFIG::FLASH_AUTHORING
                 // Preload the various template elements we'll be writing for each folder/file
                 var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
                 var index_prolog : String   = index_top + LoadText(CONTACT_PROLOG); 
-                var index_index : String    = LoadText(INDEX_INDEX); 
+                var index_index : String    = LoadText(INDEX_INDEX);
+                var index_table : String     = LoadText(INDEX_TABLE);
                 var index_file : String     = LoadText(INDEX_FILE); 
                 var index_epilog : String   = LoadText(CONTACT_EPILOG); 
 
@@ -389,6 +393,11 @@ CONFIG::FLASH_AUTHORING
                                 index_content += seded;
                             }
                         }
+
+                        // Start table content (and closing </div> for above)
+                        seded = index_table;
+                        seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                        index_content += seded;
                         
                         // Start image state
                         iteration = 0;
@@ -454,7 +463,7 @@ CONFIG::FLASH_AUTHORING
                                     for( entry in ifd )
                                     {
                                         anyexif[entry] = ifd[entry];
-                                        var pattern : RegExp = new RegExp("EXIF:"+entry,'g');
+                                        var pattern : RegExp = new RegExp("{EXIF:"+entry+"}",'g');
                                         var value : String = String(ifd[entry]);
                                         var split : Array;
                                         var degrees : int;
@@ -527,19 +536,19 @@ CONFIG::FLASH_AUTHORING
                                             switch(int(ifd[entry]))
                                             {
                                             case 0: 
-                                                value = "Not defined";
+                                                value = "Unknown";
                                                 break;
                                             case 1:
                                                 value = "Manual";
                                                 break;
                                             case 2:
-                                                value = "Normal";
+                                                value = "Auto";
                                                 break;
                                             case 3:
-                                                value = "Aperture priority";
+                                                value = "Av";
                                                 break;
                                             case 4:
-                                                value = "Shutter priority";
+                                                value = "Tv";
                                                 break;
                                             case 5:
                                                 value = "Creative";
@@ -562,14 +571,14 @@ CONFIG::FLASH_AUTHORING
                                             }
                                             else 
                                             {
-                                                value = "Did Not Fire";
+                                                value = "None";
                                             }
                                             break;
                                             
                                         case "ExposureTime":
                                             bHasEXIF = true; // We'll use this as the basis of 'have camera details'
                                             tmp = Number(value);
-                                            if( tmp < 0.1 )
+                                            if( tmp < 0.25 )
                                             {   // Do fraction
                                                 value = '1/'+int(1/tmp);
                                             }
@@ -583,6 +592,36 @@ CONFIG::FLASH_AUTHORING
                                             tmp /= 1000;
                                             value = tmp.toString()+'ms';
                                             */
+                                            break;
+                                            
+                                        case "MeteringMode":
+                                            switch(int(ifd[entry]))
+                                            {
+                                            case 0:
+                                                value = "Unknown";
+                                                break;
+                                            case 1:
+                                                value = "Average";
+                                                break;
+                                            case 2:
+                                                value = "C.W.A.";//"CenterWeightedAverage";
+                                                break;
+                                            case 3:
+                                                value = "Spot";
+                                                break;
+                                            case 4:
+                                                value = "Multi-Spot";
+                                                break;
+                                            case 5:
+                                                value = "Pattern";
+                                                break;
+                                            case 6:
+                                                value = "Partial";
+                                                break;
+                                            case 255:
+                                                value = "other";                                            
+                                                break;
+                                            }
                                             break;
                                         default:
                                             break;
@@ -694,6 +733,7 @@ CONFIG::FLASH_AUTHORING
                         }
                         function ThisFolderComplete():void
                         {
+                            // Emit bottom of file
                             index_content += index_epilog;
                             
                             // Now write out index file in one pass

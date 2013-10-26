@@ -1,32 +1,31 @@
-<div path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href="#" onclick="javascript: showme(this.parentNode.getAttribute('path'),ORIENT_ANGLE,IMG_WIDTH,IMG_HEIGHT);">
+<div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' >
+    <a href="" onclick="javascript: showme(this.parentNode.getAttribute('path'),ORIENT_ANGLE,IMG_WIDTH,IMG_HEIGHT); return false;">
     <img class="index_thumbnail" src="THUMB_BASE64" />
-    <br/>
-    <div class="index_entry">FILE_TITLE</div></a>
-    <div class="details" style='EXIF_DATA_STYLE'>
-        <table border="0" align="center">
-            <tr><td>DateTime</td><td>EXIF:DateTime</td>
-            <tr><td>Size</td><td>EXIF:PixelXDimensionxEXIF:PixelYDimension</td>
-            <tr><td>ISOSpeedRatings</td><td>EXIF:ISOSpeedRatings</td>
-            <tr><td>ExposureTime</td><td>EXIF:ExposureTime</td>
-            <tr><td>FNumber</td><td>EXIF:FNumber</td>
-            <tr><td>FocalLength</td><td>EXIF:FocalLength</td>
-            <tr><td>Exposure Program</td><td>EXIF:ExposureProgram</td>
-            <tr><td>Flash</td><td>EXIF:Flash</td>
+    <div class="index_title">FILE_TITLE</div>
+    </a>
+    <div class="index_exif" style='EXIF_DATA_STYLE'>
+        <table class="details" align="center" border="0" >
+            <tr><td><div align="right">Shutter:</div></td><td>{EXIF:ExposureTime}</td>   <td><div align="right">f:</div></td><td>{EXIF:FNumber}</td></tr>
+            <tr><td><div align="right">Foc.Len:</div></td><td>{EXIF:FocalLength}</td>    <td><div align="right">FL35:</div></td><td>{EXIF:FocalLengthIn35mmFilm}</td></tr>
+            <tr><td><div align="right">ISO:</div></td>    <td>{EXIF:ISOSpeedRatings}</td><td><div align="right">Program:</div></td><td>{EXIF:ExposureProgram}</td></tr>
+            <tr><td><div align="right">Meter:</div></td>  <td>{EXIF:MeteringMode}</td>   <td><div align="right">Flash:</div></td><td>{EXIF:Flash}</td></tr>
             <!--
-            <tr><td>Model</td><td>EXIF:Model</td>
-            <tr><td>Make</td><td>EXIF:Make</td>
-            <tr><td>Orientation</td><td>EXIF:Orientation</td>
-            <tr><td>Software</td><td>EXIF:Software</td>
-            <tr><td>PixelXDimension</td><td>EXIF:PixelXDimension</td>
-            <tr><td>PixelYDimension</td><td>EXIF:PixelYDimension</td>
+            <td><div align="right">Size:</div></td><td>{EXIF:PixelXDimension}x{EXIF:PixelYDimension}</td>
+            <td><div align="right">Time:</div></td><td>{EXIF:DateTime}</td>
+            <td><div align="right">Model:</div></td><td>{EXIF:Model}</td>
+            <td><div align="right">Make:</div></td><td>{EXIF:Make}</td>
+            <td><div align="right">Orientation:</div></td><td>{EXIF:Orientation}</td>
+            <td><div align="right">Software:</div></td><td>{EXIF:Software}</td>
+            <td><div align="right">Width:</div></td><td>{EXIF:PixelXDimension}</td>
+            <td><div align="right">Height:</div></td><td>{EXIF:PixelYDimension}</td>
+            FocalLengthIn35mmFilm
             -->
         </table>
         <div class="gps_links" style='GPS_LINK_CUSTOM'>
-            <a target="_blank" href="http://maps.google.com/?ll=EXIF:GPSLatitude,EXIF:GPSLongitude&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
-            <a target="_blank" href="http://www.openstreetmap.org/?mlat=EXIF:GPSLatitude&mlon=EXIF:GPSLongitude&zoom=18&layers=M">OSM</a>&nbsp;&nbsp;
-            <a target="_blank" href="http://maps.yahoo.com/place/?lat=EXIF:GPSLatitude&lon=EXIF:GPSLongitude&zoom=18&q1=EXIF:GPSLatitude,EXIF:GPSLongitude">Yahoo</a>&nbsp;&nbsp;
-            <a target="_blank" href="http://bing.com/maps/default.aspx?cp=EXIF:GPSLatitude~EXIF:GPSLongitude&dir=EXIF:GPSImgDirection&lvl=18&style=h&q=EXIF:GPSLatitude,EXIF:GPSLongitude">Bing</a>
+            <a target="_blank" href="http://maps.google.com/?ll={EXIF:GPSLatitude,{EXIF:GPSLongitude&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
+            <a target="_blank" href="http://www.openstreetmap.org/?mlat={EXIF:GPSLatitude&mlon={EXIF:GPSLongitude&zoom=18&layers=M">OSM</a>&nbsp;&nbsp;
+            <a target="_blank" href="http://maps.yahoo.com/place/?lat={EXIF:GPSLatitude&lon={EXIF:GPSLongitude&zoom=18&q1={EXIF:GPSLatitude,{EXIF:GPSLongitude">Yahoo</a>&nbsp;&nbsp;
+            <a target="_blank" href="http://bing.com/maps/default.aspx?cp={EXIF:GPSLatitude~{EXIF:GPSLongitude&dir={EXIF:GPSImgDirection&lvl=18&style=h&q={EXIF:GPSLatitude,{EXIF:GPSLongitude">Bing</a>
         </div>
     </div>
 </div>
