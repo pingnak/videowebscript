@@ -1,10 +1,12 @@
 		</style>
         <title>TITLE_TEXT</title>
         <script type="text/javascript">
-            var original_title = "Images In TITLE_TEXT";   // Original title, before play list monkeyed with it
-            function showme(image_path,rot,scale)
+            var original_title = "Images In Zoom4";   // Original title, before play list monkeyed with it
+            function showme(image_path,rot,wide,high)
             {
                 var title = document.getElementById("title");
+                title.innerHTML = image_path;
+                
                 var viewer = document.getElementById("viewer");
                 if( 'undefined' == typeof(viewer) )
                 {
@@ -12,33 +14,25 @@
                     viewer.style.display = 'none';
                     return;
                 }
-                title.innerHTML = image_path;
-                var img_width="100%";
-                if( 90 == rot || -90 == rot )
-                {
-                    setTimeout(fixHeight,12);
-                }
-                viewer.innerHTML = '<a href="#" onclick="javascript: hideme();"><img style="width:100%;-ms-transform:rotate('+rot+'deg);-webkit-transform:rotate('+rot+'deg);transform:rotate('+rot+'deg);" src="' + image_path + '" /></a>';
-            }
-            function fixHeight()
-            {
-                viewer.firstChild.style.width='auto';
-                viewer.firstChild.style.height='100%';
+                viewer.innerHTML = '<div class="rot'+rot+'"></div>';
+                var innerImg = '<a href="#" class="image_box" onclick="javascript: hideme();"><img class="image_box" src="' + image_path + '" /></a>';
+                viewer.firstChild.innerHTML = innerImg;
             }
             function hideme()
             {
                 var title = document.getElementById("title");
-                var viewer = document.getElementById("viewer");
                 title.innerHTML = original_title;
+                
+                var viewer = document.getElementById("viewer");
+                //viewer.style.height = '0px';
                 viewer.innerHTML = "";
+                window.onresize=null;
             }
         </script>
-        </head>
+    </head>
 	<body>
-	<div id="viewer" class="image_viewer" >
-	</div>
+	<div id="viewer" class="image_viewer" ></div>
 	<div id="title" class="title">Images In TITLE_TEXT</div>
-    </div>	
 	<div id="thumbnails">
 	<table border="0" align="center">
 	

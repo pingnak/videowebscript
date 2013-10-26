@@ -570,13 +570,13 @@ trace(curr_title);
                                         case "ExposureTime":
                                             bHasEXIF = true; // We'll use this as the basis of 'have camera details'
                                             tmp = Number(value);
-                                            if( tmp < 1 )
-                                            {
+                                            if( tmp < 0.1 )
+                                            {   // Do fraction
                                                 value = '1/'+int(1/tmp);
                                             }
                                             else
-                                            {
-                                                tmp = 0.001 * int((tmp+0.0004)*1000);
+                                            {   // Round to milliseconds
+                                                tmp = 0.001 * int((tmp+0.0005)*1000);
                                                 value = tmp.toString();
                                             }
                                             /*
@@ -621,6 +621,11 @@ trace(curr_title);
                                 var offsetY : Number;
                                 var matrix : Matrix;
 
+                                // We need width and height
+                                seded = seded.replace(/IMG_WIDTH/g,loading.width);
+                                seded = seded.replace(/IMG_HEIGHT/g,loading.height);
+                                
+                                
                                 scale = THUMB_SIZE / loading.width;
                                 offsetY = 0.5 * (THUMB_SIZE-(loading.height*scale));
                                 matrix = new Matrix( scale,0,0,scale, offsetX,offsetY );
@@ -640,7 +645,7 @@ trace(curr_title);
                                         matrix.scale(scale,scale);
                                         matrix.rotate(-0.5*Math.PI);
                                         matrix.translate(offsetY, THUMB_SIZE);
-                                        seded = seded.replace(/ORIENT_ANGLE/g,-90);
+                                        seded = seded.replace(/ORIENT_ANGLE/g,270);
                                         break;
                                     case 3:     // Upside-down
                                         matrix = new Matrix();
@@ -787,7 +792,8 @@ trace(curr_title);
             }
             else
             {
-                toc_file.moveToTrashAsync();
+                if( toc_file.exists )
+                    toc_file.moveToTrashAsync();
             }
         }
 

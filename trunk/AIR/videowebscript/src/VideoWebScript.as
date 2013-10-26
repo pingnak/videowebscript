@@ -535,7 +535,8 @@ CONFIG::FLASH_AUTHORING
             }
             else
             {
-                toc_file.moveToTrashAsync();
+                if( toc_file.exists )
+                    toc_file.moveToTrashAsync();
             }
         }
 
