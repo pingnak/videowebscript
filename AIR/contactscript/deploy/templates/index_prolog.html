@@ -9,11 +9,8 @@
             {
                 var title = document.getElementById("title");
                 title.innerHTML = image_path;
-                
                 var viewer = document.getElementById("viewer");
-                
                 rotation = rot;
-                
                 window.onresize=redraw;
                 redraw();
                 function redraw()
@@ -24,7 +21,7 @@
                         new_high = Math.floor(new_wide * wide / high);
                         // Set up canvas, start loading the image, un-rotate from EXIF camera details
                         // Layout is borked on EVERY browser if I use CSS to rotate
-                        viewer.innerHTML = '<a class="image_box" href="#" onclick="javascript: hideme();"><canvas id="canvas" width="'+new_wide+'" height="'+new_high+'"/></a><img id="showthis" style="visibility:hidden;" src="'+image_path+'" onload="image_loaded_rot();" />';
+                        viewer.innerHTML = '<a class="image_box" href="" onclick="javascript: hideme(); return false;"><canvas id="canvas" width="'+new_wide+'" height="'+new_high+'"/></a><img id="showthis" style="visibility:hidden;" src="'+image_path+'" onload="image_loaded_rot();" />';
                         viewer.style.width = new_wide+'px';
                         viewer.style.height = new_high+'px';
                         //image_loaded_rot();
@@ -35,12 +32,14 @@
                     else
                     {   // Rotate it with css; right side up, or upside-down
                         viewer.innerHTML = '<div class="rot'+rot+'"></div>';
-                        var innerImg = '<a href="#" class="image_box" onclick="javascript: hideme();"><img class="image_box" src="' + image_path + '" /></a>';
+                        var innerImg = '<a href="" class="image_box" onclick="javascript: hideme(); return false;"><img class="image_box" src="' + image_path + '" /></a>';
                         viewer.firstChild.innerHTML = innerImg;
                         viewer.style.width = '100%';
                         viewer.style.height = 'auto';
                     }
                 }
+                // Now that we've made a lot of changes, show what we did
+                setTimeout( function() { window.scrollTo(0,0); }, 33 );
             }
             function image_loaded_rot()
             {   
@@ -82,7 +81,5 @@
 	<body>
 	<div id="viewer" class="image_viewer" >
 	</div>
+	<!-- Stand-alone content: Copy starting HERE. -->
 	<div id="title" class="title">Images In TITLE_TEXT</div>
-	<div id="thumbnails">
-	<table border="0" align="center">
-	
