@@ -436,6 +436,7 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/FILE_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'');
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
+                            seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                             
                             var jpeg_loaded : ByteArray = new ByteArray();
                             var fs_jpeg : FileStream = new FileStream();
@@ -447,14 +448,14 @@ CONFIG::FLASH_AUTHORING
                             var anyexif : Object = new Object();
                             var exif : ExifInfo = new ExifInfo(jpeg_loaded);
                             var bHasGPS : Boolean = false;
-                            var bHasEXIF : Boolean = null != exif.ifds;
-                            if( bHasEXIF )
+                            var bHasEXIF : Boolean = false;
+                            if( null != exif.ifds )
                             {
                                 EXIFSubstitutions(exif.ifds.primary);
                                 EXIFSubstitutions(exif.ifds.exif);
                                 EXIFSubstitutions(exif.ifds.gps);
                                 EXIFSubstitutions(exif.ifds.interoperability);
-                                EXIFSubstitutions(exif.ifds.thumbnail);
+                                //EXIFSubstitutions(exif.ifds.thumbnail);
                                 function EXIFSubstitutions( ifd:IFD ):void 
                                 {
                                     if( null == ifd )
@@ -472,6 +473,7 @@ CONFIG::FLASH_AUTHORING
                                         var ref : String;
                                         var llref : Number;
                                         var tmp : Number;
+
                                         //trace(entry,ifd[entry]);
                                         // Try to 'fix' values that were less than human friendly
                                         switch(entry)
@@ -566,10 +568,10 @@ CONFIG::FLASH_AUTHORING
                                             break;
                                         case "Flash":
                                             if( 0 != (int(ifd[entry]) & 1)) 
-                                            {
-                                                value = "Fired";
+                                            {   // If it fired, include the bits for reference
+                                                value = 'Fire:' + (int(value) < 0x10 ? '0' : '') + int(value).toString(16);
                                             }
-                                            else 
+                                            else
                                             {
                                                 value = "None";
                                             }
@@ -593,7 +595,7 @@ CONFIG::FLASH_AUTHORING
                                             value = tmp.toString()+'ms';
                                             */
                                             break;
-                                            
+
                                         case "MeteringMode":
                                             switch(int(ifd[entry]))
                                             {
@@ -626,22 +628,26 @@ CONFIG::FLASH_AUTHORING
                                         default:
                                             break;
                                         }
-                                        seded = seded.replace(pattern,value);
+                                        // Detect if any of this was desired in output
+                                        if( 0 != seded.match(pattern).length )
+                                        {
+                                            bHasEXIF = true;
+                                            seded = seded.replace(pattern,value);
+                                        }
                                     }
                                 }
                                 var s : String;
                                 for( s in anyexif )
                                 if( String(anyexif[s]).length < 100 )
                                     trace(s,anyexif[s]);
-                                if( !("FNumber" in anyexif) )
-                                {
-                                    seded = seded.replace(/EXIF:FNumber/g,"N/A");
-                                }
                                 
-                                seded = seded.replace(/GPS_LINK_CUSTOM/g,bHasGPS?'':'display:none;');
                             }
+                            // If no exif details, hide the table
                             seded = seded.replace(/EXIF_DATA_STYLE/g,bHasEXIF?'':'display:none;');
-
+                            
+                            // If no GPS, hide the GPS links
+                            seded = seded.replace(/GPS_LINK_CUSTOM/g,bHasGPS?'':'display:none;');
+                            
                             var loading : Loader = new Loader();
                             loading.contentLoaderInfo.addEventListener( Event.COMPLETE, EncodeImage );
                             jpeg_loaded.position = 0;
@@ -711,18 +717,23 @@ CONFIG::FLASH_AUTHORING
                                 {
                                     seded = seded.replace(/ORIENT_ANGLE/g,0);
                                 }
-                                bmThumbnail.draw( loading, matrix, null, null, null, true );
                                 
+                                // Render and encode our thumbnail image
+                                bmThumbnail.draw( loading, matrix, null, null, null, true );
                                 var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
                                 jpegdata.position = 0;
 
+                                // Get rid of any leftover exif tags, now that we've been through the data
+                                seded = seded.replace(/{EXIF:[^}]*\}/g,'');
+                                
+                                // Stick the image in as Base64 data
                                 var curr_thumbnail : String = "data:image/jpeg;base64," + applet.BytesToBase64(jpegdata);
                                 seded = seded.replace(/THUMB_BASE64/,curr_thumbnail);
 
-                                
-                                loading.unload();
                                 index_content += seded;
 
+                                loading.unload();
+                                
                                 // Do next pass on next image, when this returns
                                 applet.setTimeout(ThreadPassImage);
                                 
