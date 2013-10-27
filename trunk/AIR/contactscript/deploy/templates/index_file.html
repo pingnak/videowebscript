@@ -1,14 +1,14 @@
-<div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' >
+<div path="MEDIA_PATH" style='FILE_STYLE' >
     <a href="" onclick="javascript: showme(this.parentNode.getAttribute('path'),ORIENT_ANGLE,IMG_WIDTH,IMG_HEIGHT); return false;">
-    <img class="index_thumbnail" src="THUMB_BASE64" />
-    <div class="index_title">FILE_TITLE</div>
+    <img style="text-align:center;" src="THUMB_BASE64" />
+    <div style="color:#00ffff;font-size:16pt;white-space:nowrap;text-align:center;">FILE_TITLE</div>
     </a>
-    <div class="index_exif" style='EXIF_DATA_STYLE'>
-        <table class="details" align="center" border="0" >
-            <tr><td><div align="right">Shutter:</div></td><td>{EXIF:ExposureTime}</td>   <td><div align="right">f:</div></td><td>{EXIF:FNumber}</td></tr>
-            <tr><td><div align="right">Foc.Len:</div></td><td>{EXIF:FocalLength}</td>    <td><div align="right">FL35:</div></td><td>{EXIF:FocalLengthIn35mmFilm}</td></tr>
-            <tr><td><div align="right">ISO:</div></td>    <td>{EXIF:ISOSpeedRatings}</td><td><div align="right">Program:</div></td><td>{EXIF:ExposureProgram}</td></tr>
-            <tr><td><div align="right">Meter:</div></td>  <td>{EXIF:MeteringMode}</td>   <td><div align="right">Flash:</div></td><td>{EXIF:Flash}</td></tr>
+    <div style='color:#d0d0d0;font-size:8pt;min-width:THUMB_SIZEpx;EXIF_DATA_STYLE'>
+        <table align="center" border="0" >
+            <tr><td><div align="right">Shutter:</div></td><td><div align="left">{EXIF:ExposureTime}</div></td>   <td><div align="right">f:</div></td>      <td><div align="left">{EXIF:FNumber}</div></td></tr>
+            <tr><td><div align="right">Foc.Len:</div></td><td><div align="left">{EXIF:FocalLength}mm</div></td>  <td><div align="right">F.L.35:</div></td> <td><div align="left">{EXIF:FocalLengthIn35mmFilm}mm</div></td></tr>
+            <tr><td><div align="right">ISO:</div></td>    <td><div align="left">{EXIF:ISOSpeedRatings}</div></td><td><div align="right">Program:</div></td><td><div align="left">{EXIF:ExposureProgram}</div></td></tr>
+            <tr><td><div align="right">Meter:</div></td>  <td><div align="left">{EXIF:MeteringMode}</div></td>   <td><div align="right">Flash:</div></td>  <td><div align="left">{EXIF:Flash}</div></td></tr>
             <!--
             <td><div align="right">Size:</div></td><td>{EXIF:PixelXDimension}x{EXIF:PixelYDimension}</td>
             <td><div align="right">Time:</div></td><td>{EXIF:DateTime}</td>
@@ -21,7 +21,7 @@
             FocalLengthIn35mmFilm
             -->
         </table>
-        <div class="gps_links" style='GPS_LINK_CUSTOM'>
+        <div style='color:#00c000;font-size:8pt;text-align:center;GPS_LINK_CUSTOM'>
             <a target="_blank" href="http://maps.google.com/?ll={EXIF:GPSLatitude,{EXIF:GPSLongitude&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
             <a target="_blank" href="http://www.openstreetmap.org/?mlat={EXIF:GPSLatitude&mlon={EXIF:GPSLongitude&zoom=18&layers=M">OSM</a>&nbsp;&nbsp;
             <a target="_blank" href="http://maps.yahoo.com/place/?lat={EXIF:GPSLatitude&lon={EXIF:GPSLongitude&zoom=18&q1={EXIF:GPSLatitude,{EXIF:GPSLongitude">Yahoo</a>&nbsp;&nbsp;

@@ -604,7 +604,7 @@ CONFIG::FLASH_AUTHORING
                                                 value = "Average";
                                                 break;
                                             case 2:
-                                                value = "C.W.A.";//"CenterWeightedAverage";
+                                                value = "CWA";//"CenterWeightedAverage";
                                                 break;
                                             case 3:
                                                 value = "Spot";
