@@ -77,9 +77,6 @@ CONFIG::MXMLC_BUILD
         /** Width of thumbnails for image */
         public static var THUMB_SIZE      : int = 240;
 
-        /** Width of thumbnails for image */
-        public static var COLUMNS         : int = 4;
-        
         /** Offset for folder depths in TOC file */
         public static var FOLDER_DEPTH : int = 32;
         
@@ -122,9 +119,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.maxChars = 3;
             ui.tfThumbnailSize.restrict = "0-9";
-            ui.tfColumns.addEventListener( Event.CHANGE, onFolderEdited );
-            ui.tfColumns.maxChars = 3;
-            ui.tfColumns.restrict = "0-9";
             ui.bFindPathImages.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnTOC);
@@ -236,28 +230,14 @@ CONFIG::FLASH_AUTHORING
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 bHaveError = true;
             }
-            if( THUMB_SIZE > 500 )
+            if( THUMB_SIZE > 640 )
             {
-                THUMB_SIZE = 500;
+                THUMB_SIZE = 640;
                 ui.tfThumbnailSize.text = THUMB_SIZE.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 bHaveError = true;
             }
             
-            if( COLUMNS < 1 )
-            {
-                COLUMNS = 1;
-                ui.tfColumns.text = COLUMNS.toString();
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfColumns);
-                bHaveError = true;
-            }
-            if( COLUMNS * THUMB_SIZE > 8192 )
-            {
-                COLUMNS = int(8192 / THUMB_SIZE);
-                ui.tfColumns.text = COLUMNS.toString();
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfColumns);
-                bHaveError = true;
-            }
             if( bHaveError )
                 return;
                 
@@ -414,19 +394,7 @@ CONFIG::FLASH_AUTHORING
                                 return;
                             }
 
-                            if( 0 == iteration )
-                            {
-                                seded = "<tr>\n<td>"+index_file+"</td>";
-                            }
-                            else if( 0 == (iteration % COLUMNS) )
-                            {
-                                seded = "</tr><tr>\n<td>"+index_file+"</td>";
-                            }
-                            else
-                            {
-                                seded = "<td>"+index_file+"</td>";
-                            }
-                            
+                            seded = index_file;
                             var curr_file : File = curr_files[iteration++];
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
@@ -891,7 +859,6 @@ CONFIG::FLASH_AUTHORING
             CheckSet( ui.bnCompletionTone, true );
             
             THUMB_SIZE = 240;
-            COLUMNS = 4;
             return CommitSharedData();
         }
         
@@ -943,8 +910,6 @@ CONFIG::FLASH_AUTHORING
 
             THUMB_SIZE = share_data.thumb_size;
             ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-            COLUMNS = share_data.columns;
-            ui.tfColumns.text = COLUMNS.toString();
             
             //onFolderChanged();
 
@@ -967,7 +932,6 @@ CONFIG::FLASH_AUTHORING
             share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.thumb_size = THUMB_SIZE;
-            share_data.columns = COLUMNS;
             share_data.sign = SO_SIGN;
 
             // Commit file stream
@@ -997,7 +961,6 @@ CONFIG::FLASH_AUTHORING
         {
             root_path_image.nativePath = ui.tfPathImages.text;
             THUMB_SIZE = int(ui.tfThumbnailSize.text);
-            COLUMNS = int(ui.tfColumns.text);
         }
 
         /** User navigated a different path */
