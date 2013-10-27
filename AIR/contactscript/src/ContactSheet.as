@@ -465,7 +465,7 @@ CONFIG::FLASH_AUTHORING
                                     {
                                         anyexif[entry] = ifd[entry];
                                         var pattern : RegExp = new RegExp("{EXIF:"+entry+"}",'g');
-                                        var value : String = String(ifd[entry]);
+                                        var value : String;
                                         var split : Array;
                                         var degrees : int;
                                         var minutes : int;
@@ -473,6 +473,39 @@ CONFIG::FLASH_AUTHORING
                                         var ref : String;
                                         var llref : Number;
                                         var tmp : Number;
+                                        var itmp : int;
+                                        switch( getQualifiedClassName(ifd[entry]) )
+                                        {
+                                        case "Number":  // Round down floating point values
+                                            tmp = Math.floor(ifd[entry]);
+                                            tmp = ifd[entry] - tmp;
+                                            itmp = int((tmp*1000)+0.0005);
+                                            value = int(ifd[entry]).toString();
+                                            if( itmp >= 100 )
+                                            {
+                                                if( 0 == itmp % 10 )
+                                                    itmp = itmp % 10;
+                                                if( 0 == itmp % 10 )
+                                                    itmp = itmp % 10;
+                                                if( 0 != itmp )
+                                                    value += '.' + itmp;
+                                            }
+                                            else if( itmp >= 10 )
+                                            {
+                                                if( 0 == itmp % 10 )
+                                                    itmp = itmp % 10;
+                                                if( 0 != itmp )
+                                                    value += '.0' + itmp;
+                                            }
+                                            else if( itmp >= 1 )
+                                            {
+                                                value += '.00' + itmp;
+                                            }
+                                            break;
+                                        default:
+                                            value = String(ifd[entry]);
+                                            break;
+                                        }
 
                                         //trace(entry,ifd[entry]);
                                         // Try to 'fix' values that were less than human friendly
@@ -569,7 +602,7 @@ CONFIG::FLASH_AUTHORING
                                         case "Flash":
                                             if( 0 != (int(ifd[entry]) & 1)) 
                                             {   // If it fired, include the bits for reference
-                                                value = 'Fire:' + (int(value) < 0x10 ? '0' : '') + int(value).toString(16);
+                                                value = 'Fire:' + (int(value) < 0x10 ? '0x0' : '0x') + int(value).toString(16);
                                             }
                                             else
                                             {
@@ -579,7 +612,7 @@ CONFIG::FLASH_AUTHORING
                                             
                                         case "ExposureTime":
                                             bHasEXIF = true; // We'll use this as the basis of 'have camera details'
-                                            tmp = Number(value);
+                                            tmp = Number(ifd[entry]);
                                             if( tmp < 0.25 )
                                             {   // Do fraction
                                                 value = '1/'+int(1/tmp);

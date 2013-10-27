@@ -399,7 +399,7 @@ CONFIG::DEBUG {
             loader.addEventListener( HTTPStatusEvent.HTTP_STATUS, trace );
             // loader.addEventListener( ProgressEvent.PROGRESS, trace );
 }
-        }        
+        }
         
     }
 }

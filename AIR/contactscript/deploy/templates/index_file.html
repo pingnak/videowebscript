@@ -5,13 +5,13 @@
     </a>
     <div style='color:#d0d0d0;font-size:8pt;min-width:THUMB_SIZEpx;EXIF_DATA_STYLE'>
         <table align="center" border="0" >
-            <tr><td><div align="right">Shutter:</div></td><td><div align="left">{EXIF:ExposureTime}</div></td>   <td><div align="right">f:</div></td>      <td><div align="left">{EXIF:FNumber}</div></td></tr>
-            <tr><td><div align="right">Foc.Len:</div></td><td><div align="left">{EXIF:FocalLength}</div></td>  <td><div align="right">F.L.35:</div></td> <td><div align="left">{EXIF:FocalLengthIn35mmFilm}</div></td></tr>
+            <tr><td><div align="right">Shutter:</div></td><td><div align="left">{EXIF:ExposureTime}</div></td>   <td><div align="right">f-stop:</div></td> <td><div align="left">f{EXIF:FNumber}</div></td></tr>
+            <tr><td><div align="right">Foc.Len:</div></td><td><div align="left">{EXIF:FocalLength}mm</div></td>  <td><div align="right">F.L.35:</div></td> <td><div align="left">{EXIF:FocalLengthIn35mmFilm}mm</div></td></tr>
             <tr><td><div align="right">ISO:</div></td>    <td><div align="left">{EXIF:ISOSpeedRatings}</div></td><td><div align="right">Program:</div></td><td><div align="left">{EXIF:ExposureProgram}</div></td></tr>
             <tr><td><div align="right">Meter:</div></td>  <td><div align="left">{EXIF:MeteringMode}</div></td>   <td><div align="right">Flash:</div></td>  <td><div align="left">{EXIF:Flash}</div></td></tr>
         </table>
         <div style='color:#00c000;font-size:8pt;text-align:center;GPS_LINK_CUSTOM'>
-            <a target="_blank" href="http://maps.google.com/?ll={EXIF:GPSLatitude},{EXIF:GPSLongitude}&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
+            <a target="_blank" href="https://maps.google.com?q={EXIF:GPSLatitude},{EXIF:GPSLongitude}&z=18&t=h">Google Maps</a>&nbsp;&nbsp;
             <a target="_blank" href="http://www.openstreetmap.org/?mlat={EXIF:GPSLatitude}&mlon={EXIF:GPSLongitude}&zoom=18&layers=M">OSM</a>&nbsp;&nbsp;
             <a target="_blank" href="http://maps.yahoo.com/place/?lat={EXIF:GPSLatitude}&lon={EXIF:GPSLongitude}&zoom=18&q1={EXIF:GPSLatitude},{EXIF:GPSLongitude}">Yahoo</a>&nbsp;&nbsp;
             <a target="_blank" href="http://bing.com/maps/default.aspx?cp={EXIF:GPSLatitude}~{EXIF:GPSLongitude}&dir={EXIF:GPSImgDirection}&lvl=18&style=h&q={EXIF:GPSLatitude},{EXIF:GPSLongitude}">Bing</a>
