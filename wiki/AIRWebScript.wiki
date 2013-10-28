@@ -26,8 +26,8 @@ Click the [...] button next to the path, and navigate to your content.  Navigate
 'DO IT' will cause several things to happen, in order:
 
   # It searches for files and folders in the path.  On a locally connected hard disk, this will be quick.  Over a network, this can take a minute.
-  # It generates an index.html in each folder, with links to child folders.
-  # If you picked 'Generate TOC.html', it will generate a second index at the root, with a flattened version of the folder tree's index.html file links.
+  # It generates a VideoPlayer.html in each folder, with links to child folders with additional video content, if any.
+  # If you picked 'Make index.html', it will generate a second index at the root, with a flattened version of the folder tree's VideoPlayer.html file links.
   # It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files, but will be quicker on successive passes, as it does not re-create existing images.
 
 The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.  
@@ -36,9 +36,9 @@ The app remembers its settings, so the next time you run it, it will be able to 
 
   * The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
 
-  * 'Generate TOC.html' Checkbox
+  * 'Make index.html' Checkbox
 
-This will generate a second index at the root of the video tree, linked to all of the folders' index.html files listed as the folders.  If you don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
+This will generate an index.html at the root of the video tree, linked to all of the folders' VideoPlayer.html files listed as the folders.  If you don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
 
   * '♫' Checkbox
 
@@ -70,7 +70,7 @@ The 'Tools' menu has a few items that needed burying, that could do harm.
 
 First is 'Remove Thumbnails'.  It does what it says.  If you pick that, a suitably noisome 'Are You Sure?' prompt pops up, and demands your permission.  While I took care to delete only jpg files that match an identically named file with the '.(mp4|m4v|m4p|m4r|3gp|3g2)' extension types, you should still use it with care, or it could 'throw away' images that just happened to match this pattern.
 
-The other one is 'Remove index.html' files.  This one is more dangerous, since it will recursively delete this perfectly common, default web file name from wherever you launch the tool.  
+The other one is 'Remove VideoPlayer.html' files.  This will recursively delete all of the VideoPlayer.html files.
 
 Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
 
