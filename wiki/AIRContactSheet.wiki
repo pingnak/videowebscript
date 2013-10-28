@@ -17,7 +17,7 @@ Actually, that's Adobe having fits about the self signed certificate being diffe
 
 = How To Use It =
 
-This works just the same, only a little different.  Rather than generate thumbnails along-side the images, it bakes them into the index.html pages, at a slight additional cost in storage, but very conveniently for having some tidy place to keep them all.
+This works just the same as 'VideoWebScript', iterating folders and files, generating thumbnails and viewers.  Rather than generate thumbnails along-side the images, it bakes them into the index.html pages, at a slight additional cost in storage, but very conveniently for having some tidy place to keep them all.
 
 Otherwise, recursively crawl a tree of folders for images, and link them all together with thumbnails in web pages.  The thumbnails 'wrap' like text, so the page layout adapts to whatever sized device is opening the thumbnails.  Keep them small, if you're going to view on tablets and phones.
 
