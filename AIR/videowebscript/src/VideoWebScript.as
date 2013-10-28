@@ -38,34 +38,25 @@ CONFIG::MXMLC_BUILD
         internal var ui : MovieClip;
         
         /** What to call the 'top level' index file */
-        public static var MAIN_INDEX      : String = "index.html";
+        public static var HTML_PLAYER     : String = "VideoPlayer.html";
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
-        public static var MAIN_TOC        : String = "TOC.html";
+        public static var MAIN_TOC        : String = "index.html";
         
         /** Where to look for script template content */
         public static var SCRIPT_TEMPLATES: String ="templates/"
 
-        /** Top few lines of html files */
-        public static var INDEX_TOPMOST   : String = SCRIPT_TEMPLATES+"index_topmost.html";
-
-        /** CSS as its own stand-alone css file (concatenated in for easy house-keeping) */
-        public static var INDEX_CSS       : String = SCRIPT_TEMPLATES+"webified.css";
-        
         /** Start of movie player and available content */
-        public static var MOVIE_PROLOG    : String = SCRIPT_TEMPLATES+"index_prolog.html";
+        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"index_template.html";
         
         /** Table of contents file */
-        public static var TOC_PROLOG      : String = SCRIPT_TEMPLATES+"TOC_prolog.html";
+        public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
         
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
-
-        /** End of movie player html file */
-        public static var INDEX_EPILOG    : String = SCRIPT_TEMPLATES+"index_epilog.html";
 
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
@@ -141,7 +132,7 @@ CONFIG::FLASH_AUTHORING
                 // Tools popup
                 var toolMenu:NativeMenu = new NativeMenu(); 
                 var removeThumbs:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove Thumbnails")); 
-                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove index.html files")); 
+                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove "+HTML_PLAYER+" files")); 
                 removeThumbs.addEventListener(Event.SELECT, RemoveThumbs); 
                 removeIndexes.addEventListener(Event.SELECT, RemoveIndexes); 
                 
@@ -343,11 +334,11 @@ CONFIG::FLASH_AUTHORING
          * index for all.
          *
          * This will definitely load individual pages a lot faster, but you'll
-         * add some more clutter to your directory tree for all of the index.html
+         * add some more clutter to your directory tree for all of the VideoPlayer
          * files.  
          *
          * Simpler UI without folding folders.  Just one index.html at the root
-         * like the other one, but containing only links to folders containing 
+         * like the other ones, but containing only links to folders containing 
          * more content.
         **/
         protected function DoVideoFilesTree(found:Array):void
@@ -355,11 +346,9 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
-                var index_prolog : String   = index_top + LoadText(MOVIE_PROLOG); 
+                var index_template : String = LoadText(PLAYER_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_file : String     = LoadText(INDEX_FILE); 
-                var index_epilog : String   = LoadText(INDEX_EPILOG); 
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -398,13 +387,14 @@ CONFIG::FLASH_AUTHORING
                         var curr_files : Array = Find.GetChildren( found, root );
                         var curr_folders : Array = Find.GetFolders(curr_files);
                         curr_files = Find.GetFiles(curr_files);
-                        
+
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
-                        seded = index_prolog;
+                        seded = index_template;
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
+                        var index_files : String = "";
     
                         // Iterate child folders and generate links to them
                         for( iteration = 1; iteration < curr_folders.length; ++iteration )
@@ -416,7 +406,7 @@ CONFIG::FLASH_AUTHORING
                             total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
                             if( total_files_at_this_depth.length > 1 )
                             {
-                                var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                                var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
         
@@ -425,7 +415,7 @@ CONFIG::FLASH_AUTHORING
                                 seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                                 seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                                 seded = seded.replace(/FOLDER_STYLE/g,'');
-                                index_content += seded;
+                                index_files += seded;
                             }
                         }
                         
@@ -445,14 +435,14 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                             seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'');
-                            index_content += seded;
+                            index_files += seded;
                             
                         }
     
-                        index_content += index_epilog;
+                        index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
                         
                         // Now write out index file in one pass
-                        var curr_index_file : File = Find.File_AddPath( root, MAIN_INDEX );
+                        var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
                         var fs : FileStream = new FileStream();
                         fs.open( curr_index_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
@@ -482,34 +472,36 @@ CONFIG::FLASH_AUTHORING
 
         /**
          * Iterate through folders and generate a flattened Table of Contents 
-         * of index.html files, throughout the tree.
+         * of VideoPlayer.html files, throughout the tree.
         **/
         protected function DoTOC(found:Array):void
         {
-            var index_top : String      = LoadText(INDEX_TOPMOST) + LoadText(INDEX_CSS);
-            var TOC_prolog : String     = index_top + LoadText(TOC_PROLOG); 
+            var index_template : String = LoadText(TOC_TEMPLATE);
             var index_index : String    = LoadText(INDEX_INDEX); 
-            var index_epilog : String   = LoadText(INDEX_EPILOG); 
 
             var folders : Array = Find.GetFolders(found);
             var root : File = folders[0];
             var curr_title : String = Find.File_nameext(root);
             var seded : String;
             var bExportedLinks : Boolean = false;
-            seded = TOC_prolog;
+            
+            seded = index_template;
             seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
             seded = seded.replace(/TITLE_TEXT/g,curr_title);
+            
             var index_content : String = seded;
+            var folder_list : String = "";
+            
             var folder_iteration : int;
             for( folder_iteration = 1; folder_iteration < folders.length; ++folder_iteration )
             {
                 // Create and build top half of index file
                 var curr_folder : File  = folders[folder_iteration];
-                var curr_index_file : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                 if( curr_index_file.exists )
                 {
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
-                    var curr_index : File = Find.File_AddPath( curr_folder, MAIN_INDEX );
+                    var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                     var curr_index_title : String = Find.File_nameext( curr_folder );
                     var curr_index_relative : String = Find.File_relative( curr_index, root );
 
@@ -519,11 +511,13 @@ CONFIG::FLASH_AUTHORING
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
                     bExportedLinks = true;
-                    index_content += seded;
+                    folder_list += seded;
                 }
             }
             
-            index_content += index_epilog;
+            // Insert folder list into file template
+            index_content = index_content.replace("<!--INDEXES_HERE-->",folder_list);
+            
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
             if( bExportedLinks )
             {
@@ -727,9 +721,9 @@ CONFIG::FLASH_AUTHORING
                 return;
             }
 
-            var warning : String = "Every "+MAIN_INDEX+" from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
+            var warning : String = "Every "+HTML_PLAYER+" from the Video Player path will be wiped out!\n\n" + root_path_video.nativePath;
             AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Video Index Files", yeah, warning, "DO IT!", "ABORT!" );
-            var rxIndex : RegExp = new RegExp(MAIN_INDEX,"i");
+            var rxIndex : RegExp = new RegExp(HTML_PLAYER,"i");
             function yeah():void
             {
                 trace("Removing Index Files...");
