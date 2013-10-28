@@ -3,7 +3,7 @@
 
 = Introduction =
 
-This does more or less the same thing as 'videowebscript', but with your JPEG photographs.
+This does more or less the same thing as [AIRWebScript], but with your JPEG photographs.
 
 = Setup =
 
@@ -33,4 +33,4 @@ This is beta quality, and there are going to be bugs, for a bit.
   * Thumbnail size Sets how big the thumbnails will be.
   * Generate index.html Makes a single index.html with all of the ContactSheet.html files linked together.
 
-It builds just like VideoWebScript.  I probably need to make a way to export the html templates, so it's easier to customize the appearance and behavior of what this spits out.
+It builds just like VideoWebScript.  I probably need to make a way to export and override the html templates, so it's easier to customize the appearance and behavior of what this spits out.
