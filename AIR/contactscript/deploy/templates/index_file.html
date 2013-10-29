@@ -1,4 +1,5 @@
-<div path="MEDIA_PATH" style='display:inline-block; margin-left:2pt;margin-right:2pt;margin-top:2pt;margin-bottom:2pt;FILE_STYLE' >
+<!-- 'display:inline-block;' looks nicer, but IE10 uniquely doesn't support it.  I hate Microsoft. -->
+<div path="MEDIA_PATH" style='float:left; margin-left:2pt;margin-right:2pt;margin-top:2pt;margin-bottom:2pt;FILE_STYLE' >
     <a href="" onclick="javascript: showme(this.parentNode.getAttribute('path'),ORIENT_ANGLE,IMG_WIDTH,IMG_HEIGHT); return false;">
     <img style="text-align:center;" src="THUMB_BASE64" />
     <div style="color:#00ffff;font-size:16pt;white-space:nowrap;text-align:center;">FILE_TITLE</div>
