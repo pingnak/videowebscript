@@ -17,6 +17,12 @@
   <tag tag_name="Optoelectric coefficient" field_name="OECF" id="0x8828" compressed="O">
     <uncompressed chunky="O" planar="O" ycc="O" />
   </tag>
+  <tag tag_name="Sensitivity Type" field_name="SensitivityType" id="0x8830" compressed="O">
+    <uncompressed chunky="O" planar="O" ycc="O" />
+  </tag>
+  <tag tag_name="Recommended Exposure Index" field_name="RecommendedExposureIndex" id="0x8832" compressed="O">
+    <uncompressed chunky="O" planar="O" ycc="O" />
+  </tag>
   <tag tag_name="Exif Version" field_name="ExifVersion" id="0x9000" compressed="M">
     <uncompressed chunky="M" planar="M" ycc="M" />
   </tag>
@@ -170,4 +176,8 @@
   <tag tag_name="Unique image ID" field_name="ImageUniqueID" id="0xa420" compressed="O">
     <uncompressed chunky="O" planar="O" ycc="O" />
   </tag>
+  <tag tag_name="Lens Info" field_name="LensInfo" id="0xa432" compressed="M">
+    <uncompressed chunky="N" planar="N" ycc="N" />
+  </tag>
+    
 </tags>
