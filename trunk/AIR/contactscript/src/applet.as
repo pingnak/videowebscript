@@ -400,7 +400,7 @@ CONFIG::DEBUG {
             // loader.addEventListener( ProgressEvent.PROGRESS, trace );
 }
         }
-        
+
     }
 }
     

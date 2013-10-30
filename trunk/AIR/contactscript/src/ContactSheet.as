@@ -427,30 +427,11 @@ CONFIG::FLASH_AUTHORING
                                         switch( getQualifiedClassName(ifd[entry]) )
                                         {
                                         case "Number":  // Round down floating point values
-                                            tmp = Math.floor(ifd[entry]);
-                                            tmp = ifd[entry] - tmp;
-                                            itmp = int((tmp*1000)+0.0005);
-                                            value = int(ifd[entry]).toString();
-                                            if( itmp >= 100 )
-                                            {
-                                                if( 0 == itmp % 10 )
-                                                    itmp = itmp % 10;
-                                                if( 0 == itmp % 10 )
-                                                    itmp = itmp % 10;
-                                                if( 0 != itmp )
-                                                    value += '.' + itmp;
-                                            }
-                                            else if( itmp >= 10 )
-                                            {
-                                                if( 0 == itmp % 10 )
-                                                    itmp = itmp % 10;
-                                                if( 0 != itmp )
-                                                    value += '.0' + itmp;
-                                            }
-                                            else if( itmp >= 1 )
-                                            {
-                                                value += '.00' + itmp;
-                                            }
+                                            value = Number(ifd[entry]).toFixed(3);
+                                            while( value.charAt(value.length-1) == '0' )
+                                                value = value.slice(0,value.length-1);
+                                            if( value.charAt(value.length-1) == '.' )
+                                                value = value.slice(0,value.length-1);
                                             break;
                                         default:
                                             value = String(ifd[entry]);
@@ -559,7 +540,10 @@ CONFIG::FLASH_AUTHORING
                                                 value = "None";
                                             }
                                             break;
-                                            
+                                        case "LensInfo":
+                                            split = value.split(",");
+                                            value = split[0]+'-'+split[1]+"mm f/"+split[2]+'-'+split[3];
+                                            break;
                                         case "ExposureTime":
                                             bHasEXIF = true; // We'll use this as the basis of 'have camera details'
                                             tmp = Number(ifd[entry]);
@@ -605,6 +589,36 @@ CONFIG::FLASH_AUTHORING
                                                 break;
                                             case 255:
                                                 value = "other";                                            
+                                                break;
+                                            }
+                                            break;
+                                            
+                                        case "SensitivityType":
+                                            switch(int(ifd[entry]))
+                                            {
+                                            case 0:
+                                                value = "Unknown";
+                                                break;
+                                            case 1:
+                                                value = "Standard Output Sensitivity";
+                                                break;
+                                            case 2:
+                                                value = "Recommended Exposure Index";
+                                                break;
+                                            case 3:
+                                                value = "ISO Speed";
+                                                break;
+                                            case 4:
+                                                value = "Standard Output Sensitivity and Recommended Exposure Index";
+                                                break;
+                                            case 5:
+                                                value = "Standard Output Sensitivity and ISO Speed";
+                                                break;
+                                            case 6:
+                                                value = "Recommended Exposure Index and ISO Speed";
+                                                break;
+                                            case 7:
+                                                value = "Standard Output Sensitivity, Recommended Exposure Index and ISO Speed";
                                                 break;
                                             }
                                             break;
