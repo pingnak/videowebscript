@@ -23,13 +23,12 @@ a:active    { color:#20ffff; text-decoration: none; }
 }
 .index_entry {
     color:#00ffff;
-    font-size:30px;
+    font-size:28px;
     white-space:nowrap;
-    padding-left:16px;
 }
 .folder_entry {
     color:#00c0c0;
-    font-size:30px;
+    font-size:32px;
     white-space:nowrap;
 }
 .info_text {
@@ -150,21 +149,22 @@ function playmedia(audio_path)
     // Show title
     var title = document.getElementById("title");
     title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
-    // Show audio
-    window.scrollTo(0,0);
 }
+// Get index of currently playing media
 function indexPlaying()
 {
     var i = playlist.length;
     while( 0 <= --i )
     {
-        return i;
+        if( playlist[i].getAttribute('path') == now_playing )
+            return i;
     }
     return -1;
 }
+// Play the previous one
 function playPrev()
 {
-    var i = indexPlaying();
+    var i = indexPlaying() - 1;
     if( i < 0 )
     {
         i = playlist.length-1;
@@ -172,21 +172,23 @@ function playPrev()
     playmedia(playlist[i].getAttribute('path'));
     return;
 }
+// Play the next one
 function playNext()
-{   // Seek list of links for current audio
-    var i = indexPlaying();
-    if( i < 0 )
+{
+    var i = indexPlaying() + 1;
+    if( i >= playlist.length )
     {
         i = 0;
     }
     playmedia(playlist[i].getAttribute('path'));
 }
+// Play the next one, re-shuffle if play list hits the end on its own
 function playNextWrap()
-{   // Re-shuffle if play list hits the end on its own
-    var i = indexPlaying();
-    if( i < 0 )
+{
+    var i = indexPlaying() + 1;
+    if( i >= playlist.length )
     {
-        i = 0
+        i = 0;
         if( bShuffle )
         {
             PlayListShuffle();
