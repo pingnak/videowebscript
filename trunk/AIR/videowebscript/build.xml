@@ -11,20 +11,7 @@
 		3. A JAVA Runtime (both for ANT, and for Flex SDK)
 			http://java.com/en/download/manual.jsp
 			
-	You can point 'flex.dir' at your Flex SDK build tools in ./my.build.properties or ~/ant/my.build.properties
-	Under windoze, '~/ant/my.build.properties' means  C:\Documents And Settings\[youraccountname]\ant\my.build.properties
-	
-	The file would look something like...
-	
-# My OSX/BSD/Linux build settings...
-flex.dir=/Developer/SDKs/Flex
-
-... or (windoze example) ...
-
-# My windoze build settings (Flex Builder user) ...
-flex.dir=C:/Program Files/Adobe/Flex Builder 3/Flex SDK 3
-
-... and you can also override various settings found in 'build.properties' there.
+	Make sure all of that is in the 'path'.
 
 -->
 <project basedir="." name="Ant MXMLC Build" default="release" >
