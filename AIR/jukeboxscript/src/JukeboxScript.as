@@ -263,6 +263,7 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
+                var index_template_no_player : String = LoadText(TOC_TEMPLATE);
                 var index_template : String = LoadText(PLAYER_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_file : String     = LoadText(INDEX_FILE); 
@@ -307,7 +308,8 @@ CONFIG::FLASH_AUTHORING
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
-                        seded = index_template;
+                        // Use an index TOC, if we don't have any files to play at this layer
+                        seded = 0 == curr_files.length ? index_template_no_player : index_template;
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
                         var index_files : String = "";
