@@ -1,0 +1,215 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta charset="UTF-8">
+<style type="text/css">
+body {
+    font-family: "Arial", Helvetica, sans-serif;
+    background-color: #000000; 
+    color:#ffffff; 
+}
+/* Bright links that only underline when tracked */
+a:link      { color:#00ffff; text-decoration: none; }
+a:visited   { color:#00ffff; text-decoration: none; }
+a:hover     { color:#00ffff; text-decoration: underline; }
+a:active    { color:#20ffff; text-decoration: none; }
+.title {
+    width:100%;
+    color:#e0e0e0;
+    font-size:50px;
+    white-space:nowrap;
+    text-align:center;
+}
+.index_entry {
+    color:#00ffff;
+    font-size:30px;
+    white-space:nowrap;
+    padding-left:16px;
+}
+.folder_entry {
+    color:#00c0c0;
+    font-size:30px;
+    white-space:nowrap;
+}
+.info_text {
+  color: #808080;
+  font-size: 10px;
+}
+.button_format {
+    background: transparent;
+    border: none !important;
+    font-size:0;    
+}
+
+</style>
+<title>TITLE_TEXT</title>
+</head>
+
+<body onload="PlayerInit();">
+<div id="title" class="title">Titles Available In TITLE_TEXT</div>
+<br/>
+
+<div id='PlayerBox'>
+<button class="button_format" type="button" onclick="javascript: playPrev(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAArlBMVEUAAAD///////////////////////////////////////////8AAAAADw8AHx8ALy8APz8AT08AX18Ab28Af38Aj48An58Ar68Av78Az88A398A7+8A//8MDAwZGRkmJiYzMzM/Pz9MTExZWVlmZmZycnJ/f3+MjIyZmZmlpaWysrK/v7/MzMzS0tLV1dXY2Nji4uLl5eXo6Ojr6+vv7+/y8vL19fX4+Pj7+/v///9ndVOFAAAADHRSTlMADy9PX29/j5+v3+/qPPBMAAABeElEQVQ4y32T7VrCMAyFVzYYtEVEUScERBQc0I2xDUbu/8Zsu69WwPw979OcNCeO05Tbp6iL9l3nqkiPYpEfdeUF0h6xdY9iFoum4gypZ+o+5oaskRz9Vu9hYqn7r8VOJNhr3sejpa/nnIdCHLHq0sHMlMMFH44VIDLsaICeDXm35PxpGmhAnGlpoPW3/+b8MQCogFjZIKxtsJnz4StAA4iMEemwfiD84HwyAxOIpc9BUTX/5Hw8BbAAUQwclpbN53wUAPwFUuboP9rI0V4AroEEHTyIUI72PINbwEEBaznaFOA+sOLDCfwHCGnw4e0+IE3uV7LL+x2T5Zhb26c5Zv1RP+ak5kd5GNWLklYCG4jkVxNMm1Wv6oFrIEWi1h21YVmW+6qASKeOsNwITLnxCsiZDr9rRVZlZjTRQIJuHXor1GrxCkja4Pt2bFV0tjKyxmF4tw7Hs0/vkrbDiCi92KcnZ/EZnpKDruSEzCfX992trl/ef7eVfwFhS3gjZ1B3oAAAAABJRU5ErkJggg==" /></button>
+<audio id="audioplayer" controls >
+    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
+    <a href="http://www.apple.com/safari/">Safari</a><br/>
+    <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
+    <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
+    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
+    <a href="http://www.w3schools.com/html/html5_audio.asp">More info about compatibility...</a><br/>
+</audio>
+<button class="button_format" type="button" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAArlBMVEUAAAD///////////////////////////////////////////8AAAAADw8AHx8ALy8APz8AT08AX18Ab28Af38Aj48An58Ar68Av78Az88A398A7+8A//8MDAwZGRkmJiYzMzM/Pz9MTExZWVlmZmZycnJ/f3+MjIyZmZmlpaWysrK/v7/MzMzS0tLV1dXY2Nji4uLl5eXo6Ojr6+vv7+/y8vL19fX4+Pj7+/v///9ndVOFAAAADHRSTlMADy9PX29/j5+v3+/qPPBMAAABdUlEQVQ4y32TYV+CMBDGmaDoNjXLynSamRnpQAQU7/t/scYJGwvy3t7/tz3P3XOOo8vtU8CifddpFOlRyLMTVpYD7RG771FII6krSoF69b4PWa2NSAa+6fcglofV58FCYujp9+EkZcD58ssiTlD+0oFUFsBkyFdBnUihgwC9SARm80fO1/sacaE3AVEJCDF74HxrpESFDMJSqQEhXoZ8uTOfMKIURnVALKacvwf6Cc8Z5NIChJhPOP8opeQDhyV/ASVlzJc3KQlz1IwagBDPyvIOp+XAsQ0QiydlOZDHfwElRVne3QPEdMi3d4DXkRKKX7SKfFPvbw4oss0mKvwpbTYHhR6/9aA8CG1gNqqmJGWoRk0gqQOFuY1eeQKkWHeogWJTaxOaEFNHWFYB9q6lzBiG30WnAZ+OrbQUHt0q9DGGVi+56vvmLFK5NzGpIls7DK/tcDz79K5JaNphcrVPT3nxGZzjI1Z8BuaT5n13y+tX99817V9uJXgoGomqigAAAABJRU5ErkJggg==" /></button>
+&nbsp;&nbsp;
+<button class="button_format" type="button" onclick="javascript: MakePlaylist(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAolBMVEUAAAD///////////////////////////////////////////8AAAAADw8AHx8ALy8APz8AT08AX18Ab28Af38An58Av78Az88A398A7+8A//8MDAwmJiYzMzM/Pz9MTExZWVlmZmZ/f3+MjIyZmZmlpaWysrK/v7/MzMzS0tLV1dXY2Nji4uLl5eXo6Ojr6+vv7+/y8vL19fX4+Pj7+/v///+haUmUAAAADHRSTlMADy9PX29/j5+v3+/qPPBMAAABTElEQVQ4y72T23qCMBCEiSBoEnrEWoPVWq0GCAHFff9XaxICwod42b3CzG/YXWYcpy13hsEUnrnOoJCPoSpzU2UF2Ed93cNQpLyttADsdfUASiMfYkrjvUFKCG66D6L+545GEd3VzwL89n7IeQMw1gA8B/uWCRT8HsALmBgAX/h9gF9w3UA6BqS6DUQKPgbwgiDVYToOpKrPecXHAV7NHSIfAZI4zY5aIPzuHAhwIOv8PtAP9vLVOcj+BxCPANVkb8wBoMbsLWoAqEV5kIwDiVo1AjkOSED6c9srtCEV8EobX6oLtOsQKWvgGIdRtGKf0TuNf81JSYz53WbSPX1jqlbPVhfgNqa3xA9dMLZ8avXgFgvrqi1dLMP10Vq2EwzPBodvw3B9ssHx+tG7Sj3MabPReiKv/eipWQICZ5GZEmcgARrme2rTr/I/vcl/3ah2vB7lLXoAAAAASUVORK5CYII=" /></button>
+<button class="button_format" type="button" onclick="javascript: PlayListShuffle(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAq1BMVEUAAAD///////////////////////////////////////////8AAAAADw8AHx8ALy8APz8AT08AX18Ab28Af38Aj48An58Ar68Av78Az88A398A7+8A//8MDAwZGRkmJiYzMzM/Pz9MTExZWVlmZmZ/f3+MjIyZmZmlpaWysrK/v7/MzMzS0tLV1dXY2Nji4uLl5eXo6Ojr6+vv7+/y8vL19fX4+Pj7+/v///+IsmmSAAAADHRSTlMADy9PX29/j5+v3+/qPPBMAAABnklEQVQ4y31T2ZaCMAwFRVFIFQV1lKLiuFIVAZf8/5dNqYWW43HywKG9SXqzXMOord1zUJjTaxsfZnYdfBY3YcUTna7ZxC0H8wur7ZKjY+m4jYWADxEAHIRLgbbCu5i+I1eDYAS793+K3To/3t53CfjUh0S+c0P5SgtzebWDGR2saiY5toSD82C1w4R6a8X14bwJKPprsvipOJRMSxqmm6uQE4zoOErUI67JGWr1sy3MQrLRUlhG/6nh7AgeDUCdn33DzTQ8WcJsQWJ1kblG1SNhMfjhcKk48G4ZeFXHHQypHx21iGvT4QBTSqLTdwcWk3AC638cksijHmybDjpJ/sgkJHDUSTbKZOyXhDOI9TKbjWIb4NPY6o2y8Mz0YYypp4Zx5q02MfueIEOzHLdMIRZyTEf8G+1lgnLrTLeQ6SMSBCFdBD7IbhauWP52Vemex3MLhxJPsV0tfVrNYkrpfFDjtpJFXnGczsnqJFdWE4YlhcM2hKwSKRyrKb1XVhaTxHGJn7NXU3q8FtvFe3oVlt7Rtc1PfXek+rn+Owr+A69yfgnsvvQxAAAAAElFTkSuQmCC" /></button>
+</div>
+
+<script type="text/javascript">
+var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
+var bShuffle = false;
+var now_playing = null;
+var audio_box;
+var audio;
+function PlayerInit()
+{
+    audio_box = document.getElementById("PlayerBox");
+    audio = document.getElementById("audioplayer");
+    MakePlaylist();
+    if( 0 == playlist.length )
+    {
+        audio_box.style.display = 'none';
+    }
+}
+
+// Make a play list from title links
+function MakePlaylist()
+{
+    var collection = document.getElementsByClassName("index_entry");
+    var array = new Array();
+    var i;
+    for( i = 0; i < collection.length; ++i )
+    {
+        array.push(collection[i]);
+    }
+    bShuffle = false; 
+    return playlist = array;
+}
+// Shuffle a play list
+function PlayListShuffle()
+{
+    var array = MakePlaylist();
+    ArrayShuffle(array);
+    ArrayShuffle(array);
+    ArrayShuffle(array);
+    bShuffle = true; 
+    return playlist = array;
+}
+/**
+ * Shuffle an array
+ * @param array Array to shuffle in-place
+ * @return Array passed in
+**/
+function ArrayShuffle(array)
+{
+    var ri;
+    var tmp;
+    var i = array.length;
+    while( i-- )
+    {
+        ri = Math.floor(Math.random() * array.length);
+        tmp = array[i];
+        array[i] = array[ri];
+        array[ri] = tmp;
+    }
+    return array;
+}
+
+/* 
+ * Load the audio when the page finishes loading 
+ * http://www.w3.org/2010/05/audio/mediaevents.html
+ */
+function playmedia(audio_path)
+{
+    if(typeof(audio_path)==='undefined') 
+        audio_path = playlist[0].getAttribute('path');
+    now_playing = audio_path;
+    if( 'undefined' == typeof(now_playing) )
+    {
+        title.innerHTML = original_title;
+        return;
+    }
+    var audio_type='audio/'+now_playing.split('.').pop();
+    audio.setAttribute("src",now_playing);
+    audio.setAttribute("type".audio_type);
+    audio.load();
+    audio.play();
+    audio.addEventListener( "ended", playNext );
+    // Show title
+    var title = document.getElementById("title");
+    title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
+    // Show audio
+    window.scrollTo(0,0);
+}
+function playPrev()
+{
+    var i = playlist.length;
+    while( 0 <= --i )
+    {
+        var path = playlist[i].getAttribute("path");
+        if( path == now_playing )
+        {
+            --i;
+            break;
+        }
+    }
+    if( i < 0 )
+    {
+        i = playlist.length-1;
+        if( bShuffle )
+        {
+            // Re-shuffle when we wrap over the end
+            i = 0;
+            playlist = PlayListShuffle();
+        }
+    }
+    playmedia(playlist[i].getAttribute('path'));
+    return;
+}
+function playNext()
+{   // Seek list of links for current audio
+    for( i = 0; i < playlist.length; ++i )
+    {
+        var path = playlist[i].getAttribute("path");
+        if( path == now_playing )
+        {
+            ++i;
+            break;
+        }
+    }
+    if( i >= playlist.length )
+    {
+        i = 0;
+        if( bShuffle )
+        {
+            // Re-shuffle when we wrap over the end
+            playlist = PlayListShuffle(); 
+        }
+    }
+    playmedia(playlist[i].getAttribute('path'));
+}
+</script>
+<br/>
+<div id="playlist">
+
+<!--INDEXES_HERE-->
+
+</div>
+<br/>
+<div class="info_text">
+    <a href="https://code.google.com/p/audiowebscript/">Generated by JukeboxScript</a>
+</div>
+</body>
+</html>
