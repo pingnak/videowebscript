@@ -381,7 +381,7 @@ CONFIG::FLASH_AUTHORING
                     // Don't write index files in folders with no video content
                     var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
                     var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
-                    if( total_files_at_this_depth.length > 1 )
+                    if( total_files_at_this_depth.length > 0 )
                     {
                         // Get a list of folders in this folder, files in this folder
                         var curr_files : Array = Find.GetChildren( found, root );
@@ -417,6 +417,11 @@ CONFIG::FLASH_AUTHORING
                                 seded = seded.replace(/FOLDER_STYLE/g,'');
                                 index_files += seded;
                             }
+                        }
+
+                        if( 0 != curr_files.length )
+                        {
+                            index_files += "<br/><br/>\n";
                         }
                         
                         // Iterate files and generate code + thumbnails
