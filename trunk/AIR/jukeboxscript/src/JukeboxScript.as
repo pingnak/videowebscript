@@ -65,7 +65,7 @@ CONFIG::MXMLC_BUILD
         /** 
          * Regular expressions that we accept as 'MP3 content' 
         **/
-        public static var REGEX_MP3        : String = ".mp3";
+        public static var REGEX_MP3        : String = ".(mp3|ogg)";
         
         /** Path to do the job in */
         internal var root_path_audio : File;
@@ -298,7 +298,7 @@ CONFIG::FLASH_AUTHORING
                     // Don't write index files in folders with no audio content
                     var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
                     var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
-                    if( total_files_at_this_depth.length > 1 )
+                    if( total_files_at_this_depth.length > 0 )
                     {
                         // Get a list of folders in this folder, files in this folder
                         var curr_files : Array = Find.GetChildren( found, root );
@@ -320,7 +320,7 @@ CONFIG::FLASH_AUTHORING
                             // Filter folders with no movies in any children from lists
                             total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
                             total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
-                            if( total_files_at_this_depth.length > 1 )
+                            if( total_files_at_this_depth.length > 0 )
                             {
                                 var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
@@ -333,6 +333,11 @@ CONFIG::FLASH_AUTHORING
                                 seded = seded.replace(/FOLDER_STYLE/g,'');
                                 index_files += seded;
                             }
+                        }
+                        
+                        if( 0 != curr_files.length )
+                        {
+                            index_files += "<br/><br/>\n";
                         }
                         
                         // Iterate files and generate code 
@@ -352,7 +357,7 @@ CONFIG::FLASH_AUTHORING
                         }
     
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
-                        
+
                         // Now write out index file in one pass
                         var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
                         var fs : FileStream = new FileStream();
