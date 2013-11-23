@@ -348,7 +348,8 @@ CONFIG::FLASH_AUTHORING
                 // Preload the various template elements we'll be writing for each folder/file
                 var index_template : String = LoadText(PLAYER_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
-                var index_file : String     = LoadText(INDEX_FILE); 
+                var index_file : String     = LoadText(INDEX_FILE);
+                var index_template_folders : String = LoadText(TOC_TEMPLATE);
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -390,7 +391,7 @@ CONFIG::FLASH_AUTHORING
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
-                        seded = index_template;
+                        seded = 0 == curr_files.length ? index_template_folders : index_template;
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;

@@ -3,7 +3,7 @@
     <id>ContactSheet</id>
     <versionNumber>1.0</versionNumber>
     <filename>ContactSheet</filename>
-    <description>Generate portable web browser interfaces and thumbnails for images, with exif data, where available.</description>
+    <description>Generate portable web browser interfaces and thumbnails for images.</description>
     <!-- To localize the description, use the following format for the description element.
 	<description>
 		<text xml:lang="en">English App description goes here</text>
