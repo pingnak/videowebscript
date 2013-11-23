@@ -12,7 +12,6 @@
 			http://java.com/en/download/manual.jsp
 			
 	Make sure all of that is in the 'path'.
-
 -->
 <project basedir="." name="Ant MXMLC Build" default="release" >
 

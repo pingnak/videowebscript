@@ -3,7 +3,7 @@
     <id>JukeboxScript</id>
     <versionNumber>1.0</versionNumber>
     <filename>JukeboxScript</filename>
-    <description></description>
+    <description>Generate portable web browser interfaces and audio content.</description>
     <!-- To localize the description, use the following format for the description element.
 	<description>
 		<text xml:lang="en">English App description goes here</text>
@@ -19,7 +19,7 @@
 		<text xml:lang="ja">Japanese App name goes here</text>
 	</name>
 	-->
-    <copyright></copyright>
+    <copyright>Open Source, Permissive</copyright>
     <initialWindow>
         <content>JukeboxScript.swf</content>
         <systemChrome>standard</systemChrome>
@@ -36,9 +36,10 @@
     <customUpdateUI>false</customUpdateUI>
     <allowBrowserInvocation>false</allowBrowserInvocation>
     <icon>
-        <image16x16>icons/icon16.png</image16x16>
-        <image32x32>icons/icon32.png</image32x32>
-        <image48x48>icons/icon48.png</image48x48>
         <image128x128>icons/icon128.png</image128x128>
+        <image48x48>icons/icon48.png</image48x48>
+        <image32x32>icons/icon32.png</image32x32>
+        <image16x16>icons/icon16.png</image16x16>
     </icon>
+    <supportedProfiles>desktop extendedDesktop</supportedProfiles>
 </application>
