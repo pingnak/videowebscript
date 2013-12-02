@@ -64,6 +64,9 @@ CONFIG::MXMLC_BUILD
         /** Offset for folder depths in TOC file */
         public static var FOLDER_DEPTH : int = 32;
         
+        /** File/folder left padding*/        
+        public static var LEFT_PADDING : int = 6;
+        
         
         /** Regular expressions that we accept as 'MP4 content' 
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
@@ -415,7 +418,7 @@ CONFIG::FLASH_AUTHORING
                                 seded = index_index;
                                 seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                                 seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                                seded = seded.replace(/FOLDER_STYLE/g,'');
+                                seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                                 index_files += seded;
                             }
                         }
@@ -440,7 +443,7 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                             seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
-                            seded = seded.replace(/FILE_STYLE/g,'');
+                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                             index_files += seded;
                             
                         }
@@ -515,7 +518,8 @@ CONFIG::FLASH_AUTHORING
                     seded = index_index;
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
+                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
+
                     bExportedLinks = true;
                     folder_list += seded;
                 }
