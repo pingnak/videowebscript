@@ -1,5 +1,5 @@
+#summary An Adobe AIR version of the Video web UI generator.
 #labels Featured
-An Adobe AIR version
 
 = Introduction =
 
