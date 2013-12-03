@@ -1,5 +1,5 @@
+#summary BASH Video Web UI Generator scripts
 #labels Featured
-#BASH Video Web Script Generator
 
 = Introduction =
 
