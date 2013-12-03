@@ -1,5 +1,5 @@
+#summary Things to consider when deploying your content
 #labels Featured
-#Things to consider when deploying your content
 
 = Caveats =
 
