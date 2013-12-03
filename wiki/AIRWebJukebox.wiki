@@ -1,5 +1,5 @@
+#summary Add a web UI to folders full of MP3 files
 #labels Featured
-#Add a web UI to folders full of MP3 files
 
 = Jukebox Script =
 
