@@ -120,7 +120,7 @@ function playmedia(video_path)
 
     var video_type='video/'+now_playing.split('.').pop();
     video.setAttribute("src",now_playing);
-    video.setAttribute("type".video_type);
+    video.setAttribute("type",video_type);
     video.load();
     video.play();
     video.addEventListener( "ended", playNext );
