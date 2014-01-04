@@ -9,7 +9,7 @@ Very much a work in progress.  Added a random play, and track seek.  Will probab
 
 = Setup =
 
-[https://videowebscript.googlecode.com/svn/trunk/AIR/jukeboxscript/deploy/JukeboxScript.air You can get the contact sheet maker here.]
+[https://videowebscript.googlecode.com/svn/trunk/AIR/jukeboxscript/deploy/JukeboxScript.air You can get the jukebox maker here.]
 
 [http://get.adobe.com/air/ If you run it, and nothing good happens, you'll need Adobe AIR.]
 
