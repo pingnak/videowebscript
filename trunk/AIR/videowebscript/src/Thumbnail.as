@@ -270,9 +270,8 @@ package
             bmd.draw(mcPlace);
             
             // Encode jpeg
-            var jpeg : JPGEncoder;
-            jpeg = new JPGEncoder(jpeg_compression_quality);
-            var bytes : ByteArray = jpeg.encode(bmd);
+            var bytes : ByteArray = bmd.encode(bmd.rect,new JPEGEncoderOptions(jpeg_compression_quality));
+            bmd.dispose();
 
             //
             // Automatically re-encode thumbs that are suspiciously tiny in file size
