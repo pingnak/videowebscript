@@ -1,4 +1,5 @@
 #summary How to build it.
+#labels build
 
 = Introduction =
 
