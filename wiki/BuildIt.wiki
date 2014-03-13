@@ -1,4 +1,4 @@
-# How to build it.
+#summary How to build it.
 
 = Introduction =
 
@@ -36,4 +36,4 @@ Anyway, the pretty UI (who am I kidding?) is made in Flash.  It has two export p
 
 To debug outside of flash, what you need to do is launch 'fdb' in a terminal/cmd shell window, and type the 'run' command.  Then 'ant rundebug' in another window, in the project folder.  Then use fdb, which works sort of like gdb, except far less conveniently.
 
-You may also try 'ant runtrace'.  This will run a debug build with trace output.  Windows users will need to install 'tail', from some 'GNU Tools' collection, or another (it's sort of like 'more', only better behaved, with more options for watching live output).  For most debugging, this is more than adequate.  Throw some traces in, 'ant runtrace', look at the output, and soon the problem is identified.  
+You may also try 'ant runtrace'.  This will run a debug build with trace output.  Windows users will need to install 'tail', from some 'GNU Tools' collection, or another (it's sort of like 'more', only better behaved, with more options for watching live output).  For most debugging, this is more than adequate.  Throw some traces in, 'ant runtrace', look at the output, and soon the problem is identified.
