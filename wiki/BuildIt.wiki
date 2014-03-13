@@ -1,4 +1,4 @@
-#Building it!
+# How to build it.
 
 = Introduction =
 
