@@ -86,16 +86,6 @@ find . -name '*.jpg' -exec rm -v \{\} \;
 
 What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video (in other words, I found no other examples of this, in the wild).  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
 
-= Building It =
-
-The source can be built with Apache Ant, and some recent version of Flex SDK (both require a Java runtime environment).  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.  
-
-You will still need Adobe Flash CS6, or later to change the hideous little UI's appearance.
-
-[https://ant.apache.org/]
-
-[http://www.adobe.com/devnet/flex/flex-sdk-download.html]
-
-The build script will generate a self signed certificate for your AIR app, if you don't have one.  Once you've built your own, you'll probably encounter the same problem, where the certificate doesn't match, so AIR won't install your app.  Just remove the previous version, yourself, and you'll be able to install the new one.
+See: [BuildIt]
 
 See Also: [SecurityCaveats]
