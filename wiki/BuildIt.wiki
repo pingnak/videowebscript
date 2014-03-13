@@ -22,8 +22,6 @@ The build script will generate a self signed certificate for your AIR app, if yo
 
 See Also: [SecurityCaveats]
 
-See Also: [SecurityCaveats]
-
 I build alternately with Flash 5.5, and the Flex SDK.  
 
 Flex/Flash Builder and 'Eclipse' make me want to vomit.  I'm old fashioned, and prefer the command line tools, so we build with 'ant' and the free Flex 4.5 SDK (AIR 2.6).
@@ -32,4 +30,10 @@ Anyway, with Flash, just load it up and publish it.  Though initially created wi
 
 You can build this project with any newer versions of AIR, but 2.6 turned out to be the last version that supported Linux.  (Thanks Adobe, you morons!  I hope you all enjoy watching Unity eat you alive on SteamOS.)
 
-Anyway, the pretty UI (who am I kidding?) is made in Flash.  It has two export project types.  A naked swf (for the flex build to use), and export to AIR.  You'll need to poke around in your AIR settings to point it at your certificate, and type your password in, because, why use relative paths to your project; people will only ever work on ONE thing at a time, right Adobe?
+The best way to manage multiple Flex versions that I've found is to put them all in one place, and set a 'flex_sdk' symbolic link pointing at the 'current' one that you're working with, and add that to the path.  Then you can simply point at the 'right' one.  You could do much the same renaming folders, too.  
+
+Anyway, the pretty UI (who am I kidding?) is made in Flash.  It has two export project types.  A naked swf (for the flex build to import), and an AIR build.  You'll need to poke around in your AIR settings to point it at your certificate, and type your password in.
+
+To debug outside of flash, what you need to do is launch 'fdb' in a terminal/cmd shell window, and type the 'run' command.  Then 'ant rundebug' in another window, in the project folder.  Then use fdb, which works sort of like gdb, except far less conveniently.
+
+You may also try 'ant runtrace'.  This will run a debug build with trace output.  Windows users will need to install 'tail', from some 'GNU Tools' collection, or another (it's sort of like 'more', only better behaved, with more options for watching live output).  For most debugging, this is more than adequate.  Throw some traces in, 'ant runtrace', look at the output, and soon the problem is identified.  
