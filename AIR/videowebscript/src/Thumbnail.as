@@ -269,8 +269,14 @@ package
             var bmd : BitmapData = new BitmapData(mcPlace.width, mcPlace.height, false, 0);
             bmd.draw(mcPlace);
             
-            // Encode jpeg
-            var bytes : ByteArray = bmd.encode(bmd.rect,new JPEGEncoderOptions(jpeg_compression_quality));
+            // Encode jpeg (AIR 2.6)
+            var jpe : JPGEncoder = new JPGEncoder(jpeg_compression_quality)
+            var bytes : ByteArray = jpe.encode(bmd);
+            
+            // Newer AIR SDK has encoders built into bmd
+            //var bytes : ByteArray = bmd.encode(bmd.rect,new JPEGEncoderOptions(jpeg_compression_quality));
+            
+            
             bmd.dispose();
 
             //

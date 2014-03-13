@@ -214,19 +214,7 @@
 	
 	<target name="rundebug" description="Build and run in debugger" depends="debug">
 		<sequential>
-		    <echo>Launching debugger...</echo>
-			<!-- We need to launch a shell into a new environment, or ant kills it -->
-			<exec executable="xterm" osfamily="UNIX" searchpath="true" vmlauncher="false">
-				<arg line="-e fdb ${deploy.path}"/>
-			</exec>
-			
-			<!-- Use start to get a new shell running for the debug session. -->
-			<exec executable="cmd" osfamily="WINDOWS" searchpath="true" vmlauncher="false">
-				<arg line="/c"/>
-				<arg line="start"/>
-				<arg line="fdb"/>
-				<arg line="${deploy.path}"/>
-			</exec>
+		    <echo>You needed to run fdb in a shell, then type 'run', first...</echo>
 
 		    <echo>Launching app...</echo>
 			<exec executable="adl" searchpath="true" vmlauncher="false">
