@@ -1,0 +1,35 @@
+#Building it!
+
+= Introduction =
+
+Look at all of that source code.  If you're feeling adventurous, then you can build it and modify it, yourself.
+
+= Building It =
+
+The source can be built with Apache Ant, and some recent version of Flex SDK (both require a Java runtime environment).  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.  
+
+You will still need Adobe Flash CS6, or later to change the hideous little UI's appearance.
+
+[https://ant.apache.org/]
+
+[http://www.adobe.com/devnet/flex/flex-sdk-download.html]
+
+You can get Flex 4.5, matching exactly what I built with, here.  It downloads a swf, and running that will reveal the path.  I don't know why.  I guess they just felt that everyone should have a 'flash runtime' installed.
+
+[http://sourceforge.net/adobe/flexsdk/wiki/Downloads/]
+
+The build script will generate a self signed certificate for your AIR app, if you don't have one.  Once you've built your own, you'll probably encounter the same problem, where the certificate doesn't match, so AIR won't install your app.  Just remove the previous version, yourself, and you'll be able to install the new one, that you built, with your own certificate.
+
+See Also: [SecurityCaveats]
+
+See Also: [SecurityCaveats]
+
+I build alternately with Flash 5.5, and the Flex SDK.  
+
+Flex/Flash Builder and 'Eclipse' make me want to vomit.  I'm old fashioned, and prefer the command line tools, so we build with 'ant' and the free Flex 4.5 SDK (AIR 2.6).
+
+Anyway, with Flash, just load it up and publish it.  Though initially created with Flash CS6, I decided to go back half a version (Flash CS5.5), because I don't have to pay monthly rent on it.  If you have newer Flash, it will volunteer to 'upgrade', and you can drop the 'JPGEncoder.as' file from Adobe, because there's a BitmapData.encode() function for JPEG export (and a line dyked out, with the right call).
+
+You can build this project with any newer versions of AIR, but 2.6 turned out to be the last version that supported Linux.  (Thanks Adobe, you morons!  I hope you all enjoy watching Unity eat you alive on SteamOS.)
+
+Anyway, the pretty UI (who am I kidding?) is made in Flash.  It has two export project types.  A naked swf (for the flex build to use), and export to AIR.  You'll need to poke around in your AIR settings to point it at your certificate, and type your password in, because, why use relative paths to your project; people will only ever work on ONE thing at a time, right Adobe?
