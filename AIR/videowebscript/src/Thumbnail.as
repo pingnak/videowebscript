@@ -29,6 +29,7 @@ package
     {
         // Events
         public static const SNAPSHOT_READY : String = "snapshot";
+        public static const LOADING : String = "loading";
         public static const COMPLETE : String = Event.COMPLETE;
         
         internal var connection : NetConnection;
@@ -132,6 +133,7 @@ package
             var queueObj : Object = queue[0];
             videoFile = queueObj.file;
             thumbFile = queueObj.thumb;
+            dispatchEvent( new Event(LOADING) );            
             video.width = video.height = thumbsize;
             video.smoothing = true;
             stream.close();

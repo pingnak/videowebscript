@@ -285,7 +285,9 @@ CONFIG::FLASH_AUTHORING
             {
                 // Wait for thumbnailing to complete
                 thumbnail.addEventListener( Event.COMPLETE, ThumbnailsComplete );
-                thumbnail.addEventListener( Thumbnail.SNAPSHOT_READY, ThumbnailNext );
+                thumbnail.addEventListener( Thumbnail.LOADING, ThumbnailNext );
+                //thumbnail.addEventListener( Thumbnail.SNAPSHOT_READY, ThumbnailNext );
+                ui.tfStatus.text = "Generate thumbnails...";
                 thumbnail.Startup();
             }
             else
@@ -324,6 +326,10 @@ CONFIG::FLASH_AUTHORING
         {
             var file_thumb : File;
             file_thumb = Find.File_newExtension( file, '.jpg' );
+            if( file.isSymbolicLink )
+            {   // Don't chase symlinks, which may be stale, or duplicate effort.
+                return file_thumb;
+            }
             if( !file_thumb.exists )
             {   // Have NO thumbnail (make a jpeg)
                 trace("Needs thumbnail:",file_thumb.url);
