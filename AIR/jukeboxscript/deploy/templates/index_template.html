@@ -132,9 +132,7 @@ function playmedia(audio_path)
         title.innerHTML = original_title;
         return;
     }
-    var audio_type='audio/'+now_playing.split('.').pop();
-    audio.setAttribute("src",now_playing);
-    audio.setAttribute("type".audio_type);
+    audio.setAttribute("src", now_playing);
     audio.load();
     audio.play();
     audio.addEventListener( "ended", playNextWrap ); // Re-shuffle
