@@ -21,6 +21,15 @@ You can get Flex 4.5, matching exactly what I built with, here.  It downloads a 
 
 The build script will generate a self signed certificate for your AIR app, if you don't have one.  Once you've built your own, you'll probably encounter the same problem, where the certificate doesn't match, so AIR won't install your app.  Just remove the previous version, yourself, and you'll be able to install the new one, that you built, with your own certificate.
 
+According to which version of the AIR SDK, you'll need to edit the second line of JukeboxScript-app.xml and VideoWebScript-app.xml and ContactScript-app.xml (and AIR SDK configuration), to match.  So for AIR 4.0 SDK...
+
+<application xmlns="http://ns.adobe.com/air/application/4.0">
+
+For AIR 2.6 SDK...
+
+<application xmlns="http://ns.adobe.com/air/application/2.6">
+
+
 See Also: [SecurityCaveats]
 
 I build alternately with Flash 5.5, and the Flex SDK.  
