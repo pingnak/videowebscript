@@ -49,15 +49,18 @@ CONFIG::MXMLC_BUILD
         /** Start of movie player and available content */
         public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"index_template.html";
         
-        /** Table of contents file */
-        public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
-        
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
+        
+        /** Table of contents file */
+        public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
 
+        /** Link to TOC index */
+        public static var INDEX_TOC       : String = SCRIPT_TEMPLATES+"index_toc.html";
+        
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
         
@@ -493,6 +496,7 @@ CONFIG::FLASH_AUTHORING
         {
             var index_template : String = LoadText(TOC_TEMPLATE);
             var index_index : String    = LoadText(INDEX_INDEX); 
+            var index_toc : String = LoadText(INDEX_TOC);
 
             var folders : Array = Find.GetFolders(found);
             var root : File = folders[0];
@@ -506,9 +510,10 @@ CONFIG::FLASH_AUTHORING
             
             var index_content : String = seded;
             var folder_list : String = "";
+            var file_list : String = "";
             
             var folder_iteration : int;
-            for( folder_iteration = 1; folder_iteration < folders.length; ++folder_iteration )
+            for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
             {
                 // Create and build top half of index file
                 var curr_folder : File  = folders[folder_iteration];
@@ -524,10 +529,24 @@ CONFIG::FLASH_AUTHORING
                     seded = index_index;
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
-
-                    bExportedLinks = true;
+                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                     folder_list += seded;
+                    
+                    var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder, 0 );
+                    var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
+                    var file_iteration : int;
+                    for( file_iteration = 0; file_iteration < total_files_at_this_depth.length; ++file_iteration )
+                    {
+                        var curr_file   : File  = total_files_at_this_depth[file_iteration];
+                        var curr_name   : String = Find.File_nameext(curr_file);
+                        var curr_path   : String = curr_index_relative + '?' + curr_name;
+                        seded = index_toc;
+                        seded = seded.replace(/MEDIA_PATH/g,curr_path);
+                        seded = seded.replace(/MEDIA_TITLE/g,Find.File_name(curr_file));
+                        seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                        folder_list += seded;
+                    }
+                    bExportedLinks = true;
                 }
             }
             
