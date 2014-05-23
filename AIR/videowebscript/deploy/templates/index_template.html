@@ -95,8 +95,11 @@ function PlayerInit()
     MakePlaylist();
     video_box.style.display = 'none';
     var params = window.location.href.split('?');
-    if( 0 != params.length )
+    
+    if( 2 == params.length )
+    {   // If we have ?..., that's the video in this folder, to play
         playmedia(decodeURI(params[1]));
+    }
 }
 
 /* 
