@@ -1,6 +1,6 @@
 ﻿
 /*
- * Web (HTML5) Contact Sheet Generator
+ * Web (HTML5) Video Player Generator
  * 
  * Iterate gigantic trees of contents to generate thumbnails, and displays/players
  * in the browser, similar to DLNA photo/music/movie handling.
@@ -77,7 +77,7 @@ CONFIG::MXMLC_BUILD
         **/
         public static var REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
 
-        /** Regular expressions that we accept as 'MP4 content'*/
+        /** Regular expressions that we accept as 'jpeg content'*/
         public static var REGEX_JPEG       : String = ".(jpg|jpeg)";
         
         /** Path to do the job in */
@@ -156,7 +156,7 @@ CONFIG::FLASH_AUTHORING
         {
             //var list : Array = Find.FindBlock(root_path_video);
             var found_so_far : int = finding.results.length;
-            ui.tfStatus.text = found_so_far.toString();
+            ui.tfStatus.text = "Finding... "+found_so_far.toString();
         }
         
         public override function Busy(e:Event=null) : void
@@ -317,7 +317,7 @@ CONFIG::FLASH_AUTHORING
         /** Update progress animation with thumbnail status */
         protected function ThumbnailNext(e:Event=null):void
         {
-            ui.tfStatus.text = thumbnail.queue_length.toString() + " " + Find.File_nameext(thumbnail.thumb_file);
+            ui.tfStatus.text = "Thumbnail: " + thumbnail.queue_length.toString() + " " + Find.File_nameext(thumbnail.thumb_file);
         }
 
         /**
@@ -389,7 +389,7 @@ CONFIG::FLASH_AUTHORING
                     var folder : File;
                     var root : File = folders[folder_iteration++];
 
-                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
+                    ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
 
                     // Don't write index files in folders with no video content
                     var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
@@ -518,7 +518,9 @@ CONFIG::FLASH_AUTHORING
                 // Create and build top half of index file
                 var curr_folder : File  = folders[folder_iteration];
                 var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                if( curr_index_file.exists )
+                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder, 0 );
+                var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
+                if( curr_index_file.exists && total_files_at_this_depth.length )
                 {
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
                     var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
@@ -532,8 +534,6 @@ CONFIG::FLASH_AUTHORING
                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                     folder_list += seded;
                     
-                    var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder, 0 );
-                    var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
                     var file_iteration : int;
                     for( file_iteration = 0; file_iteration < total_files_at_this_depth.length; ++file_iteration )
                     {
