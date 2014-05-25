@@ -72,13 +72,16 @@ img.folder  {
     <a href="http://www.w3schools.com/html/html5_video.asp">More info about compatibility...</a><br/>
 </video>
 <br/>
+</div>
+<!-- Put this in above div, to make it show/hide these controls with the player
+TODO: Make sequential/shuffle buttons 'mode' radio buttons, and don't trigger playback just for picking them
+-->
 <div id="video_controls" class="center">
 <button class="button_format" type="button" alt="Prev" onclick="javascript: playPrev(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
 <button class="button_format" type="button" alt="Next" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
 &nbsp;&nbsp;
 <button class="button_format" type="button" alt="Sequential" onclick="javascript: MakePlaylist(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAACuUExURQAAAP///////////////////////////////////////////////////////////8zMzP///wAAAAD///Ly8gA/PzMzM2ZmZt/f39LS0vv7+9XV1e/v75mZmQB/f/X19UxMTAC/v9vb26WlpQBfX8/Pz7+/v39/f+Xl5ejo6NjY2OLi4rKysgCPj3JycgDv7wwMDADf3wAfHxkZGevr6/j4+FlZWSYmJgAPDwAvL5MjQvkAAAAQdFJOUwCfzx9vf1/fvw+PP6/vL0+FEI3DAAABYUlEQVQ4y72TaYOCIBCGMUvTDhmwQ8vUstrua8///8cW8ABc/brvF8F5YGaYGYSkTKsnZJmoQU7Xhkp216nbmXl5WmChxckH29LM4w4cAmaKZkxXtgiWMFQuMUfxUZy9Ey6xXIcd6b7zsc0vJytKV6RwBEYJDMPCuQbgOfRyuwfz4hd+ZQqA32AgHIyW5R88nagAjm2RIAQaMJlW2yPwZG0ftwE4ZpmMZQR/gTmYzMO2HQigi4wQtwM4dFFfCQHPSA3w+/8BuGENeCZ6kFqaHCAzPU3tofbkoQH8oZAta4UjkmqAz6vVq4p1jq4cSKLoXPaMpZZ7x9stpU/+2cgLELJgnRMJuaSU3tKMJGrDyJbbfX0/KKWXwl61HGvaMM9k9/q50Yx8is1BNi1yjCLXzX2Skb1YvrMnUGRAHOR55vYgBn20kMdGj8e64fGv2egNGofXF2LDazlNA+65fSFXPf0LCF47HQmY30UAAAAASUVORK5CYII=" /></button>
 <button class="button_format" type="button" alt="Shuffle" onclick="javascript: PlayListShuffle(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADDUExURQAAAP///////////////////////////////////////////////////////////8zMzP///wAAAPLy8gD//wAPD9/f3/v7+9LS0gDv76WlpUxMTL+/v+/v79XV1QCPjwAvLxkZGQwMDPX19bKyspmZmTMzMwB/f9vb21lZWXJycgBfX39/fwC/vwBPTwDf38/PzyYmJoyMjABvb+Xl5ejo6NjY2OLi4gDPz2ZmZuvr6/j4+AAfHwCfnwCvrz8/PwA/P+f8KJ8AAAAQdFJOUwCfzx9vf1/fvw+PP6/vL0+FEI3DAAABnUlEQVQ4y21TZ4ODIAzFDq2dgFhnz9lld3tdt///rzpAKnjX90VJQvJeSACQaOptDr0JnsBsGaiC0TL/+ql7cn2BHC9XCxl6zT1soLPLfMU9mOX0605QX0nSHGQXfjfAFAX/XTgNWb7xvi+Tp1syx7kohLRHQN8RxY/4k8QJFBijdukfobEwrfGGfMweAfAV9XiBwaQyHWLyhY/VMTO4QORWFh9HZJuEj+MFMbGGBSWW9m5nL2UKqmRYMWAI0zk5YSh5NmmFvRJwx5ud/V0dXdQCmqP4fTz3YskBQqcLOiqFJCan1FcMVqcekJ5UEU8CCny7KSL+B7BORUqnWEBXJVl2Ks1VknWZMLA9DweqzHqj4Mz2IrxWGwWMieKf0kbY8j0t9lrt6rHy6ZQmWOFiWs2Mrj53yOZtTmz28WUCAHS0EARxtCHE26wESzEwcuTCg70jhDYiqI8cHVqnVBImsUdWuGzlWQ4tMDWh1U9/VkLkG22BAg1lbimz9LsZqq8WGNHVY1x9xn9BV6/3dHktDrq8uvlswUfdDkdXvf0LKpI/1T85JPMAAAAASUVORK5CYII=" /></button>
-</div>
 </div>
 <div id="title" class="title">Titles Available In TITLE_TEXT</div>
 <br/>
@@ -88,6 +91,10 @@ var bShuffle = false;
 var now_playing = null;
 var video_box;
 var video;
+
+/**
+ * Set things up, when the page loads
+**/
 function PlayerInit()
 {
     video_box = document.getElementById("PlayerBox");
@@ -97,7 +104,7 @@ function PlayerInit()
     var params = window.location.href.split('?');
     
     if( 2 == params.length )
-    {   // If we have ?..., that's the video in this folder, to play
+    {   // If we have '?title.mp4' that's the video in this folder, to play
         playmedia(decodeURI(params[1]));
     }
 }

@@ -47,13 +47,16 @@ CONFIG::MXMLC_BUILD
         public static var SCRIPT_TEMPLATES: String ="templates/"
 
         /** Start of movie player and available content */
-        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"index_template.html";
+        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"VideoPlayer_template.html";
         
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
+
+        /** Link to folder index */
+        public static var INDEX_SMALL     : String = SCRIPT_TEMPLATES+"index_small.html";
         
         /** Table of contents file */
         public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
@@ -474,9 +477,13 @@ CONFIG::FLASH_AUTHORING
                     // If user wanted a flattened table of contents, make one.
                     if( CheckGet( ui.bnTOC ) )
                     {
-                        DoTOC(found);
+                        ui.tfStatus.text = "Generating index...";
+                        setTimeout( function():void{DoTOC(found);} );
                     }
-                    VideoFilesComplete();
+                    else
+                    {
+                        VideoFilesComplete();
+                    }
                 }
             }
             catch( e:Error )
@@ -495,7 +502,9 @@ CONFIG::FLASH_AUTHORING
         protected function DoTOC(found:Array):void
         {
             var index_template : String = LoadText(TOC_TEMPLATE);
-            var index_index : String    = LoadText(INDEX_INDEX); 
+            var index_index : String    = LoadText(INDEX_INDEX);
+            var index_small : String    = LoadText(INDEX_SMALL);
+            
             var index_toc : String = LoadText(INDEX_TOC);
 
             var folders : Array = Find.GetFolders(found);
@@ -528,11 +537,14 @@ CONFIG::FLASH_AUTHORING
                     var curr_index_relative : String = Find.File_relative( curr_index, root );
 
                     // Emit index for child folder
+                    seded = index_small;
+                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                    folder_list += seded;
                     seded = index_index;
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
-                    folder_list += seded;
+                    file_list += seded;
                     
                     var file_iteration : int;
                     for( file_iteration = 0; file_iteration < total_files_at_this_depth.length; ++file_iteration )
@@ -544,14 +556,15 @@ CONFIG::FLASH_AUTHORING
                         seded = seded.replace(/MEDIA_PATH/g,curr_path);
                         seded = seded.replace(/MEDIA_TITLE/g,Find.File_name(curr_file));
                         seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
-                        folder_list += seded;
+                        file_list += seded;
                     }
                     bExportedLinks = true;
                 }
             }
             
             // Insert folder list into file template
-            index_content = index_content.replace("<!--INDEXES_HERE-->",folder_list);
+            index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+            index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
             
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
             if( bExportedLinks )
@@ -567,6 +580,7 @@ CONFIG::FLASH_AUTHORING
                 if( toc_file.exists )
                     toc_file.moveToTrashAsync();
             }
+            VideoFilesComplete();
         }
 
         /**
