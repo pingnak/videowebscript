@@ -527,9 +527,11 @@ CONFIG::FLASH_AUTHORING
                 // Create and build top half of index file
                 var curr_folder : File  = folders[folder_iteration];
                 var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder, 0 );
-                var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
-                if( curr_index_file.exists && total_files_at_this_depth.length )
+                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder );
+                var total_files_in_this_folder: Array = Find.GetFiles(total_files_folders_at_this_depth);
+                var total_files_folders_recursive : Array = Find.GetChildren( found, curr_folder, uint.MAX_VALUE );
+                var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_recursive);
+                if( curr_index_file.exists && 0 != total_files_at_this_depth.length )
                 {
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
                     var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
@@ -540,25 +542,31 @@ CONFIG::FLASH_AUTHORING
                     seded = index_small;
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                    seded = seded.replace(/FOLDER_STYLE/g,"");
                     folder_list += seded;
-                    seded = index_index;
-                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    file_list += seded;
                     
-                    var file_iteration : int;
-                    for( file_iteration = 0; file_iteration < total_files_at_this_depth.length; ++file_iteration )
+                    if( 0 != total_files_in_this_folder.length )
                     {
-                        var curr_file   : File  = total_files_at_this_depth[file_iteration];
-                        var curr_name   : String = Find.File_nameext(curr_file);
-                        var curr_path   : String = curr_index_relative + '?' + curr_name;
-                        seded = index_toc;
-                        seded = seded.replace(/MEDIA_PATH/g,curr_path);
-                        seded = seded.replace(/MEDIA_TITLE/g,Find.File_name(curr_file));
-                        seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                        seded = index_index;
+                        seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                        seded = seded.replace(/FOLDER_STYLE/g,"");
                         file_list += seded;
+                        
+                        var file_iteration : int;
+                        for( file_iteration = 0; file_iteration < total_files_in_this_folder.length; ++file_iteration )
+                        {
+                            var curr_file   : File  = total_files_at_this_depth[file_iteration];
+                            var curr_name   : String = Find.File_nameext(curr_file);
+                            var curr_path   : String = curr_index_relative + '?' + curr_name;
+                            seded = index_toc;
+                            seded = seded.replace(/MEDIA_PATH/g,curr_path);
+                            seded = seded.replace(/MEDIA_TITLE/g,Find.File_name(curr_file));
+                            seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                            file_list += seded;
+                        }
+                        bExportedLinks = true;
                     }
-                    bExportedLinks = true;
                 }
             }
             
