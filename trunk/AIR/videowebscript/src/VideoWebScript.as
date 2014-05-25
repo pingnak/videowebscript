@@ -521,6 +521,8 @@ CONFIG::FLASH_AUTHORING
             var folder_list : String = "";
             var file_list : String = "";
             
+            var folder_list_db : Array = new Array();
+            
             var folder_iteration : int;
             for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
             {
@@ -543,7 +545,7 @@ CONFIG::FLASH_AUTHORING
                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                     seded = seded.replace(/FOLDER_STYLE/g,"");
-                    folder_list += seded;
+                    folder_list_db.push( {name:curr_index_title,item:seded} );
                     
                     if( 0 != total_files_in_this_folder.length )
                     {
@@ -570,9 +572,14 @@ CONFIG::FLASH_AUTHORING
                 }
             }
             
-            // Insert folder list into file template
-            index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+            // Insert tree of stuff
             index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
+
+            // Insert folder list for little link table
+            folder_list_db.sortOn('name');
+            while( 0 != folder_list_db.length )
+                folder_list += folder_list_db.shift().item;
+            index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
             
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
             if( bExportedLinks )
