@@ -582,7 +582,7 @@ CONFIG::FLASH_AUTHORING
                 }
             }
 
-trace( "Write output..." );
+            //trace( "Write output..." );
             
             // Insert tree of stuff
             index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
@@ -595,7 +595,7 @@ trace( "Write output..." );
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
             if( bExportedLinks )
             {
-trace("Wrote:",toc_file.nativePath);
+                //trace("Wrote:",toc_file.nativePath);
                 // Now write out index file in one pass
                 var fs : FileStream = new FileStream();
                 fs.open( toc_file, FileMode.WRITE );
@@ -604,7 +604,7 @@ trace("Wrote:",toc_file.nativePath);
             }
             else
             {
-trace("Removed:",toc_file.nativePath);
+                //trace("Removed:",toc_file.nativePath);
                 if( toc_file.exists )
                     toc_file.moveToTrash();
             }
