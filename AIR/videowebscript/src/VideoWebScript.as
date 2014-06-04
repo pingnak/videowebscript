@@ -403,6 +403,8 @@ CONFIG::FLASH_AUTHORING
                         var curr_files : Array = Find.GetChildren( found, root );
                         var curr_folders : Array = Find.GetFolders(curr_files);
                         curr_files = Find.GetFiles(curr_files);
+//trace("Found Folders:",root.nativePath,curr_folders.length);
+//trace("Found Files:",root.nativePath,curr_folders.length);
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
@@ -478,7 +480,7 @@ CONFIG::FLASH_AUTHORING
                     if( CheckGet( ui.bnTOC ) )
                     {
                         ui.tfStatus.text = "Generating index...";
-                        setTimeout( function():void{DoTOC(found);} );
+                        setTimeout( DoTOCTimeout );
                     }
                     else
                     {
@@ -495,6 +497,11 @@ CONFIG::FLASH_AUTHORING
             // Fall out; timer threads are in charge
         }
 
+        protected function DoTOCTimeout():void
+        {
+            DoTOC(finding.results);
+        }
+        
         /**
          * Iterate through folders and generate a flattened Table of Contents 
          * of VideoPlayer.html files, throughout the tree.
@@ -529,10 +536,13 @@ CONFIG::FLASH_AUTHORING
                 // Create and build top half of index file
                 var curr_folder : File  = folders[folder_iteration];
                 var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder );
-                var total_files_in_this_folder: Array = Find.GetFiles(total_files_folders_at_this_depth);
+
                 var total_files_folders_recursive : Array = Find.GetChildren( found, curr_folder, uint.MAX_VALUE );
                 var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_recursive);
+
+                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder );
+                var total_files_in_this_folder: Array = Find.GetFiles(total_files_folders_at_this_depth);
+
                 if( curr_index_file.exists && 0 != total_files_at_this_depth.length )
                 {
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
@@ -558,7 +568,7 @@ CONFIG::FLASH_AUTHORING
                         var file_iteration : int;
                         for( file_iteration = 0; file_iteration < total_files_in_this_folder.length; ++file_iteration )
                         {
-                            var curr_file   : File  = total_files_at_this_depth[file_iteration];
+                            var curr_file   : File  = total_files_in_this_folder[file_iteration];
                             var curr_name   : String = Find.File_nameext(curr_file);
                             var curr_path   : String = curr_index_relative + '?' + curr_name;
                             seded = index_toc;
@@ -571,6 +581,8 @@ CONFIG::FLASH_AUTHORING
                     }
                 }
             }
+
+trace( "Write output..." );
             
             // Insert tree of stuff
             index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
@@ -580,10 +592,10 @@ CONFIG::FLASH_AUTHORING
             while( 0 != folder_list_db.length )
                 folder_list += folder_list_db.shift().item;
             index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
-            
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
             if( bExportedLinks )
             {
+trace("Wrote:",toc_file.nativePath);
                 // Now write out index file in one pass
                 var fs : FileStream = new FileStream();
                 fs.open( toc_file, FileMode.WRITE );
@@ -592,8 +604,9 @@ CONFIG::FLASH_AUTHORING
             }
             else
             {
+trace("Removed:",toc_file.nativePath);
                 if( toc_file.exists )
-                    toc_file.moveToTrashAsync();
+                    toc_file.moveToTrash();
             }
             VideoFilesComplete();
         }
