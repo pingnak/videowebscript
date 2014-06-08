@@ -11,16 +11,21 @@
         color:#ffffff; 
     }
     #rightCol {
-        float: left;
-        width: 75%;
+        float: right;
+        width: 30%;
         height: 100%;
+        margin: auto;
+        text-align:center;
         overflow-x: hidden;
         overflow-y: auto;
+        border-radius: 15px;
+        background-color: #003000;
     }
     #leftCol {
         float: left;
-        width: 25%;
+        width: 70%;
         height: 100%;
+        margin: auto;
         overflow-x: hidden;
         overflow-y: auto;
     }
@@ -64,9 +69,9 @@
         color:#000000; 
     }
     #leftCol {
-        display:none;
     }
     #rightCol {
+        display:none;
     }
     a:link      { color:#000000; text-decoration: none; }
     a:visited   { color:#000000; text-decoration: none; }
@@ -93,8 +98,14 @@
 <!--<div id="title" class="title">Titles Available In TITLE_TEXT</div>
 <br/>-->
 <div id="columns">
-<div id="leftCol"><!--FOLDERS_HERE--></div>
-<div id="rightCol"><!--INDEXES_HERE--></div>
+<div id="leftCol">
+<!--INDEXES_HERE-->
+</div>
+<div id="rightCol">
+<br/><b>Folder Index</b><br/>
+<!--FOLDERS_HERE-->
+<br/>&nbsp;
+</div>
 </div>
 
 <div class="info_text">

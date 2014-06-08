@@ -89,6 +89,8 @@ CONFIG::MXMLC_BUILD
         /** Finder while searching files/folders */
         internal var finding : Find;
 
+        internal var found : Array;
+        
         /** Thumbnailer */        
         internal var thumbnail : Thumbnail;
         
@@ -278,7 +280,8 @@ CONFIG::FLASH_AUTHORING
         protected function HaveVideoFiles(e:Event=null):void
         {
             trace("Tree");
-            DoVideoFilesTree(finding.results);
+            found = finding.results;//Find.PruneEmpties( finding.results );
+            DoVideoFilesTree(found);
         }
 
         /**
@@ -364,12 +367,12 @@ CONFIG::FLASH_AUTHORING
                 var index_template : String = LoadText(PLAYER_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_file : String     = LoadText(INDEX_FILE);
-                var index_template_folders : String = LoadText(TOC_TEMPLATE);
+                //var index_template_folders : String = LoadText(TOC_TEMPLATE);
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
-                setTimeout( ThreadPassFolder );
 
+                setTimeout( ThreadPassFolder );
                 var folder_iteration : int = 0;
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
@@ -408,11 +411,12 @@ CONFIG::FLASH_AUTHORING
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
-                        seded = 0 == curr_files.length ? index_template_folders : index_template;
+                        seded = index_template;
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
                         var index_files : String = "";
+                        //var folder_list : String = "";
     
                         // Iterate child folders and generate links to them
                         for( iteration = 1; iteration < curr_folders.length; ++iteration )
@@ -434,6 +438,7 @@ CONFIG::FLASH_AUTHORING
                                 seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
                                 seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                                 index_files += seded;
+                                //folder_list += seded;
                             }
                         }
 
@@ -463,13 +468,12 @@ CONFIG::FLASH_AUTHORING
                         }
     
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
+
+                        //index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
                         
                         // Now write out index file in one pass
                         var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
-                        var fs : FileStream = new FileStream();
-                        fs.open( curr_index_file, FileMode.WRITE );
-                        fs.writeUTFBytes(index_content);
-                        fs.close();
+                        WriteAsync( curr_index_file, index_content );
                     }
                     
                 }
@@ -497,9 +501,28 @@ CONFIG::FLASH_AUTHORING
             // Fall out; timer threads are in charge
         }
 
+        /**
+         * Write a file asynchronously
+        **/
+        protected function WriteAsync(file:File, utf:String):void
+        {
+            var fs : FileStream = new FileStream();
+            fs.openAsync( file, FileMode.WRITE );
+            fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, waitToClose);
+            fs.writeUTFBytes(utf);
+            function waitToClose(e:OutputProgressEvent):void
+            {
+                if( 0 == e.bytesPending )
+                {
+                    fs.removeEventListener(OutputProgressEvent.OUTPUT_PROGRESS, waitToClose);
+                    fs.close();
+                }
+            }
+        }
+        
         protected function DoTOCTimeout():void
         {
-            DoTOC(finding.results);
+            DoTOC(found);
         }
         
         /**
@@ -529,12 +552,27 @@ CONFIG::FLASH_AUTHORING
             var file_list : String = "";
             
             var folder_list_db : Array = new Array();
-            
-            var folder_iteration : int;
-            for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
+
+            setTimeout( ThreadPassFolder );
+            var folder_iteration : int = 0;
+            //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
+            function ThreadPassFolder():void
             {
+                if( folder_iteration < folders.length )
+                {
+                    // Do next pass
+                    setTimeout( ThreadPassFolder );
+                }
+                else
+                {
+                    // Break out of 'threaded' loop
+                    // Bottom part of file index file; all done
+                    setTimeout( ThreadComplete );
+                    return;
+                }
+            
                 // Create and build top half of index file
-                var curr_folder : File  = folders[folder_iteration];
+                var curr_folder : File  = folders[folder_iteration++];
                 var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
 
                 var total_files_folders_recursive : Array = Find.GetChildren( found, curr_folder, uint.MAX_VALUE );
@@ -543,6 +581,8 @@ CONFIG::FLASH_AUTHORING
                 var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder );
                 var total_files_in_this_folder: Array = Find.GetFiles(total_files_folders_at_this_depth);
 
+                ui.tfStatus.text = "Indexing: "+folder_iteration.toString()+"/"+folders.length.toString();
+                
                 if( curr_index_file.exists && 0 != total_files_at_this_depth.length )
                 {
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
@@ -582,33 +622,48 @@ CONFIG::FLASH_AUTHORING
                 }
             }
 
-            //trace( "Write output..." );
-            
-            // Insert tree of stuff
-            index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
+            function ThreadComplete():void
+            {
+                trace( "Index ThreadComplete..." );
+                
+                // Insert tree of stuff
+                index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
+    
+                // Insert folder list for little link table
+                folder_list_db.sortOn('name');
+                while( 0 != folder_list_db.length )
+                    folder_list += folder_list_db.shift().item;
+                index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+                var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
+                if( bExportedLinks )
+                {
+                    //trace("Wrote:",toc_file.nativePath);
+                    // Now write out index file in one pass
+                    var fs : FileStream = new FileStream();
+                    fs.open( toc_file, FileMode.WRITE );
+                    fs.writeUTFBytes(index_content);
+                    fs.close();
+                }
+                else
+                {
+                    //trace("Removed:",toc_file.nativePath);
+                    if( toc_file.exists )
+                    {
+                        try
+                        {
+                            toc_file.moveToTrashAsync();
+                        }
+                        catch(e:Error)
+                        {
+                            trace(e);
+                        }
+                    }
+                }
+                VideoFilesComplete();
 
-            // Insert folder list for little link table
-            folder_list_db.sortOn('name');
-            while( 0 != folder_list_db.length )
-                folder_list += folder_list_db.shift().item;
-            index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
-            var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
-            if( bExportedLinks )
-            {
-                //trace("Wrote:",toc_file.nativePath);
-                // Now write out index file in one pass
-                var fs : FileStream = new FileStream();
-                fs.open( toc_file, FileMode.WRITE );
-                fs.writeUTFBytes(index_content);
-                fs.close();
             }
-            else
-            {
-                //trace("Removed:",toc_file.nativePath);
-                if( toc_file.exists )
-                    toc_file.moveToTrash();
-            }
-            VideoFilesComplete();
+            
+            
         }
 
         /**
@@ -779,7 +834,14 @@ CONFIG::FLASH_AUTHORING
                         if( jpegpath.exists )
                         {
                             trace(jpegpath.nativePath);
-                            jpegpath.moveToTrashAsync();
+                            try
+                            {
+                                jpegpath.moveToTrashAsync();
+                            }
+                            catch(e:Error)
+                            {
+                                trace(e);
+                            }
                         }
                     }
                     Interactive();
@@ -827,7 +889,14 @@ CONFIG::FLASH_AUTHORING
                     for( i = 0; i < found.length; ++i )
                     {
                         trace(found[i].nativePath);
-                        found[i].moveToTrashAsync();
+                        try
+                        {
+                            found[i].moveToTrashAsync();
+                        }
+                        catch(e:Error)
+                        {
+                            trace(e);
+                        }
                     }
                     Interactive();
                 }
