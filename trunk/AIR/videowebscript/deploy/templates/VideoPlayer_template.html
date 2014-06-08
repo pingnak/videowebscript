@@ -88,9 +88,11 @@ TODO: Make sequential/shuffle buttons 'mode' radio buttons, and don't trigger pl
 <script type="text/javascript">
 var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
 var bShuffle = false;
+var playlist;
 var now_playing = null;
 var video_box;
 var video;
+var video_controls;
 
 /**
  * Set things up, when the page loads
@@ -99,8 +101,10 @@ function PlayerInit()
 {
     video_box = document.getElementById("PlayerBox");
     video = document.getElementById("videoplayer");
+    video_controls = document.getElementById("video_controls");
     MakePlaylist();
     video_box.style.display = 'none';
+    video_controls.style.display = 0 == playlist.length ? 'none' : '';
     var params = window.location.href.split('?');
     
     if( 2 == params.length )
@@ -153,7 +157,8 @@ function MakePlaylist()
     {
         array.push(collection[i]);
     }
-    bShuffle = false; 
+    bShuffle = false;
+    // Hide extra controls, if nothing in play list
     return playlist = array;
 }
 // Shuffle a play list

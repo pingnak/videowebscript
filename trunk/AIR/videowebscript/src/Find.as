@@ -395,6 +395,37 @@ package
             }
             return ret;
         }
+
+        /**
+         * After various filtering, remove folders without children
+         * @param tree A tree, like results would return 
+         * @return New copy of array, without empty folders
+        **/
+        public static function PruneEmpties( tree : Array ) : Array
+        {
+            var ret : Array = new Array();
+            var j : int;
+            var f : File;
+            var i : int;
+            for( i = 0; i < tree.length; ++i )
+            {
+                f = tree[i];
+                if( f.isDirectory )
+                {
+                    var kids : Array = GetChildren( tree, f, uint.MAX_VALUE );
+                    var files : Array = GetFiles( kids );
+                    if( 0 != files.length )
+                    {
+                        ret.push(f);
+                    }
+                }
+                else
+                {
+                    ret.push(f);
+                }
+            }
+            return ret;
+        }
         
         /**
          * Re-filter contents
