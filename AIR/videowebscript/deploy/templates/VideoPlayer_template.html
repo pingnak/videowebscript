@@ -140,8 +140,10 @@ function playmedia(video_path)
     video.addEventListener( "ended", playNext );
     
     // Show title
-    var title = document.getElementById("title");
-    title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
+    var titletext = decodeURI(now_playing);
+    titletext = titletext.split('/').pop();
+    titletext = titletext.split('.').shift();
+    title.innerHTML = titletext;
     
     // Show video
     window.scrollTo(0,0);
