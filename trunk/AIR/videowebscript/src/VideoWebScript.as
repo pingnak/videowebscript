@@ -364,13 +364,19 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var index_template : String = LoadText(PLAYER_TEMPLATE);
+                var player_template : String = LoadText(PLAYER_TEMPLATE);
+                var index_template : String = LoadText(TOC_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
+                var index_small : String    = LoadText(INDEX_SMALL);
                 var index_file : String     = LoadText(INDEX_FILE);
-                //var index_template_folders : String = LoadText(TOC_TEMPLATE);
+                var index_toc : String = LoadText(INDEX_TOC);
+                //var player_template_folders : String = LoadText(TOC_TEMPLATE);
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
+                var folder_list_db : Array = new Array();
+                var file_list_index : String = "";
+                var bExportedLinks : Boolean = false;
 
                 setTimeout( ThreadPassFolder );
                 var folder_iteration : int = 0;
@@ -411,15 +417,15 @@ CONFIG::FLASH_AUTHORING
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
-                        seded = index_template;
+                        seded = player_template;
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
                         var index_files : String = "";
-                        //var folder_list : String = "";
+                        var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
     
                         // Iterate child folders and generate links to them
-                        for( iteration = 1; iteration < curr_folders.length; ++iteration )
+                        for( iteration = 0; iteration < curr_folders.length; ++iteration )
                         {
                             var curr_folder : File  = curr_folders[iteration];
     
@@ -430,15 +436,38 @@ CONFIG::FLASH_AUTHORING
                             {
                                 var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
+                                curr_index_title = Find.FixDecodeURI(curr_index_title);
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
-        
-                                // Emit index for child folder
-                                seded = index_index;
-                                seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                                seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                                seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
-                                index_files += seded;
-                                //folder_list += seded;
+                                var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
+                                
+                                if( 0 == iteration )
+                                {
+                                    if( folders[0] != curr_folder && 0 != curr_files.length )
+                                    {
+                                        seded = index_index;
+                                        seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
+                                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                        seded = seded.replace(/FOLDER_STYLE/g,"");
+                                        file_list_index += seded;
+                                    }
+                                }
+                                else
+                                {
+            
+                                    // Emit index for child folder
+                                    seded = index_index;
+                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
+                                    index_files += seded;
+    
+                                    // Generate indexes for TOC
+                                    seded = index_small;
+                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);       
+                                    seded = seded.replace(/FOLDER_STYLE/g,"");
+                                    folder_list_db.push( {name:curr_index_title,item:seded} );
+                                }
                             }
                         }
 
@@ -453,6 +482,7 @@ CONFIG::FLASH_AUTHORING
                             var curr_file : File = curr_files[iteration];
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
+                            curr_file_title = Find.FixDecodeURI(curr_file_title);
                             
                             var file_thumb : File = CheckThumbnail(curr_file);
                             var curr_file_thumb : String = Find.File_relative( file_thumb, root );
@@ -464,15 +494,23 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                             index_files += seded;
+
+                            // Emit absolute index to play from TOC 
+                            curr_file_relative = Find.File_relative( curr_index_file, folders[0] );
+                            var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
+                            var curr_path   : String = curr_file_relative + '?' + curr_name;
+                            seded = index_toc;
+                            seded = seded.replace(/MEDIA_PATH/g,curr_path);
+                            seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                            file_list_index += seded;
                             
+                            bExportedLinks = true;
                         }
     
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
 
-                        //index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
-                        
                         // Now write out index file in one pass
-                        var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
                         WriteAsync( curr_index_file, index_content );
                     }
                     
@@ -480,16 +518,31 @@ CONFIG::FLASH_AUTHORING
 
                 function ThreadComplete():void
                 {
-                    // If user wanted a flattened table of contents, make one.
+                    // If user wanted a flattened table of contents, make one.  
+                    // We already did all the work for it, above
                     if( CheckGet( ui.bnTOC ) )
                     {
-                        ui.tfStatus.text = "Generating index...";
-                        setTimeout( DoTOCTimeout );
+                        // Insert folder list for little link table
+                        var folder_list : String = "";
+                        folder_list_db.sortOn('name');
+                        while( 0 != folder_list_db.length )
+                            folder_list += folder_list_db.shift().item;
+                            
+                        var index_content : String = index_template;
+                        index_content = index_content.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                        //index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
+                        index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
+                        index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+
+                        // Now write out index file in one pass
+                        var toc_file : File = Find.File_AddPath( folders[0], MAIN_TOC );
+                        var fs : FileStream = new FileStream();
+                        fs.open( toc_file, FileMode.WRITE );
+                        fs.writeUTFBytes(index_content);
+                        fs.close();
                     }
-                    else
-                    {
-                        VideoFilesComplete();
-                    }
+                    // Put UI back
+                    VideoFilesComplete();
                 }
             }
             catch( e:Error )
@@ -520,151 +573,6 @@ CONFIG::FLASH_AUTHORING
             }
         }
         
-        protected function DoTOCTimeout():void
-        {
-            DoTOC(found);
-        }
-        
-        /**
-         * Iterate through folders and generate a flattened Table of Contents 
-         * of VideoPlayer.html files, throughout the tree.
-        **/
-        protected function DoTOC(found:Array):void
-        {
-            var index_template : String = LoadText(TOC_TEMPLATE);
-            var index_index : String    = LoadText(INDEX_INDEX);
-            var index_small : String    = LoadText(INDEX_SMALL);
-            
-            var index_toc : String = LoadText(INDEX_TOC);
-
-            var folders : Array = Find.GetFolders(found);
-            var root : File = folders[0];
-            var curr_title : String = Find.File_nameext(root);
-            var seded : String;
-            var bExportedLinks : Boolean = false;
-            
-            seded = index_template;
-            seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
-            seded = seded.replace(/TITLE_TEXT/g,curr_title);
-            
-            var index_content : String = seded;
-            var folder_list : String = "";
-            var file_list : String = "";
-            
-            var folder_list_db : Array = new Array();
-
-            setTimeout( ThreadPassFolder );
-            var folder_iteration : int = 0;
-            //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
-            function ThreadPassFolder():void
-            {
-                if( folder_iteration < folders.length )
-                {
-                    // Do next pass
-                    setTimeout( ThreadPassFolder );
-                }
-                else
-                {
-                    // Break out of 'threaded' loop
-                    // Bottom part of file index file; all done
-                    setTimeout( ThreadComplete );
-                    return;
-                }
-            
-                // Create and build top half of index file
-                var curr_folder : File  = folders[folder_iteration++];
-                var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-
-                var total_files_folders_recursive : Array = Find.GetChildren( found, curr_folder, uint.MAX_VALUE );
-                var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_recursive);
-
-                var total_files_folders_at_this_depth : Array = Find.GetChildren( found, curr_folder );
-                var total_files_in_this_folder: Array = Find.GetFiles(total_files_folders_at_this_depth);
-
-                ui.tfStatus.text = "Indexing: "+folder_iteration.toString()+"/"+folders.length.toString();
-                
-                if( curr_index_file.exists && 0 != total_files_at_this_depth.length )
-                {
-                    var curr_depth : int = Find.File_Depth(curr_folder,root);
-                    var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                    var curr_index_title : String = Find.File_nameext( curr_folder );
-                    var curr_index_relative : String = Find.File_relative( curr_index, root );
-
-                    // Emit index for child folder
-                    seded = index_small;
-                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    seded = seded.replace(/FOLDER_STYLE/g,"");
-                    folder_list_db.push( {name:curr_index_title,item:seded} );
-                    
-                    if( 0 != total_files_in_this_folder.length )
-                    {
-                        seded = index_index;
-                        seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
-                        seded = seded.replace(/FOLDER_STYLE/g,"");
-                        file_list += seded;
-                        
-                        var file_iteration : int;
-                        for( file_iteration = 0; file_iteration < total_files_in_this_folder.length; ++file_iteration )
-                        {
-                            var curr_file   : File  = total_files_in_this_folder[file_iteration];
-                            var curr_name   : String = Find.File_nameext(curr_file);
-                            var curr_path   : String = curr_index_relative + '?' + curr_name;
-                            seded = index_toc;
-                            seded = seded.replace(/MEDIA_PATH/g,curr_path);
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.File_name(curr_file));
-                            seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
-                            file_list += seded;
-                        }
-                        bExportedLinks = true;
-                    }
-                }
-            }
-
-            function ThreadComplete():void
-            {
-                trace( "Index ThreadComplete..." );
-                
-                // Insert tree of stuff
-                index_content = index_content.replace("<!--INDEXES_HERE-->",file_list);
-    
-                // Insert folder list for little link table
-                folder_list_db.sortOn('name');
-                while( 0 != folder_list_db.length )
-                    folder_list += folder_list_db.shift().item;
-                index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
-                var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
-                if( bExportedLinks )
-                {
-                    //trace("Wrote:",toc_file.nativePath);
-                    // Now write out index file in one pass
-                    var fs : FileStream = new FileStream();
-                    fs.open( toc_file, FileMode.WRITE );
-                    fs.writeUTFBytes(index_content);
-                    fs.close();
-                }
-                else
-                {
-                    //trace("Removed:",toc_file.nativePath);
-                    if( toc_file.exists )
-                    {
-                        try
-                        {
-                            toc_file.moveToTrashAsync();
-                        }
-                        catch(e:Error)
-                        {
-                            trace(e);
-                        }
-                    }
-                }
-                VideoFilesComplete();
-
-            }
-            
-            
-        }
 
         /**
          * Reset persistent settings
@@ -778,7 +686,14 @@ CONFIG::FLASH_AUTHORING
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
         internal function onFolderEdited(e:Event=null):void
         {
-            root_path_video.nativePath = ui.tfPathVideo.text;
+            if( '' == ui.tfPathVideo.text )
+            {
+                root_path_video.nativePath = '/';
+            }
+            else
+            {
+                root_path_video.nativePath = ui.tfPathVideo.text;
+            }
             THUMB_SIZE = int(ui.tfThumbnailSize.text);
         }
 
