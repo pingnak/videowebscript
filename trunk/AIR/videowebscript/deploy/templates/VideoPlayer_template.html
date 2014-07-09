@@ -113,6 +113,9 @@ function PlayerInit()
     }
     
     // If we have a parent, show a 'back' link to it
+    // Note: This will only work with pages served from a web server.
+    // If you open it from the file system, it will remain hidden, and get an 
+    // error in the page's log output about needing to be 'same domain'.
     var request = new XMLHttpRequest();  
     request.open('GET', '../VideoPlayer.html', true);
     request.onreadystatechange = function()
@@ -256,7 +259,7 @@ function playNextWrap()
 </script>
 
 <div id="playlist">
-<br/><a class="folder_entry" id="ToParent" style='display:none;' href="../VideoPlayer.html" >⬆..</a>
+<br/><a class="folder_entry" id="ToParent" style='display:none;' href="../VideoPlayer.html" >⬆</a>
 
 
 <!--INDEXES_HERE-->
