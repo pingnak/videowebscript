@@ -111,6 +111,22 @@ function PlayerInit()
     {   // If we have '?title.mp4' that's the video in this folder, to play
         playmedia(decodeURI(params[1]));
     }
+    
+    // If we have a parent, show a 'back' link to it
+    var request = new XMLHttpRequest();  
+    request.open('GET', '../VideoPlayer.html', true);
+    request.onreadystatechange = function()
+    {
+        if (request.readyState === 4)
+        {
+            if (request.status === 200) 
+            {   // If a parent html page exists, display a link to it
+                document.getElementById("ToParent").style.display = '';
+            }  
+        }
+    };
+    request.send();
+
 }
 
 /* 
@@ -240,6 +256,8 @@ function playNextWrap()
 </script>
 
 <div id="playlist">
+<br/><a class="folder_entry" id="ToParent" style='display:none;' href="../VideoPlayer.html" >⬆..</a>
+
 
 <!--INDEXES_HERE-->
 
