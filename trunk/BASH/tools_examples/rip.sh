@@ -9,10 +9,17 @@
 #
 # CAUTION: Not all discs are labeled properly (DVD_VIDEO is a common default, for instance)
 #
+# I use homebrew to get the dvdbackup tool, and various other handy things
+# http://brew.sh/
+#
+
+# Set BASH options 
+#set -o verbose	# Echo every command
+set -o errexit	# Stop running the script if an error occurs
 
 # This is where you want the output to pile up.  I made a scratch folder on the 
 # second HDD.  You should point these wherever you want the files to go, as  
-# they're ripped.
+# they're ripped.  Hard-wired in the script, because it's rarely changed.
 outputfolder="/Volumes/Macintosh HD 2/scratch"
 
 # Kill the parent of $$
@@ -24,34 +31,51 @@ function closetab() {
 if [ -n "$1" -a -n "$2" ] ; then
 	# We got a parameter: Specific volume or recursive call case
 	# Grab the name from the volume label.
-	ripname="`basename $1`.dvdmedia"
-	ripto="$outputfolder/$ripname"
-	#ripto="$outputfolder/`basename $1`.iso"
+	set -o nounset	# Stop running the script if a variable isn't set
+	device=$1
+	ripname=$2
+	ripto=$outputfolder/$ripname.dvdmedia
+    rippingto=$outputfolder/~$ripname
 
+    # Note: We spit the disk out to show which one had a problem, or finished.
+    # It's also easier to put it back in than to launch 'disk utility', to remount
 	if [ -e "$ripto" ] ; then
-		echo Skipping:	$ripto
+	    echo
+		echo Skipping: $ripto because it was already completed.
+		tput bel
+		read -p "Press [Enter] key to close tab..."
+		hdiutil eject "$device" 
+		closetab
+	elif [ -e "$rippingto" ] ; then
+	    echo
+		echo "Skipping: $ripto because it is in progress (may be abandoned rip, or duplicate title name)"
+		tput bel
+		read -p "Press [Enter] key to close tab..."
+		hdiutil eject "$device" 
 		closetab
 	else
-		echo
-		echo Ripping:	$2 to $ripto
-		echo
 
+		echo
+		echo Ripping: $device to $ripto
+		echo
+        
 		# We must unmount logical drive
-		hdiutil unmount "$2" 
+		hdiutil unmount "$device" 
 		
-		# Use ddrescue to copy to iso (real slow)
+		# Use ddrescue to copy to iso (really slow, but may help with damaged media)
 		# http://www.gnu.org/s/ddrescue/
 		#ddrescue "$2" "$ripto"
 
 		# Use dvdbackup to copy to iso
 		# http://dvdbackup.sourceforge.net/
-		dvdbackup --progress -M -i "$2" -o "$outputfolder" -n "$ripname"
+		dvdbackup --progress -M -i "$device" -o "$outputfolder" -n "~$ripname"
+		
+		# Work-around for some sort of internal buffer overflow that occasionally truncates '.dvdmedia' from output filename
+		# Also doesn't leave '.dvdmedia' folders that are being actively created, to be played/encoded by mistake
+		mv "$rippingto" "$ripto"
 
 		# Eject completed rip
-		hdiutil eject "$2" 
-
-		echo
-		echo Finished $1
+		hdiutil eject "$device" 
 
 		# Make a noise, to wake user up, to feed more media, as applicable
 		tput bel
@@ -70,27 +94,22 @@ else
 	# drives vs one hard drive isn't much of an issue.  The bigger issue is
 	# having a human standing by to feed them.
 	#
-	
+
+	# Show us what we're up to, in output folder.
+    open "$outputfolder"
+
     mount | grep /dev/disk.*udf | while read currmount
     do
+        # Get device
         device=`echo $currmount | cut -d ' ' -f 1`
+		# Clean up messy DVD titles
         volume=`echo $currmount | cut -d ' ' -f 3`
         volume=`basename $volume`
-        volume=`echo "$volume" | tr -cd 'A-Za-z0-9'`
-        echo bash -c "rip.sh '$volume' $device"
+        volume=`echo "$volume" | tr -cd 'A-Za-z0-9_-'`
+        echo "rip.sh $device -> $volume"
         osascript -e 'tell application "Terminal" to activate' -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
-        osascript -e 'tell application "Terminal" to do script "rip.sh '$volume' '$device'" in selected tab of the front window'
+        osascript -e 'tell application "Terminal" to do script "rip.sh '$device' '$volume'" in selected tab of the front window'
     done
-
-	#disclist=`find /Volumes -maxdepth 1 -fstype rdonly`
-	#echo $disclist | xargs -P 4 -n 1 rip.sh 
-
-    # Now we could invoke HandBrakeCLI on it, except it doesn't really lend its
-    # self to a generic invocation, with all the various kinds of DVD tracks,
-    # languages, etc.  Far easier to manage that manually in the GUI, and use its 
-    # internal queue.
-    #
-    # echo $disclist | xargs -n 1 (call some kind of encode.sh)
 	
 	echo All done!
 fi
