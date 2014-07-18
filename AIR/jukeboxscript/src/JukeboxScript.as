@@ -519,7 +519,6 @@ CONFIG::FLASH_AUTHORING
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
             
             onFolderChanged();
-
         }
         
         /**

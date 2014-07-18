@@ -96,6 +96,7 @@ img.folder  {
 
 <br/>
 <div id="playlist">
+<br/><a class="folder_entry" id="ToParent" style='display:none;' href="../Jukebox.html" >⬆</a>
 
 <!--INDEXES_HERE-->
 <br/>
@@ -117,6 +118,25 @@ function PlayerInit()
     {
         audio_box.style.display = 'none';
     }
+    
+    // If we have a parent, show a 'back' link to it
+    // Note: This will only work with pages served from a web server.
+    // If you open it from the file system, it will remain hidden, and get an 
+    // error in the page's log output about needing to be 'same domain'.
+    var request = new XMLHttpRequest();  
+    request.open('GET', '../Jukebox.html', true);
+    request.onreadystatechange = function()
+    {
+        if (request.readyState === 4)
+        {
+            if (request.status === 200) 
+            {   // If a parent html page exists, display a link to it
+                document.getElementById("ToParent").style.display = '';
+            }  
+        }
+    };
+    request.send();
+    
 }
 /* 
  * Load the audio when the page finishes loading 
