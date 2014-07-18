@@ -45,7 +45,7 @@ if [ -n "$1" -a -n "$2" ] ; then
 
 		# Use dvdbackup to copy to iso
 		# http://dvdbackup.sourceforge.net/
-		dvdbackup -v -M -i "$2" -o "$outputfolder" -n "$ripname"
+		dvdbackup --progress -M -i "$2" -o "$outputfolder" -n "$ripname"
 
 		# Eject completed rip
 		hdiutil eject "$2" 
@@ -75,6 +75,8 @@ else
     do
         device=`echo $currmount | cut -d ' ' -f 1`
         volume=`echo $currmount | cut -d ' ' -f 3`
+        volume=`basename $volume`
+        volume=`echo "$volume" | tr -cd 'A-Za-z0-9'`
         echo bash -c "rip.sh '$volume' $device"
         osascript -e 'tell application "Terminal" to activate' -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
         osascript -e 'tell application "Terminal" to do script "rip.sh '$volume' '$device'" in selected tab of the front window'

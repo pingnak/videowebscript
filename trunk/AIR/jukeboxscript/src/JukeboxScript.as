@@ -310,6 +310,8 @@ CONFIG::FLASH_AUTHORING
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
+                        curr_title = Find.FixDecodeURI(curr_title);
+
                         // Use an index TOC, if we don't have any files to play at this layer
                         seded = 0 == curr_files.length ? index_template_no_player : index_template;
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
@@ -328,6 +330,7 @@ CONFIG::FLASH_AUTHORING
                             {
                                 var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
+                                curr_index_title = Find.FixDecodeURI(curr_index_title);
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
         
                                 // Emit index for child folder
@@ -350,6 +353,7 @@ CONFIG::FLASH_AUTHORING
                             var curr_file : File = curr_files[iteration];
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
+                            curr_file_title = Find.FixDecodeURI(curr_file_title);
                             
                             // Emit index+code to play file
                             seded = index_file;
@@ -423,6 +427,7 @@ CONFIG::FLASH_AUTHORING
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
                     var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
                     var curr_index_title : String = Find.File_nameext( curr_folder );
+                    curr_index_title = Find.FixDecodeURI(curr_index_title);
                     var curr_index_relative : String = Find.File_relative( curr_index, root );
 
                     // Emit index for child folder
