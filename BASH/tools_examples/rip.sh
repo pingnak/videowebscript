@@ -7,22 +7,22 @@
 # shell to carry on ripping more.  It won't re-rip and overwrite what's in the
 # scratch folder.  
 #
-# CAUTION: Not all discs are labeled properly (DVD_VIDEO is a common default, for instance)
+# Not all discs are labeled properly (DVD_VIDEO is a common default, for instance)
 #
 # I use homebrew to get the dvdbackup tool, and various other handy things
 # http://brew.sh/
 #
-
-# Set BASH options 
-#set -o verbose	# Echo every command
-set -o errexit	# Stop running the script if an error occurs
 
 # This is where you want the output to pile up.  I made a scratch folder on the 
 # second HDD.  You should point these wherever you want the files to go, as  
 # they're ripped.  Hard-wired in the script, because it's rarely changed.
 outputfolder="/Volumes/Macintosh HD 2/scratch"
 
-# Kill the parent of $$
+# Set BASH options 
+#set -o verbose	# Echo every command
+set -o errexit	# Stop running the script if an error occurs
+
+# Kill the parent of $$ to close the Terminal tab this is in
 function closetab() {
     #sleep 1
     kill -9 `ps -p ${pid:-$$} -o ppid=`
@@ -39,6 +39,7 @@ if [ -n "$1" -a -n "$2" ] ; then
 
     # Note: We spit the disk out to show which one had a problem, or finished.
     # It's also easier to put it back in than to launch 'disk utility', to remount
+	# Various Linuxes have all kinds of 'automount' mechanisms, with different tools.  Replace the OSX hdiutil with whatever tool(s) accomplish the same things.
 	if [ -e "$ripto" ] ; then
 	    echo
 		echo Skipping: $ripto because it was already completed.
@@ -70,8 +71,7 @@ if [ -n "$1" -a -n "$2" ] ; then
 		# http://dvdbackup.sourceforge.net/
 		dvdbackup --progress -M -i "$device" -o "$outputfolder" -n "~$ripname"
 		
-		# Work-around for some sort of internal buffer overflow that occasionally truncates '.dvdmedia' from output filename
-		# Also doesn't leave '.dvdmedia' folders that are being actively created, to be played/encoded by mistake
+		# Only make '.dvdmedia' folders that are complete
 		mv "$rippingto" "$ripto"
 
 		# Eject completed rip
@@ -95,9 +95,7 @@ else
 	# having a human standing by to feed them.
 	#
 
-	# Show us what we're up to, in output folder.
-    open "$outputfolder"
-
+	# Note for other OS, parsing details may differ
     mount | grep /dev/disk.*udf | while read currmount
     do
         # Get device
@@ -106,11 +104,14 @@ else
         volume=`echo $currmount | cut -d ' ' -f 3`
         volume=`basename $volume`
         volume=`echo "$volume" | tr -cd 'A-Za-z0-9_-'`
-        echo "rip.sh $device -> $volume"
+        echo "$0 $device -> $volume"
+		# This is the OSX stuff to run the rips in tabs, in the terminal app.  Different for various Linuxes
         osascript -e 'tell application "Terminal" to activate' -e 'tell application "System Events" to tell process "Terminal" to keystroke "t" using command down'
-        osascript -e 'tell application "Terminal" to do script "rip.sh '$device' '$volume'" in selected tab of the front window'
+        osascript -e 'tell application "Terminal" to do script "'$0' '$device' '$volume'" in selected tab of the front window'
     done
+
+	# Show us what we're up to, in output folder.
+    open "$outputfolder"
 	
-	echo All done!
 fi
 
