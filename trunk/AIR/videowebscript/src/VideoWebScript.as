@@ -553,10 +553,11 @@ CONFIG::FLASH_AUTHORING
                                 return 1;
                             return 0;
                         }
-                        while( 0 != folder_list_db.length )
+                        var iteration : int;
+                        for( iteration = 0; iteration < folder_list_db.length; ++iteration )
                         {
-                            var dbCurr : Object = folder_list_db.shift();
-                            if( 0 == dbCurr.depth )
+                            var dbCurr : Object = folder_list_db[iteration];
+                            if( 0 == dbCurr.depth && 0 != iteration )
                                 folder_list += "<br/>";
                             folder_list += dbCurr.item;
                         }
