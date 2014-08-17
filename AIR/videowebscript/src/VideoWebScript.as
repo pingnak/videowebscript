@@ -18,6 +18,7 @@ package
     import flash.text.*;
     import flash.media.*;
     import flash.filters.*;
+    import flash.ui.*;
 
     import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
@@ -52,6 +53,9 @@ CONFIG::MXMLC_BUILD
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
+        /** A movie file link with player logic */
+        public static var INDEX_NOTHUMB   : String = SCRIPT_TEMPLATES+"index_file_nothumb.html";
+        
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
@@ -121,6 +125,10 @@ CONFIG::FLASH_AUTHORING
             SortTabs(ui);
 
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfPathVideo.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
+
+            
+            CheckSetup(ui.bnDoThumbs);
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.maxChars = 3;
             ui.tfThumbnailSize.restrict = "0-9";
@@ -154,6 +162,7 @@ CONFIG::FLASH_AUTHORING
             ui.gotoAndStop("interactive");
             ui.tfStatus.text = "";
             ui.tabChildren = true;
+            
             
         }
 
@@ -290,7 +299,7 @@ CONFIG::FLASH_AUTHORING
         protected function VideoFilesComplete(e:Event=null):void
         {
             ui.tfStatus.text = "";
-            if( 0 != thumbnail.queue_length )
+            if( CheckGet( ui.bnDoThumbs ) && 0 != thumbnail.queue_length )
             {
                 // Wait for thumbnailing to complete
                 thumbnail.addEventListener( Event.COMPLETE, ThumbnailsComplete );
@@ -364,11 +373,13 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var player_template : String = LoadText(PLAYER_TEMPLATE);
+                var player_template : String= LoadText(PLAYER_TEMPLATE);
                 var index_template : String = LoadText(TOC_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_small : String    = LoadText(INDEX_SMALL);
                 var index_file : String     = LoadText(INDEX_FILE);
+                var index_nothumb : String  = LoadText(INDEX_NOTHUMB);
+                
                 var index_toc : String = LoadText(INDEX_TOC);
                 //var player_template_folders : String = LoadText(TOC_TEMPLATE);
                 
@@ -439,6 +450,7 @@ CONFIG::FLASH_AUTHORING
                                 curr_index_title = Find.FixDecodeURI(curr_index_title);
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
                                 var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
+                                var curr_depth : int = Find.File_Depth(curr_folder,folders[0]);
                                 
                                 if( 0 == iteration )
                                 {
@@ -465,8 +477,8 @@ CONFIG::FLASH_AUTHORING
                                     seded = index_small;
                                     seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
                                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);       
-                                    seded = seded.replace(/FOLDER_STYLE/g,"");
-                                    folder_list_db.push( {name:curr_index_title,item:seded} );
+                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
+                                    folder_list_db.push( {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth} );
                                 }
                             }
                         }
@@ -488,8 +500,15 @@ CONFIG::FLASH_AUTHORING
                             var curr_file_thumb : String = Find.File_relative( file_thumb, root );
     
                             // Emit index+code to play file
-                            seded = index_file;
-                            seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
+                            if( CheckGet( ui.bnDoThumbs ) )
+                            {
+                                seded = index_file;
+                                seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
+                            }
+                            else
+                            {   // No thumbnail
+                                seded = index_nothumb;
+                            }
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                             seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
@@ -524,9 +543,24 @@ CONFIG::FLASH_AUTHORING
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
-                        folder_list_db.sortOn('name');
+                        folder_list_db.sort(bypath);
+                        function bypath( p1:Object, p2:Object ) : int
+                        {
+                            var s1 : String = p1.path.nativePath;
+                            var s2 : String = p2.path.nativePath;
+                            if( s1 < s2 )
+                                return -1;
+                            else if( s1 > s2 )
+                                return 1;
+                            return 0;
+                        }
                         while( 0 != folder_list_db.length )
-                            folder_list += folder_list_db.shift().item;
+                        {
+                            var dbCurr : Object = folder_list_db.shift();
+                            if( 0 == dbCurr.depth )
+                                folder_list += "<br/>";
+                            folder_list += dbCurr.item;
+                        }
                             
                         var index_content : String = index_template;
                         index_content = index_content.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
@@ -583,6 +617,7 @@ CONFIG::FLASH_AUTHORING
             onFolderChanged();
             CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
+            CheckSet( ui.bnDoThumbs, true );
             THUMB_SIZE = 240;
             return CommitSharedData();
         }
@@ -633,6 +668,7 @@ CONFIG::FLASH_AUTHORING
 
             CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
+            CheckSet( ui.bnDoThumbs, share_data.bDoThumbs );
 
             THUMB_SIZE = share_data.thumb_size;
             ui.tfThumbnailSize.text = THUMB_SIZE.toString();
@@ -657,6 +693,7 @@ CONFIG::FLASH_AUTHORING
             share_data.url_video = root_path_video.url;
             share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
+            share_data.bDoThumbs = CheckGet( ui.bnDoThumbs );
             share_data.thumb_size = THUMB_SIZE;
             
             share_data.sign = SO_SIGN;
@@ -697,6 +734,17 @@ CONFIG::FLASH_AUTHORING
             THUMB_SIZE = int(ui.tfThumbnailSize.text);
         }
 
+        // Convenience - hit enter in port to start up
+        private function HitEnter(event:KeyboardEvent):void
+        {
+            if(Keyboard.ENTER == event.charCode)
+            {
+                onFolderEdited();
+                DoVideo();
+            }
+        }
+        
+        
         /** User navigated a different path */
         internal function onFolderChanged(e:Event=null):void
         {
