@@ -18,6 +18,7 @@ package
     import flash.text.*;
     import flash.media.*;
     import flash.filters.*;
+    import flash.ui.*;
 
     import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
@@ -102,6 +103,7 @@ CONFIG::FLASH_AUTHORING
             SortTabs(ui);
 
             ui.tfPathAudio.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfPathAudio.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
             ui.bFindPathAudio.addEventListener( MouseEvent.CLICK, BrowsePathAudio );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnTOC);
@@ -567,6 +569,17 @@ CONFIG::FLASH_AUTHORING
         {
             root_path_audio.nativePath = ui.tfPathAudio.text;
         }
+        
+        // Convenience - hit enter in port to start up
+        private function HitEnter(event:KeyboardEvent):void
+        {
+            if(Keyboard.ENTER == event.charCode)
+            {
+                onFolderEdited();
+                DoAudio();
+            }
+        }
+        
 
         /** User navigated a different path */
         internal function onFolderChanged(e:Event=null):void
