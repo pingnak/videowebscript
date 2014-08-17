@@ -26,7 +26,7 @@ package
     public class VideoWebScript extends applet
     {
         internal static const SO_PATH : String = "VideoWebScriptData";
-        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_00";
+        internal static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_1.1";
 
 CONFIG::MXMLC_BUILD
 {
@@ -127,7 +127,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfPathVideo.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
 
-            
             CheckSetup(ui.bnDoThumbs);
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.maxChars = 3;
