@@ -557,8 +557,8 @@ CONFIG::FLASH_AUTHORING
                         for( iteration = 0; iteration < folder_list_db.length; ++iteration )
                         {
                             var dbCurr : Object = folder_list_db[iteration];
-                            if( 0 == dbCurr.depth && 0 != iteration )
-                                folder_list += "<br/>";
+                            //if( 0 == dbCurr.depth && 0 != iteration )
+                            //    folder_list += "<br/>";
                             folder_list += dbCurr.item;
                         }
                             
