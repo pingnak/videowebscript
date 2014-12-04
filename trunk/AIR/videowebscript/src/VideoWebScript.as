@@ -1,11 +1,11 @@
 ﻿
 /*
  * Web (HTML5) Video Player Generator
- * 
+ *
  * Iterate gigantic trees of contents to generate thumbnails, and displays/players
  * in the browser, similar to DLNA photo/music/movie handling.
  *
- * Will work as well as your web browser does... which isn't saying much, in some cases. 
+ * Will work as well as your web browser does... which isn't saying much, in some cases.
  */
 
 package
@@ -20,9 +20,9 @@ package
     import flash.filters.*;
     import flash.ui.*;
 
-    import flash.desktop.NativeApplication; 
+    import flash.desktop.NativeApplication;
     import flash.filesystem.*;
-    
+
     public class VideoWebScript extends applet
     {
         internal static const SO_PATH : String = "VideoWebScriptData";
@@ -37,56 +37,59 @@ CONFIG::MXMLC_BUILD
 
         /** Where the main UI lives */
         internal var ui : MovieClip;
-        
+
         /** What to call the 'top level' index file */
         public static var HTML_PLAYER     : String = "VideoPlayer.html";
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
         public static var MAIN_TOC        : String = "index.html";
-        
+
         /** Where to look for script template content */
         public static var SCRIPT_TEMPLATES: String ="templates/"
 
         /** Start of movie player and available content */
         public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"VideoPlayer_template.html";
-        
+
         /** A movie file link with player logic */
         public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
 
         /** A movie file link with player logic */
         public static var INDEX_NOTHUMB   : String = SCRIPT_TEMPLATES+"index_file_nothumb.html";
-        
+
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
         /** Link to folder index */
         public static var INDEX_SMALL     : String = SCRIPT_TEMPLATES+"index_small.html";
-        
+
         /** Table of contents file */
         public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
 
         /** Link to TOC index */
         public static var INDEX_TOC       : String = SCRIPT_TEMPLATES+"index_toc.html";
-        
+
+        /** Play a file in TOC */
+        public static var INDEX_TOC_FILE  : String = SCRIPT_TEMPLATES+"index_toc_file.html";
+
         /** Width of thumbnails for video */
         public static var THUMB_SIZE      : int = 240;
-        
+
         /** Offset for folder depths in TOC file */
         public static var FOLDER_DEPTH : int = 32;
-        
-        /** File/folder left padding*/        
+
+        /** File/folder left padding*/
         public static var LEFT_PADDING : int = 6;
-        
-        
-        /** Regular expressions that we accept as 'MP4 content' 
-            Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs 
-            or DRM, or other proprietary extensions in them.   
+
+
+        /** Regular expressions that we accept as 'MP4 content'
+            Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs
+            or DRM, or other proprietary extensions in them.
         **/
         public static var REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
 
         /** Regular expressions that we accept as 'jpeg content'*/
         public static var REGEX_JPEG       : String = ".(jpg|jpeg)";
-        
+
         /** Path to do the job in */
         internal var root_path_video : File;
 
@@ -94,14 +97,14 @@ CONFIG::MXMLC_BUILD
         internal var finding : Find;
 
         internal var found : Array;
-        
-        /** Thumbnailer */        
+
+        /** Thumbnailer */
         internal var thumbnail : Thumbnail;
-        
+
         public function VideoWebScript()
         {
             instance = this;
-            
+
 CONFIG::MXMLC_BUILD
 {           // Decode+initialize the swf content the UI was made of
             var loader : Loader = LoadFromByteArray(new baMainSwfClass());
@@ -114,10 +117,10 @@ CONFIG::FLASH_AUTHORING
 
         }
 
-        /** 
+        /**
          * All of the application classes are ready to use
          * Setup UI
-        **/        
+        **/
         public function UI_Ready(e:Event=null) : void
         {
             ui = GetMovieClip("UI_Settings");
@@ -135,34 +138,34 @@ CONFIG::FLASH_AUTHORING
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnTOC);
             CheckSetup(ui.bnCompletionTone);
-            
+
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoVideo );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
             LoadSharedData();
 
             // Build our menu of doom
             if( NativeApplication.supportsMenu )
-            { 
+            {
                 // Tools Menu
-                var appToolMenu:NativeMenuItem; 
-                appToolMenu = NativeApplication.nativeApplication.menu.addItem(new NativeMenuItem("Tools")); 
+                var appToolMenu:NativeMenuItem;
+                appToolMenu = NativeApplication.nativeApplication.menu.addItem(new NativeMenuItem("Tools"));
 
                 // Tools popup
-                var toolMenu:NativeMenu = new NativeMenu(); 
-                var removeThumbs:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove Thumbnails")); 
-                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove "+HTML_PLAYER+" files")); 
-                removeThumbs.addEventListener(Event.SELECT, RemoveThumbs); 
-                removeIndexes.addEventListener(Event.SELECT, RemoveIndexes); 
-                
+                var toolMenu:NativeMenu = new NativeMenu();
+                var removeThumbs:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove Thumbnails"));
+                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove "+HTML_PLAYER+" files"));
+                removeThumbs.addEventListener(Event.SELECT, RemoveThumbs);
+                removeIndexes.addEventListener(Event.SELECT, RemoveIndexes);
+
                 appToolMenu.submenu = toolMenu;
-            }             
+            }
 
             // Do a few initial things
             ui.gotoAndStop("interactive");
             ui.tfStatus.text = "";
             ui.tabChildren = true;
-            
-            
+
+
         }
 
         internal function FindStatus(e:Event):void
@@ -171,7 +174,7 @@ CONFIG::FLASH_AUTHORING
             var found_so_far : int = finding.results.length;
             ui.tfStatus.text = "Finding... "+found_so_far.toString();
         }
-        
+
         public override function Busy(e:Event=null) : void
         {
             ui.gotoAndStop(2);
@@ -184,7 +187,7 @@ CONFIG::FLASH_AUTHORING
             ui.gotoAndStop("interactive");
             ui.tfStatus.text = "";
             ui.tabChildren = true;
-            
+
             if( CheckGet( ui.bnCompletionTone ) )
             {
                 PlaySound("fxBeepBoop");
@@ -194,7 +197,7 @@ CONFIG::FLASH_AUTHORING
         {
             return "working" == ui.currentLabel;
         }
-        
+
 
         /**
          * Process halted or error
@@ -222,7 +225,7 @@ CONFIG::FLASH_AUTHORING
                 thumbnail = null;
             }
         }
-        
+
         /**
          * Process video tree
         **/
@@ -257,7 +260,7 @@ CONFIG::FLASH_AUTHORING
             }
 
             CommitSharedData();
-            
+
             // MP4, PNG, folders
             var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i")
             function filter_mp4_png_folders(file:File):Boolean
@@ -272,7 +275,7 @@ CONFIG::FLASH_AUTHORING
                 var ext : String = Find.File_extension(file);
                 return null == ext.match( rxMP4 );
             }
-            
+
             finding = new Find( root_path_video, filter_mp4_png_folders );
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
@@ -283,7 +286,7 @@ CONFIG::FLASH_AUTHORING
             Busy();
 
         }
-        
+
         /** Folder find is done.  Now decide what to do with it.  */
         protected function HaveVideoFiles(e:Event=null):void
         {
@@ -313,7 +316,7 @@ CONFIG::FLASH_AUTHORING
                 ThumbnailsComplete();
             }
         }
-        
+
         /**
          * Clean up after video UI and thumbnail generation
         **/
@@ -327,7 +330,7 @@ CONFIG::FLASH_AUTHORING
             Interactive();
         }
 
-        
+
         /** Update progress animation with thumbnail status */
         protected function ThumbnailNext(e:Event=null):void
         {
@@ -354,17 +357,17 @@ CONFIG::FLASH_AUTHORING
             }
             return file_thumb;
         }
-        
+
         /**
          * Recursively generates files for each folder, and generates a master
          * index for all.
          *
          * This will definitely load individual pages a lot faster, but you'll
          * add some more clutter to your directory tree for all of the VideoPlayer
-         * files.  
+         * files.
          *
          * Simpler UI without folding folders.  Just one index.html at the root
-         * like the other ones, but containing only links to folders containing 
+         * like the other ones, but containing only links to folders containing
          * more content.
         **/
         protected function DoVideoFilesTree(found:Array):void
@@ -374,14 +377,15 @@ CONFIG::FLASH_AUTHORING
                 // Preload the various template elements we'll be writing for each folder/file
                 var player_template : String= LoadText(PLAYER_TEMPLATE);
                 var index_template : String = LoadText(TOC_TEMPLATE);
-                var index_index : String    = LoadText(INDEX_INDEX); 
+                var index_index : String    = LoadText(INDEX_INDEX);
                 var index_small : String    = LoadText(INDEX_SMALL);
                 var index_file : String     = LoadText(INDEX_FILE);
+                var index_toc_file : String = LoadText(INDEX_TOC_FILE);
                 var index_nothumb : String  = LoadText(INDEX_NOTHUMB);
-                
+
                 var index_toc : String = LoadText(INDEX_TOC);
                 //var player_template_folders : String = LoadText(TOC_TEMPLATE);
-                
+
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
                 var folder_list_db : Array = new Array();
@@ -405,7 +409,7 @@ CONFIG::FLASH_AUTHORING
                         setTimeout( ThreadComplete );
                         return;
                     }
-                    
+
                     var iteration : int;
                     var seded : String
                     var folder : File;
@@ -433,12 +437,12 @@ CONFIG::FLASH_AUTHORING
                         var index_content : String = seded;
                         var index_files : String = "";
                         var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
-    
+
                         // Iterate child folders and generate links to them
                         for( iteration = 0; iteration < curr_folders.length; ++iteration )
                         {
                             var curr_folder : File  = curr_folders[iteration];
-    
+
                             // Filter folders with no movies in any children from lists
                             total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
                             total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
@@ -450,7 +454,7 @@ CONFIG::FLASH_AUTHORING
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
                                 var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
                                 var curr_depth : int = Find.File_Depth(curr_folder,folders[0]);
-                                
+
                                 if( 0 == iteration )
                                 {
                                     if( folders[0] != curr_folder && 0 != curr_files.length )
@@ -464,18 +468,18 @@ CONFIG::FLASH_AUTHORING
                                 }
                                 else
                                 {
-            
+
                                     // Emit index for child folder
                                     seded = index_index;
                                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
                                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                                     index_files += seded;
-    
+
                                     // Generate indexes for TOC
                                     seded = index_small;
                                     seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
-                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);       
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
                                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
                                     folder_list_db.push( {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth} );
                                 }
@@ -486,7 +490,7 @@ CONFIG::FLASH_AUTHORING
                         {
                             index_files += "<br/><br/>\n";
                         }
-                        
+
                         // Iterate files and generate code + thumbnails
                         for( iteration = 0; iteration < curr_files.length; ++iteration )
                         {
@@ -494,10 +498,10 @@ CONFIG::FLASH_AUTHORING
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
                             curr_file_title = Find.FixDecodeURI(curr_file_title);
-                            
+
                             var file_thumb : File = CheckThumbnail(curr_file);
                             var curr_file_thumb : String = Find.File_relative( file_thumb, root );
-    
+
                             // Emit index+code to play file
                             if( CheckGet( ui.bnDoThumbs ) )
                             {
@@ -513,30 +517,30 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                             index_files += seded;
 
-                            // Emit absolute index to play from TOC 
+                            // Emit absolute index to play from TOC
                             curr_file_relative = Find.File_relative( curr_index_file, folders[0] );
                             var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
                             var curr_path   : String = curr_file_relative + '?' + curr_name;
-                            seded = index_toc;
+                            seded = index_toc_file;
                             seded = seded.replace(/MEDIA_PATH/g,curr_path);
-                            seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
-                            seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
                             file_list_index += seded;
-                            
+
                             bExportedLinks = true;
                         }
-    
+
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
 
                         // Now write out index file in one pass
                         WriteAsync( curr_index_file, index_content );
                     }
-                    
+
                 }
 
                 function ThreadComplete():void
                 {
-                    // If user wanted a flattened table of contents, make one.  
+                    // If user wanted a flattened table of contents, make one.
                     // We already did all the work for it, above
                     if( CheckGet( ui.bnTOC ) )
                     {
@@ -561,7 +565,7 @@ CONFIG::FLASH_AUTHORING
                             //    folder_list += "<br/>";
                             folder_list += dbCurr.item;
                         }
-                            
+
                         var index_content : String = index_template;
                         index_content = index_content.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         //index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
@@ -606,7 +610,7 @@ CONFIG::FLASH_AUTHORING
                 }
             }
         }
-        
+
 
         /**
          * Reset persistent settings
@@ -621,15 +625,15 @@ CONFIG::FLASH_AUTHORING
             THUMB_SIZE = 240;
             return CommitSharedData();
         }
-        
+
         /**
          * Load and apply persistent settings
         **/
         protected function LoadSharedData():void
         {
             trace("LoadSharedData");
-            
-            var share_data : Object; 
+
+            var share_data : Object;
 
             try
             {
@@ -640,7 +644,7 @@ CONFIG::FLASH_AUTHORING
                     ResetSharedData();
                     return;
                 }
- 
+
                 // Grab the data object out of the file
                 var fs:FileStream = new FileStream();
                 fs.open(f, FileMode.READ);
@@ -659,7 +663,7 @@ CONFIG::FLASH_AUTHORING
                 share_data = ResetSharedData();
                 return;
             }
-            
+
             // Decode the saved data
             root_path_video = new File(share_data.url_video);
             if( !root_path_video.exists )
@@ -672,19 +676,19 @@ CONFIG::FLASH_AUTHORING
 
             THUMB_SIZE = share_data.thumb_size;
             ui.tfThumbnailSize.text = THUMB_SIZE.toString();
-            
+
             onFolderChanged();
 
         }
-        
+
         /**
          * Save persistent settings
         **/
         public function CommitSharedData() : Object
         {
-            var share_data : Object = {}; 
+            var share_data : Object = {};
 
-            // Get file 
+            // Get file
             var f:File = File.applicationStorageDirectory.resolvePath(SO_PATH);
             var fs:FileStream = new FileStream();
             fs.open(f, FileMode.WRITE);
@@ -695,30 +699,30 @@ CONFIG::FLASH_AUTHORING
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.bDoThumbs = CheckGet( ui.bnDoThumbs );
             share_data.thumb_size = THUMB_SIZE;
-            
+
             share_data.sign = SO_SIGN;
 
             // Commit file stream
             fs.writeObject(share_data);
             fs.close();
-            
+
             // Return our object for reference
             return share_data;
         }
-        
+
         /** Find path to video content */
         internal function BrowsePathVideo(e:Event=null):void
         {
             root_path_video.addEventListener(Event.SELECT, onFolderChanged);
             root_path_video.browseForDirectory("Choose a folder");
         }
-        
+
         /** Open an OS Finder/Explorer/whatever browser */
         internal function OpenFolder(e:Event=null):void
         {
             root_path_video.openWithDefaultApplication();
         }
-        
+
 
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
         internal function onFolderEdited(e:Event=null):void
@@ -743,19 +747,19 @@ CONFIG::FLASH_AUTHORING
                 DoVideo();
             }
         }
-        
-        
+
+
         /** User navigated a different path */
         internal function onFolderChanged(e:Event=null):void
         {
-            ui.tfPathVideo.text = root_path_video.nativePath; 
+            ui.tfPathVideo.text = root_path_video.nativePath;
         }
 
         /**
          * Invoke thumbnail nuker
         **/
-        private function RemoveThumbs(event:Event):void 
-        { 
+        private function RemoveThumbs(event:Event):void
+        {
             if( !root_path_video.exists || !root_path_video.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
@@ -767,7 +771,7 @@ CONFIG::FLASH_AUTHORING
             function yeah():void
             {
                 trace("Removing Thumbnail Images");
-                function OnlyMP4(file:File):Boolean 
+                function OnlyMP4(file:File):Boolean
                 {
                     // No hidden files/folders
                     if( file.isHidden )
@@ -810,13 +814,13 @@ CONFIG::FLASH_AUTHORING
                     Interactive();
                 }
             }
-        } 
+        }
 
         /**
          * Invoke index file nuker
         **/
-        private function RemoveIndexes(event:Event):void 
-        { 
+        private function RemoveIndexes(event:Event):void
+        {
             if( !root_path_video.exists || !root_path_video.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
@@ -829,8 +833,8 @@ CONFIG::FLASH_AUTHORING
             function yeah():void
             {
                 trace("Removing Index Files...");
-                function OnlyHTML(file:File):Boolean 
-                { 
+                function OnlyHTML(file:File):Boolean
+                {
                     // No hidden files/folders
                     if( file.isHidden )
                         return true;
@@ -864,8 +868,7 @@ CONFIG::FLASH_AUTHORING
                     Interactive();
                 }
             }
-        } 
-        
+        }
+
     }
 }
-    
