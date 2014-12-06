@@ -48,7 +48,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     text-align:center;
 }
 .video_controls_full {
-    position: absolute;
+    position: fixed;
 }
 .title {
     clear: both;
@@ -150,7 +150,7 @@ var bSeq;
 var bRand;
 var seekbar;
 var timediv;
-var fullscreenEnabled = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled;
+var bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
 var bFull;
 var bWindow;
 var mouseTimeout;
@@ -177,7 +177,7 @@ function togglepause()
 /** When video is paused, change to show playing icon */
 function showPaused()
 {
-    if( !fullscreenEnabled )
+    if( !bFullscreenEnabled )
         return;
     bPause.style.display = video.paused ? 'none' : '';
     bPlay.style.display  = video.paused ? '' : 'none';
@@ -187,7 +187,7 @@ function showPaused()
 /** See if video is not full-screen */
 function VideoIsFullScreen()
 {
-    var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+    var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     return video_box == fullscreenElement;
 }
 
@@ -217,6 +217,10 @@ function enterFullscreen()
     {
         video_box.webkitRequestFullscreen();
     }
+    else if(video_box.msRequestFullscreen) 
+    {
+        video_box.msRequestFullscreen();
+    }
 }
 
 /** Exit full screen mode */
@@ -234,12 +238,16 @@ function exitFullscreen()
     {
         document.webkitExitFullscreen();
     }
+    else if(document.meExitFullscreen) 
+    {
+        document.msExitFullscreen();
+    }
 }
 
 /** Window changed: Organize and update controls */
 function onresize()
 {
-    if( fullscreenEnabled )
+    if( bFullscreenEnabled )
     {
         video.removeAttribute("controls")
         if( VideoIsFullScreen() )
@@ -250,7 +258,7 @@ function onresize()
             video_box.className = 'video_box_full';
             videoplayer.className = 'videoplayer';
             // Once we re-render, check video aspect, and adjust
-            setTimeout(checkAspect,20);
+            setTimeout(checkAspect,100);
         }
         else
         {
@@ -259,6 +267,10 @@ function onresize()
             video_controls.className = 'video_controls';
             video_box.className = 'video_box';
             videoplayer.className = 'videoplayer';
+            video_controls.style.display="";
+            if( -1 != mouseTimeout )
+                clearTimeout(mouseTimeout);
+            video_box.style.cursor = '';
         }
     }
     else
@@ -282,11 +294,18 @@ function onresize()
 /** Check to see if player overflows, and fix it*/
 function checkAspect()
 {
-    console.log( video.clientHeight +'/'+ screen.height );
-    if( video.clientHeight > screen.height )
+    if( VideoIsFullScreen() )
     {
-        video_box.className = 'video_box_alt';
-        videoplayer.className = 'videoplayer_alt';
+        if( video.clientHeight > screen.availHeight )
+        {
+            video_box.className = 'video_box_alt';
+            videoplayer.className = 'videoplayer_alt';
+        }
+        else if( video.clientWidth > screen.availWidth )
+        {
+            video_box.className = 'video_box_full';
+            videoplayer.className = 'videoplayer_full';
+        }
     }
 }
 
@@ -311,7 +330,7 @@ function updateTime()
 function updateMeta()
 {
     updateTime();
-    checkAspect();
+    setTimeout(onresize,100);
 }
 /** Manipulate playback with seek bar */
 function seek()
