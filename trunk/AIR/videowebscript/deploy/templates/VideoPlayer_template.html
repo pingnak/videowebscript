@@ -14,18 +14,49 @@ a:link      { color:#00ffff; text-decoration: none; }
 a:visited   { color:#00ffff; text-decoration: none; }
 a:hover     { color:#00ffff; text-decoration: underline; }
 a:active    { color:#20ffff; text-decoration: none; }
+.video_box, .video_box_full, .video_box_alt {
+    width:75%;
+    height:auto;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    background: transparent;
+}
+.video_box_full {
+    width:100%;
+    height:auto;
+}
+.video_box_alt {
+    width:auto;
+    height:100%;
+}
+.videoplayer, .videoplayer_full {
+    z-index:0;
+    width:100%;
+    height:auto;
+}
+.videoplayer_alt {
+    width:auto;
+    height:100%;
+}
+.video_controls, .video_controls_full {
+    z-index:1;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    white-space:nowrap;
+    text-align:center;
+}
+.video_controls_full {
+    position: absolute;
+}
 .title {
+    clear: both;
     width:100%;
     color:#e0e0e0;
     font-size:50px;
     white-space:nowrap;
     text-align:center;
-}
-#PlayerBox {
-    text-align:center;
-}
-#videoplayer {
-    width:75%;
 }
 .index_entry {
     color:#00ffff;
@@ -58,17 +89,19 @@ img.folder  {
     width:50%;
 }
 .button_format {
+    vertical-align:middle;
     background: transparent;
     border: none !important;
     font-size:0;
 }
+
 </style>
 <title>TITLE_TEXT</title>
 </head>
 
 <body onload="PlayerInit();">
-<div id='PlayerBox' style="display:none;">
-<video id="videoplayer" controls >
+<div id='video_box' class='video_box' style="display:none;">
+<video id="videoplayer" class='videoplayer' controls >
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.apple.com/safari/">Safari</a><br/>
@@ -77,18 +110,29 @@ img.folder  {
     <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
     <a href="http://www.w3schools.com/html/html5_video.asp">More info about compatibility...</a><br/>
 </video>
-<br/>
-</div>
-<!-- Put this in above div, to make it show/hide these controls with the player
-TODO: Make sequential/shuffle buttons 'mode' radio buttons, and don't trigger playback just for picking them
+<div id="video_controls" class='video_controls'>
+<!-- 
+    TODO: 
+
+    In windowed mode, float player controls below the video window, without blocking it
+
+    In full-screen mode, float player controls at the bottom of the screen
+
+    ONLY in full-screen mode, make controls invisible after a time-out, if pointer isn't moving, or over controls - don't forget to cancel timeout if mode changes
 -->
-<div id="video_controls" class="center">
-<button id="bPrev" class="button_format" type="button" title="Previous Video" onclick="javascript: playPrev(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
+<button id="bPrev" class="button_format" type="button" title="Previous Video" onclick="javascript: return playPrev(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
 &nbsp;
-<button id="bSeq"  class="button_format" type="button" title="Playing Shuffled" onclick="javascript: MakePlaylist(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABRFBMVEUAAAD////////////////////////////////////////////////////////////MzMwAAAD///8A///y8vLf39/7+/vS0tLv7+/V1dUA8vL19fXb29vPz89UVFQEBAQA/PwAycnl5eXY2Njo6OgsLCwAm5sAr68Anp4AAQEAyMgACgoAfn4AzMwA8fEAk5MAIyMA29sA+fni4uLr6+v4+Ph8fHwAKioAQkIAMjIAd3cACAgABgYAsrIAgYEANTUArq4AY2MAvb0AiIgAICAAGhoAU1MAkpIAPDwA6+sAwMAAVFQAt7cAc3MA9fUAsbEAn58AiooA09MABQUA5uakpKQAS0sALCwAnZ0A/v4AcnIA7OwAJSUAhYUANjYA+/sAAgIAFBQA0dEAR0cAs7MANDQA8PAAeHgAgoIACQkAysoA9/du9SaZAAAAEHRSTlMAn8+Pb19/v98PHz+v708v4R2/qgAAAaxJREFUOMt9U1d7wjAMNCMQaEstKwm00ALde++999577/7/9zomdpx8fL03R5eTToMQH2kjIWCkSRWk4iZTMOOpcJyHc6MNVKBh1GKmEQjXR1lbEXzQbI7VaiLpunwrhfdGDx/AZQpO1E8fHW+iFC7L5V8cGf4p94BIxCKSUOu4ydsBPvHru5LChc0SlXiG2eIDbOGbF6ughdWIBHW5yhs2sU+PU5o3hUGW9Qgd2AnQrBFamWvWtLwnPIzg/Z1bQlFJcCf1XgWUFmHo6hFvd1amVSKbpXmGJqnwdNN/jaVSaUoRsixOIo6MwyG+vPb6Nl04MZJUJVzg2TMEbVArqRGOsQvO6T+EIxwM/R8i7OPJabAPghBTRa4N4N7uUHe4SGWzGTYOEHFguH91DjSbfqMA1gd7tjkHF0BrFDFzUm/CVe/u7cMlSbDcaSXksKTQIrfrLacYlhq3JCzjDGgChBisECDM4yToCyNXTmK2swPaAyvHl9axNQWvD23+0pJUhNnhJo/xFmiIsHzASzbPgqdFMvz0VK0Ffno1VY/XEuDHa6SqHXgmlhSI6X//AbVCRfQd9miAAAAAAElFTkSuQmCC" /></button>
-<button id="bRand" class="button_format" type="button" title="Playing Sequentially" style='display:none;' onclick="javascript: PlayListShuffle(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAACuUExURQAAAP///////////////////////////////////////////////////////////8zMzP///wAAAAD///Ly8gA/PzMzM2ZmZt/f39LS0vv7+9XV1e/v75mZmQB/f/X19UxMTAC/v9vb26WlpQBfX8/Pz7+/v39/f+Xl5ejo6NjY2OLi4rKysgCPj3JycgDv7wwMDADf3wAfHxkZGevr6/j4+FlZWSYmJgAPDwAvL5MjQvkAAAAQdFJOUwCfzx9vf1/fvw+PP6/vL0+FEI3DAAABYUlEQVQ4y72TaYOCIBCGMUvTDhmwQ8vUstrua8///8cW8ABc/brvF8F5YGaYGYSkTKsnZJmoQU7Xhkp216nbmXl5WmChxckH29LM4w4cAmaKZkxXtgiWMFQuMUfxUZy9Ey6xXIcd6b7zsc0vJytKV6RwBEYJDMPCuQbgOfRyuwfz4hd+ZQqA32AgHIyW5R88nagAjm2RIAQaMJlW2yPwZG0ftwE4ZpmMZQR/gTmYzMO2HQigi4wQtwM4dFFfCQHPSA3w+/8BuGENeCZ6kFqaHCAzPU3tofbkoQH8oZAta4UjkmqAz6vVq4p1jq4cSKLoXPaMpZZ7x9stpU/+2cgLELJgnRMJuaSU3tKMJGrDyJbbfX0/KKWXwl61HGvaMM9k9/q50Yx8is1BNi1yjCLXzX2Skb1YvrMnUGRAHOR55vYgBn20kMdGj8e64fGv2egNGofXF2LDazlNA+65fSFXPf0LCF47HQmY30UAAAAASUVORK5CYII=" /></button>
+<button id="bPause" class="button_format" type="button" title="Paused" onclick="javascript: return togglepause(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA21BMVEUAAADw8PD////q6urs7Oz////o6Oj////////////7+/vm5ub39/f////6+vrg4OD////q6ur////////u7u7////////////39/fx8fHm5ubf39/j4+P29vb29vbd3d3MzMwA//8zMzN/f39ZWVne3t4mZmYZmZnV1dWlpaXPz8/Q0NDd3d3T09MWpaUMzMy4uLiSkpLNzc3CwsIG5eU8PDwD8vIff3+vr6/Y2NjS0tLa2tqcnJzW1tYvPz91dXUcjIxsbGwJ2NgjcnIPv7+JiYnb29spWVksTEyoaiV5AAAAIHRSTlMAry/Xxz/fXwc3d+d/T2/3R88PH79XFyeHp9/374+H90B0n/MAAAFwSURBVDjLvZPZeoIwEIUDBBUBEUStdhtQLGHHutWl+/b+T9Qk1qq16F3P1XyZn0mGmYPQVpYoc4kW+kMVpSrgEhcWqkrld165kqJVCFzhyjM1cS/dquFFADsKrnFzp4h1acxhtswJT96St+UMYrW2vb52MYSeS9Vn+TGLehBK+gZodkMg7iAdJfQc+m4yeZ66BHwsr/Nt2wdaYOQ4zict4U5pMGLoXafBLziLgAH02Bkw4IZFDACjyhs0gyJgjlmzVQ+KADBoJy3BLwZ8wUKKNCwGAklBugrFAKh1VPaOAV75P4D6qUceb9NUTv8opEXFgMemJUuFwwr5sI6M+5yPG4k4ZsCEHn8w4JEGE74wQuN75dQQMvflNU3cHODpPknTqZuBb8o/S9v1IWe7+sCWtk+DcQ4LrG/XWjd9yAiZrU1BCMngXVB2naPbxr5xjM6+tVBbK0XxJh17ktY4NK9mlzyukq2JB+blVeplrvru11/c3WTXS8Ir9AAAAABJRU5ErkJggg==" /></button>
+<button id="bPlay"  class="button_format" type="button" title="Play" style='display:none;' onclick="javascript: return togglepause(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA3lBMVEUAAAD////w8PDq6urs7Oz////o6Oj////////////7+/v39/fm5ub////6+vrg4ODq6ur////////////u7u7////////////x8fH39/fm5ubd3d3f39/29vbj4+P29vbMzMwA//8zMzN/f3/e3t7V1dXPz8/CwsLQ0NBZWVkZmZkD8vI8PDwvPz+lpaXd3d24uLgG5eVGRkYff3/T09OSkpImZmYMzMxsbGwsTEzNzc2cnJzY2NgTsrLa2trS0tJ1dXXW1tbb29sJ2NhPT08pWVmvr69iYmIPv78cjIySfToSAAAAIHRSTlMAL6/Xxz/fXwc3d3/nT2/3zw9HH79XJxenh9/394/vh+R5Xx4AAAGCSURBVDjLfZPnYoIwFIXDEGXJEEftSiLghta6W7V29/1fqCEqJGA9P7kfuecuADI5QolKcMAZVVRNlBUqWdTUSj6u3kvxvgepenvf1gUu3KzK2xAyCq/lOvOIc2vtYE5To5qlr96t4WzyzBM9yTwB9TZJ3sG4/8URgVw6xBteABNgMMbLB5Z4adVogqsYUgANn/Co02UIS6MF2uERQOhxjiezDNjJSbGaD1MAocUKf0TZE6SSphiwAEKbMe6frASiA1RpzQNoSNy+HqyEkgpMA+YAYiVxS78aLij7RYBYIW6TxvnlfwCEfla4370EJGkuAMNfTI0SwD1jcph2nZgslok2JP2hWaGtFhu1+MSTiGkU0GMWeJ/jUTYNP5lWSWKGxc+zR4fFjHuA8ZId9w0dNxDk6WlhvvmFEWvHlTOOKxexYRjYpXRp2wGM+rml3cpmttamHeTX/k1U2csxPYs/HKvFnxZo6Eo8TY/Gl/Ra8Xh1T/GpFE8XCsdLX3HLVC779x/92mSgvQt2xQAAAABJRU5ErkJggg==" /></button>
+<button id="bSeq"  class="button_format" type="button" title="Shuffled" onclick="javascript: return MakePlaylist(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABklBMVEUAAADq6ur////o6Ojs7Ozw8PD////////////////m5ub39/f7+/v////6+vrq6urg4OD////////////u7u7////////////m5ub39/fx8fHf39/j4+Pd3d329vb29vbMzMwAAAAA///e3t7V1dXPz8/Q0NAAPT3d3d0EBATT09PNzc0An58AOTkA/f2kpKQAbGzY2NjS0tLa2tqzs7MADw8AUVGmpqYAr69UVFQAMDAAICAA0tIA9fUAW1sAxMQADQ3W1tbb29vAwMCZmZmNjY1zc3NNTU0NDQ0AREQsLCwAfHwAOzsAj48AT08/Pz8A1tYABwcAkJAAHh4ALCwA9PQAiooAz88AAQEA5eUAhoYABgYA6+sAR0d8fHwAp6cA+fkAd3cABQUAf38AZmYA/v4AiIgAoKAApaUAExMAAgIAMjIA1NQ0NDQAnJwAm5sAhIQAV1cAVVUAcXEA+voAqakAtbUAgIAA5uYADAwAXFwAHx8AHBwASkoA4uIAXV0AEREA0NAAdHQAjIwAk5MA6Oj9hcHLAAAAIHRSTlMA1z/fx68vXwc35393T2/P90cPH79XJxffh6f37/ePh4LVw/kAAAHlSURBVBgZbcGFmtpAFAbQG4jitlr770xCgXV3q7u7u7t7t/beDTOEzfLtORRTshOKXaItuF7GMpOKaWU8lzp4u4zaWhVKdU3m0zbF9eTMiRlum0Oww+xyqa20szAOXt/dssAAGqkcRdzc9gGAv4uWB4xQ1chSS1dvFQB/Hf0j/v39PTo6xGjyzQQp3RUfoTn+9uPXKjfVoYz1lynk9tWg8Efxk0cQU8hQyMsHUPiD+MKIGzdtIspIaLwsVj5zEyKFHFGP5UPjqy/ffXr/9s11RsS3SuQZA9CYz70QoVOMSGB4lE1BYz46fO3V6+npw4y2VJEcCY2PictnWUGbdMiR0PiMuMI3sJl0yJHQeFbcY3SQDjkSGl8Qg8x1bCIdKqag8dDw/bvzdzhURyRVJM8YgFLn28NC3FpceTTEI9CCvEc9lg+Nef7m4pIQYmmVoflWiShdQ8sRDj15/Ew8ZWgyQ0QJI0DMCD8UCwylatpE5PbVEPOcl89fOjmJpm0ZarLNBjbw1EVxnA8iNGaVSelKVdHGp2fF4KG9APx8gjQ31+sjUucTgzwDYMLMUsTN5n1EJnlqH4A9lkcx2UohQMuB/UBQ6Ldpk+50stZAS0Ma6TJ1cL10JSmVZCVtu7SF7qKjFMu04T83ynLug2YeQQAAAABJRU5ErkJggg==" /></button>
+<button id="bRand" class="button_format" type="button" title="Sequential" style='display:none;' onclick="javascript: return PlayListShuffle(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA0lBMVEUAAAD////o6Ojq6urs7Oz////w8PD////////////m5ub39/f7+/v////6+vrg4ODq6ur////////////u7u7////////////m5ubx8fH39/fj4+P29vbd3d3f39/29vbMzMwAAAAA///e3t4APz9mZmYzMzPV1dXPz8/Q0NAAf3/d3d2ZmZkAv7/T09NMTEzNzc1/f3+/v7+lpaUAX18MDAzY2NjS0tLa2tqysrLW1tYmJiYALy8ADw9ycnIA398AHx8ZGRnb29sA7+8Aj48Az8+nE4R9AAAAIHRSTlMAL9/Xxz+vXwc35393T2/3z0cPH79XFyffp4fvj/f3h6abUUkAAAF5SURBVDjLvZPXgoIwEEWDBJQmRWxbE1BBBexdV93y/7+0EIIQV173vkAyJ5nczASAXBYnEHEWeKCapIqwQgRFVardx6V3frwfIqLh3jUUjgm36nDrx6GgH+sj/vFfYbOwifWib8jaFU5EfiO5nqevP0/TzfHIcUaYJuK1DGh2aHIGQB4U0njb9ugUui4LAFp3GyTB0zibQYNeEUC6SgwaPgP0BrfhBiZmVReVAUiPnbRErxzwRAtI/LQc8HkJaDIqB5BsgmrhCKiP7wC3+h+AKd8Blwl7SMZmAuB+waYhsRc1w2cGSC4KKHmtUIBDBnCTagl8Vqxd8JEAkyDY0Z4hxbqVe560W+hcks+CzLyRcgMORikxwd+h43yFPZwaWYsN2nIybbnD6cdxnCU9hWcIt6btpE7mh9M5js/IYAu1vK01gxLX45HGP0Wp+HI0WydeFqsVOZ+vd9mnBdpKZRxl9iOXVxp/H69iV1yiiq1wtUcPvG1Wiczi6l9otmLw7pdrYwAAAABJRU5ErkJggg==" /></button>
+<input type="range" id="seekbar" value="0">
+<div id="timediv" style='display:inline;'>00:00:00 / 00:00:00</div>
+<button id="bFull"   class="button_format" type="button" title="Full Screen" onclick="javascript: return toggleFullScreen();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAq1BMVEUAAAD////w8PDq6ur////o6Ojs7Oz////////////7+/v39/fm5ubg4OD6+vr////q6ur////////////u7u7////////////39/fx8fHm5ub29vbd3d3j4+P29vbf39/MzMwAAABmZmbe3t6ZmZnV1dXPz8+/v7/Q0NBycnIzMzPd3d3T09OlpaV/f3/Nzc0MDAzS0tLW1tYZGRna2trY2NiysrI/Pz/b29vT1lWvAAAAIHRSTlMAL6/XP9/HXwc3d3/n928Pz09HH78XJ1eHp9+H9++P9+L5HrMAAAFRSURBVDjLvZPZYoIwEEXDFg2LLKJWu41sAcW11vb/v6xJBIJQ7FvPW7g3M8xMBiGJq+gCxUW/MCamig0BVk0y7urkWduecxDk59izlDt5NsGXDFpkL3jRCuK+OSfoUNoTmX7yeoAeuebXhsUqp0UU7aW4j6KCpli/6fMwhWLN2NU65acIPpdTkeBpCxCtuxmYARxTFOhlQ4YT5sWaMU96BPhaN2wAPgr22WGVzNS0vrOJKjZ1vFR1EdEOraA3moSZRpBvw7AB7ACN4keGePQfhuCvn3xcpkeqRtFdt1E7WjUKWWxWbJqsubLVrPFHHi/m09K1wWHlYljVuJPkKtVrknDDuxg3UnA58GDUafXk7JwmDBmBn2jq6c2jXaXQ44J9+ax9r+f4Vkl7c/zQuV8cZ3m/WmhuGduylstYs6b95bVCIxYYoaX0lldECUaCoH37B3cxX07wf7apAAAAAElFTkSuQmCC" /></button>
+<button id="bWindow" class="button_format" type="button" title="Exit Full Screen" style='display:none;' onclick="javascript: return toggleFullScreen();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAsVBMVEUAAAD////w8PDq6uro6Oj////s7Oz////////////7+/v39/fm5ub////////6+vr////g4ODq6ur////u7u7////////////39/fx8fHm5ub29vb29vbj4+Pf39/d3d3MzMwAAACZmZkzMzNmZmbe3t7V1dXPz8/Q0NDd3d3T09O/v7+ysrI/Pz/Nzc2lpaV/f39ycnLW1tbS0tLa2trY2NgMDAwZGRmMjIzb29smJibF3jo6AAAAIHRSTlMAL6/X3z/HXwc3d3/nRw9vT/fPH78XJ1eHp9+Hj+/39zBRKVcAAAFfSURBVDjLlZPnloIwEIVDi4YmIOrqtgFCU+yuW97/wRYCQSC65+z9Q86Zj0zuFIRusiWNSbLRHY2JLmOVCcs6GQ/j5FnJTxkwZafYM6ReeDbBlxQ6St/xonOJ/eKeYaC1Obmln7zuQFCmOBxYrLKCDnWABGt1fO4nsA0EhfCxnLIETzlAFA0ShCUArs4Meukj4Iwrs3oMNVCloQCbzyCIagDc0slMThogiCj9Ks+URkEDJLKNiLLjAOX3Uw6kCkGOCQ1wbYEjB8C00CjmwH7Dgc2eA/GoA4gu/gsc9jxaHDuA1T7yjovqkX/b9MigUEV5PvQLhYy8AcoSB9vSY/m5NkBcdUtTHjYrY82q2/0T9nWsgDfWbiTh9YOBkafNyJlZEQqCxNPaoV0l4tBesHMba8cTiG+ZdDfH8d3+4rjL/mqhuaHm63ZpYsWYistr+GrMpPqGNL634HNrxGR1//4F/OVgc3Wn+zYAAAAASUVORK5CYII=" /></button>
 &nbsp;
 <button id="bNext" class="button_format" type="button" title="Next Video" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
+</div>
 </div>
 <div id="title" class="title">Titles Available In TITLE_TEXT</div>
 <br/>
@@ -100,23 +144,247 @@ var now_playing = null;
 var video_box;
 var video;
 var video_controls;
+var bPause;
+var bPlay;
 var bSeq;
 var bRand;
+var seekbar;
+var timediv;
+var fullscreenEnabled = document.fullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled;
+var bFull;
+var bWindow;
+var mouseTimeout;
+
+/** Get milliseconds since midnight, 1/1/1970, UCT */
+function timestamp()
+{
+    var d = new Date();
+    return d.valueOf();
+}
+
+/** Press pause/play button */
+function togglepause()
+{
+    if( 0 == video.readyState )
+        playmedia();
+    else if( video.paused )
+        video.play();
+    else
+        video.pause();
+    return false;
+}
+
+/** When video is paused, change to show playing icon */
+function showPaused()
+{
+    if( !fullscreenEnabled )
+        return;
+    bPause.style.display = video.paused ? 'none' : '';
+    bPlay.style.display  = video.paused ? '' : 'none';
+    return false;
+}
+
+/** See if video is not full-screen */
+function VideoIsFullScreen()
+{
+    var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement;
+    return video_box == fullscreenElement;
+}
+
+/** Press full-screen button */
+function toggleFullScreen()
+{
+    if( VideoIsFullScreen() )
+        exitFullscreen();
+    else
+        enterFullscreen();
+    return false;
+}
+
+
+/** Enter full screen mode */
+function enterFullscreen() 
+{
+    if(video_box.requestFullscreen) 
+    {
+        video_box.requestFullscreen();
+    }
+    else if(video_box.mozRequestFullScreen) 
+    {
+        video_box.mozRequestFullScreen();
+    } 
+    else if(video_box.webkitRequestFullscreen) 
+    {
+        video_box.webkitRequestFullscreen();
+    }
+}
+
+/** Exit full screen mode */
+function exitFullscreen() 
+{
+    if(document.exitFullscreen) 
+    {
+        document.exitFullscreen();
+    }
+    else if(document.mozCancelFullScreen) 
+    {
+        document.mozCancelFullScreen();
+    } 
+    else if(document.webkitExitFullscreen) 
+    {
+        document.webkitExitFullscreen();
+    }
+}
+
+/** Window changed: Organize and update controls */
+function onresize()
+{
+    if( fullscreenEnabled )
+    {
+        video.removeAttribute("controls")
+        if( VideoIsFullScreen() )
+        {
+            bWindow.style.display="";
+            bFull.style.display="none";
+            video_controls.className = 'video_controls_full';
+            video_box.className = 'video_box_full';
+            videoplayer.className = 'videoplayer';
+            // Once we re-render, check video aspect, and adjust
+            setTimeout(checkAspect,20);
+        }
+        else
+        {
+            bWindow.style.display="none";
+            bFull.style.display="";
+            video_controls.className = 'video_controls';
+            video_box.className = 'video_box';
+            videoplayer.className = 'videoplayer';
+        }
+    }
+    else
+    {
+        // Current flavors of iOS don't allow full-screen from outside
+        // its own full-screen handling, nor volume control
+        // If full-screen is unavailable to code, stick to js controls
+        bWindow.style.display="none";
+        bFull.style.display="none";
+        bPause.style.display="none";
+        bPlay.style.display="none";
+        seekbar.style.display="none";
+        timediv.style.display="none";
+        bFull.style.display="none";
+        className = 'video_controls';
+    }
+    
+    return false;
+}
+
+/** Check to see if player overflows, and fix it*/
+function checkAspect()
+{
+    console.log( video.clientHeight +'/'+ screen.height );
+    if( video.clientHeight > screen.height )
+    {
+        video_box.className = 'video_box_alt';
+        videoplayer.className = 'videoplayer_alt';
+    }
+}
+
+/** Format seconds to hh:mm:ss */
+function hhmmss(t)
+{
+    var ss = Math.floor(t % 60);
+    var mm = Math.floor((t / 60) % 60);
+    var hh = Math.floor(t / 3600);
+    return '' + ((hh < 10) ? '0'+hh : hh) +':'+((mm < 10) ? '0'+mm : mm)+':'+((ss < 10) ? '0'+ss : ss); 
+}
+/** Update time */
+function updateTime()
+{
+    seekbar.min = 0;
+    seekbar.max = video.duration;
+    seekbar.value = video.currentTime;
+    timediv.innerHTML = hhmmss(video.currentTime) + ' / ' + hhmmss(video.duration);
+    return false;
+}
+/** We should know how big&long the video is, so we can update it*/
+function updateMeta()
+{
+    updateTime();
+    checkAspect();
+}
+/** Manipulate playback with seek bar */
+function seek()
+{
+    video.currentTime = seekbar.value;
+}
+
+/**
+ * Set things up, when the page loads
+**/
+function MouseTimeout()
+{
+    if( VideoIsFullScreen() )
+    {
+        video_controls.style.display="none";
+        video_box.style.cursor = 'none';
+    }
+    else
+    {
+        video_controls.style.display="";
+    }
+    mouseTimeout = -1;
+}
+/** Mouse moved - */
+function MouseMoved()
+{
+    if( VideoIsFullScreen() )
+    {
+        video_controls.style.display="";
+        if( -1 != mouseTimeout )
+            clearTimeout(mouseTimeout);
+        mouseTimeout = setTimeout( MouseTimeout, 3000 );
+        video_box.style.cursor = '';
+    }
+}
 
 /**
  * Set things up, when the page loads
 **/
 function PlayerInit()
 {
-    video_box = document.getElementById("PlayerBox");
+    video_box = document.getElementById("video_box");
     video_box.style.display = 'none';
+    video_box.addEventListener( 'mousemove', MouseMoved );    
+
     video = document.getElementById("videoplayer");
     video_controls = document.getElementById("video_controls");
     bSeq  = document.getElementById("bSeq");
     bRand = document.getElementById("bRand");
+    timediv = document.getElementById("timediv");
+    seekbar = document.getElementById("seekbar");
+    seekbar.addEventListener("change", seek );
+
+    bPause = document.getElementById("bPause");
+    bPlay = document.getElementById("bPlay");
+    video.addEventListener( 'playing', showPaused );
+    video.addEventListener( 'pause', showPaused );
+    video.addEventListener( 'timeupdate', updateTime );
+    video.addEventListener( 'loadedmetadata', updateMeta );
+
+    bFull = document.getElementById("bFull");
+    bWindow = document.getElementById("bWindow");
+    window.addEventListener( 'onresize', onresize );
+    window.addEventListener( 'webkitfullscreenchange', onresize );
+    window.addEventListener( 'mozfullscreenchangefullscreenchange', onresize );
+    window.addEventListener( 'MSFullscreenChange', onresize );
+
+    onresize();
+    
     MakePlaylist();
     video_controls.style.display = 0 == playlist.length ? 'none' : '';
     var params = window.location.href.split('?');
+    
 
     if( 2 == params.length )
     {   // If we have '?title.mp4' that's the video in this folder, to play
@@ -179,7 +447,7 @@ function playmedia(video_path)
     window.scrollTo(0,0);
 }
 
-// Make a play list from title links
+/** Make a play list from title links */
 function MakePlaylist()
 {
     var collection = document.getElementsByClassName("index_entry");
@@ -193,9 +461,10 @@ function MakePlaylist()
     bSeq.style.display  = 'none';
     bShuffle = false;
     // Hide extra controls, if nothing in play list
-    return playlist = array;
+    playlist = array;
+    return false;
 }
-// Shuffle a play list
+/** Shuffle a play list */
 function PlayListShuffle()
 {
     ArrayShuffle(playlist);
@@ -204,7 +473,7 @@ function PlayListShuffle()
     bRand.style.display = 'none';
     bSeq.style.display  = '';
     bShuffle = true;
-    return playlist;
+    return false;
 }
 /**
  * Shuffle an array
@@ -225,7 +494,7 @@ function ArrayShuffle(array)
     }
     return array;
 }
-// Get index of currently playing media
+/** Get index of currently playing media */
 function indexPlaying()
 {
     var i = playlist.length;
@@ -236,7 +505,7 @@ function indexPlaying()
     }
     return -1;
 }
-// Play the previous one
+/** Play the previous one */
 function playPrev()
 {
     var i = indexPlaying() - 1;
@@ -245,9 +514,9 @@ function playPrev()
         i = playlist.length-1;
     }
     playmedia(playlist[i].getAttribute('path'));
-    return;
+    return false;
 }
-// Play the next one
+/** Play the next one */
 function playNext()
 {
     var i = indexPlaying() + 1;
@@ -256,8 +525,9 @@ function playNext()
         i = 0;
     }
     playmedia(playlist[i].getAttribute('path'));
+    return false;
 }
-// Play the next one, re-shuffle if play list hits the end on its own
+/** Play the next one, re-shuffle if play list hits the end on its own */
 function playNextWrap()
 {
     var i = indexPlaying() + 1;
@@ -270,6 +540,7 @@ function playNextWrap()
         }
     }
     playmedia(playlist[i].getAttribute('path'));
+    return false;
 }
 </script>
 
