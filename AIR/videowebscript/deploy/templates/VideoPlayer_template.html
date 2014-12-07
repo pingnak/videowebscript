@@ -38,7 +38,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     width:auto;
     height:100%;
 }
-.video_controls, .video_controls_full  {
+.video_controls, .video_controls_full {
     display: table;
     padding: 0;
     margin: 0;
@@ -54,7 +54,18 @@ a:active    { color:#20ffff; text-decoration: none; }
     left: 0px;
     bottom: 0px;
 }
-
+#video_controls_alt {
+    position: relative;
+    z-index:1;
+    line-height: 32px;
+    vertical-align: middle;
+    position: relative;
+    width: 100%;
+    height: 32px;
+    left: 0px;
+    bottom: 0px;
+    text-align: center;
+}
 #video_controls_left, #video_controls_right {
     display: table-cell;
     text-decoration: none;
@@ -93,17 +104,17 @@ a:active    { color:#20ffff; text-decoration: none; }
 }
 #progress_text, #progress_text_total, #progress_text_title {
     z-index:4;
-    text-align: left;
     vertical-align: middle;
     left: 1%;
-    width: 99%;
+    width: 98%;
     height:32px;
     line-height: 32px;
-    font-size: 30px;
+}
+#progress_text {
+    text-align: left;
 }
 #progress_text_total {
     text-align: right;
-    right:1%;
 }
 #progress_text_title {
     text-align: center;
@@ -197,8 +208,17 @@ img.folder  {
         <button id="bNext" class="button_format" type="button" title="Next Video" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
     </div>
 </div>
+<div id="video_controls_alt" >
+    <br/>
+    <button id="bPrev" class="button_format" type="button" title="Previous Video" onclick="javascript: return playPrev(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
+    &nbsp;
+    <button id="bSeq2"   class="button_format" type="button" title="Shuffled" onclick="javascript: return MakePlaylist(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABklBMVEUAAADq6ur////o6Ojs7Ozw8PD////////////////m5ub39/f7+/v////6+vrq6urg4OD////////////u7u7////////////m5ub39/fx8fHf39/j4+Pd3d329vb29vbMzMwAAAAA///e3t7V1dXPz8/Q0NAAPT3d3d0EBATT09PNzc0An58AOTkA/f2kpKQAbGzY2NjS0tLa2tqzs7MADw8AUVGmpqYAr69UVFQAMDAAICAA0tIA9fUAW1sAxMQADQ3W1tbb29vAwMCZmZmNjY1zc3NNTU0NDQ0AREQsLCwAfHwAOzsAj48AT08/Pz8A1tYABwcAkJAAHh4ALCwA9PQAiooAz88AAQEA5eUAhoYABgYA6+sAR0d8fHwAp6cA+fkAd3cABQUAf38AZmYA/v4AiIgAoKAApaUAExMAAgIAMjIA1NQ0NDQAnJwAm5sAhIQAV1cAVVUAcXEA+voAqakAtbUAgIAA5uYADAwAXFwAHx8AHBwASkoA4uIAXV0AEREA0NAAdHQAjIwAk5MA6Oj9hcHLAAAAIHRSTlMA1z/fx68vXwc35393T2/P90cPH79XJxffh6f37/ePh4LVw/kAAAHlSURBVBgZbcGFmtpAFAbQG4jitlr770xCgXV3q7u7u7t7t/beDTOEzfLtORRTshOKXaItuF7GMpOKaWU8lzp4u4zaWhVKdU3m0zbF9eTMiRlum0Oww+xyqa20szAOXt/dssAAGqkcRdzc9gGAv4uWB4xQ1chSS1dvFQB/Hf0j/v39PTo6xGjyzQQp3RUfoTn+9uPXKjfVoYz1lynk9tWg8Efxk0cQU8hQyMsHUPiD+MKIGzdtIspIaLwsVj5zEyKFHFGP5UPjqy/ffXr/9s11RsS3SuQZA9CYz70QoVOMSGB4lE1BYz46fO3V6+npw4y2VJEcCY2PictnWUGbdMiR0PiMuMI3sJl0yJHQeFbcY3SQDjkSGl8Qg8x1bCIdKqag8dDw/bvzdzhURyRVJM8YgFLn28NC3FpceTTEI9CCvEc9lg+Nef7m4pIQYmmVoflWiShdQ8sRDj15/Ew8ZWgyQ0QJI0DMCD8UCwylatpE5PbVEPOcl89fOjmJpm0ZarLNBjbw1EVxnA8iNGaVSelKVdHGp2fF4KG9APx8gjQ31+sjUucTgzwDYMLMUsTN5n1EJnlqH4A9lkcx2UohQMuB/UBQ6Ldpk+50stZAS0Ma6TJ1cL10JSmVZCVtu7SF7qKjFMu04T83ynLug2YeQQAAAABJRU5ErkJggg==" /></button>
+    <button id="bRand2"  class="button_format" type="button" title="Sequential" style='display:none;' onclick="javascript: return PlayListShuffle(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA0lBMVEUAAAD////o6Ojq6urs7Oz////w8PD////////////m5ub39/f7+/v////6+vrg4ODq6ur////////////u7u7////////////m5ubx8fH39/fj4+P29vbd3d3f39/29vbMzMwAAAAA///e3t4APz9mZmYzMzPV1dXPz8/Q0NAAf3/d3d2ZmZkAv7/T09NMTEzNzc1/f3+/v7+lpaUAX18MDAzY2NjS0tLa2tqysrLW1tYmJiYALy8ADw9ycnIA398AHx8ZGRnb29sA7+8Aj48Az8+nE4R9AAAAIHRSTlMAL9/Xxz+vXwc35393T2/3z0cPH79XFyffp4fvj/f3h6abUUkAAAF5SURBVDjLvZPXgoIwEEWDBJQmRWxbE1BBBexdV93y/7+0EIIQV173vkAyJ5nczASAXBYnEHEWeKCapIqwQgRFVardx6V3frwfIqLh3jUUjgm36nDrx6GgH+sj/vFfYbOwifWib8jaFU5EfiO5nqevP0/TzfHIcUaYJuK1DGh2aHIGQB4U0njb9ugUui4LAFp3GyTB0zibQYNeEUC6SgwaPgP0BrfhBiZmVReVAUiPnbRErxzwRAtI/LQc8HkJaDIqB5BsgmrhCKiP7wC3+h+AKd8Blwl7SMZmAuB+waYhsRc1w2cGSC4KKHmtUIBDBnCTagl8Vqxd8JEAkyDY0Z4hxbqVe560W+hcks+CzLyRcgMORikxwd+h43yFPZwaWYsN2nIybbnD6cdxnCU9hWcIt6btpE7mh9M5js/IYAu1vK01gxLX45HGP0Wp+HI0WydeFqsVOZ+vd9mnBdpKZRxl9iOXVxp/H69iV1yiiq1wtUcPvG1Wiczi6l9otmLw7pdrYwAAAABJRU5ErkJggg==" /></button>
+    &nbsp;
+    <button id="bNext" class="button_format" type="button" title="Next Video" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
 </div>
-
+</div>
+<br/><br/>
 <div id="title" class="title">Titles Available In TITLE_TEXT</div>
 <br/>
 <script type="text/javascript">
@@ -209,6 +229,7 @@ var now_playing = null;
 var video_box;
 var video;
 var video_controls;
+var video_controls_alt;
 var bPause;
 var bPlay;
 var bSeq;
@@ -342,18 +363,16 @@ function onresize()
                 clearTimeout(mouseTimeout);
             video_box.style.cursor = '';
         }
+        video_controls.style.display="";
+        video_controls_alt.style.display="none";
     }
     else
     {
         // Current flavors of iOS don't allow full-screen from outside
         // its own full-screen handling, nor volume control
         // If full-screen is unavailable to code, stick to js controls
-        bWindow.style.display="none";
-        bFull.style.display="none";
-        bPause.style.display="none";
-        bPlay.style.display="none";
-        progress_bar.style.display="none";
-        bFull.style.display="none";
+        video_controls.style.display="none";
+        video_controls_alt.style.display="";
         className = 'video_controls';
     }
     
@@ -381,6 +400,8 @@ function checkAspect()
 /** Format seconds to hh:mm:ss */
 function hhmmss(t)
 {
+    if( isNaN(t) )
+        return "00:00:00";
     var ss = Math.floor(t % 60);
     var mm = Math.floor((t / 60) % 60);
     var hh = Math.floor(t / 3600);
@@ -390,26 +411,41 @@ function hhmmss(t)
 function updateTime()
 {   
     var buffered = 0;
-    if( video.buffered && video.buffered.length )
+    if( video.buffered && 0 < video.buffered.length )
     {   // We cheat with this table.  
         // Just get the maximum, since it's masked by playing box
-        buffered = video.buffered.end(video.buffered.length-1);
+        buffered = video.buffered.end(0);
     }
     else
     {
         buffered = 0;
     }
-    progress_loading.style.width = (100*buffered/video.duration)+'%';
     progress_playing.style.width = (100*video.currentTime/video.duration)+'%';
     progress_text.innerHTML = hhmmss(video.currentTime);
     progress_text_total.innerHTML = hhmmss(video.duration);
+    if( isNaN(video.duration) )
+    {
+        progress_loading.style.width = '0%';
+    }
+    else
+    {
+        progress_loading.style.width = (100*buffered/video.duration)+'%';
+    }
     return false;
 }
+/** Refresh play time */
 function RefreshProgress(seconds)
 {
-    progress_playing.style.width = (100*seconds/video.duration)+'%';
     progress_text.innerHTML = hhmmss(seconds);
     progress_text_total.innerHTML = hhmmss(video.duration);
+    if( isNaN(video.duration) || video.duration < 1 )
+    {
+        progress_playing.style.width = '0%';
+    }
+    else
+    {
+        progress_playing.style.width = (100*seconds/video.duration)+'%';
+    }
 }
 
 /** 
@@ -437,27 +473,32 @@ function getPosition(element) {
     return { x: xPosition, y: yPosition, w:element.clientWidth, h:element.clientHeight };
 }
 
+/** Convert mouse position to time */
 function getProgressFromMouse(e)
 {
     var pt = getClickPosition(e);
     var fraction = pt.x/progress_clickme.clientWidth;
     return fraction;
 }
+/** Seek to clicked time */
 function ProgressClick(e)
 {
     var fraction = getProgressFromMouse(e);
     var time= video.duration * fraction;
     video.currentTime = time;
 }
+/** Mouse entered progress; disable time updates */
 function ProgressIn(e)
 {
     ProgressTrackMouse(e);
     video.removeEventListener( 'timeupdate', updateTime );
 }
+/** Mouse exited progress; enable time updates */
 function ProgressOut(e)
 {
     video.addEventListener( 'timeupdate', updateTime );
 }
+/** Update progress bar and time with mouse motion */
 function ProgressTrackMouse(e)
 {   // Keep progress stamps from stomping on my tracking
     var fraction = getProgressFromMouse(e);
@@ -489,6 +530,7 @@ function MouseTimeout()
     }
     mouseTimeout = -1;
 }
+
 /** Mouse moved - */
 function MouseMoved()
 {
@@ -513,8 +555,9 @@ function PlayerInit()
 
     video = document.getElementById("videoplayer");
     video_controls = document.getElementById("video_controls");
-    bSeq  = document.getElementById("bSeq");
-    bRand = document.getElementById("bRand");
+    video_controls_alt = document.getElementById("video_controls_alt");
+    bSeq  = document.getElementById(bFullscreenEnabled ? "bSeq":"bSeq2");
+    bRand = document.getElementById(bFullscreenEnabled ? "bRand":"bRand2");
     progress_text = document.getElementById("progress_text");
     progress_text_total = document.getElementById("progress_text_total");
     progress_text_title = document.getElementById("progress_text_title");
@@ -542,8 +585,6 @@ function PlayerInit()
     window.addEventListener( 'mozfullscreenchangefullscreenchange', onresize );
     window.addEventListener( 'MSFullscreenChange', onresize );
 
-    onresize();
-    
     MakePlaylist();
     video_controls.style.display = 0 == playlist.length ? 'none' : '';
     var params = window.location.href.split('?');
@@ -572,6 +613,7 @@ function PlayerInit()
     };
     request.send();
 
+    onresize();
   }
 
 /*
@@ -587,6 +629,7 @@ function playmedia(video_path)
     now_playing = video_path;
     if( 'undefined' == typeof(now_playing) )
     {
+        title.innerHTML = original_title;
         progress_text_title.innerHTML = '';
         video_box.style.display = 'none';
         return;
@@ -594,8 +637,8 @@ function playmedia(video_path)
     video_box.style.display = '';
 
     var video_type='video/'+now_playing.split('.').pop();
-    video.setAttribute("src",now_playing);
     video.setAttribute("type",video_type);
+    video.setAttribute("src",now_playing);
     video.load();
     video.play();
     video.addEventListener( "ended", playNext );
@@ -605,11 +648,13 @@ function playmedia(video_path)
     titletext = titletext.split('/').pop();
     titletext = titletext.split('.').shift();
     progress_text_title.innerHTML = titletext;
+    title.innerHTML = titletext;
 
     // Show video
     window.scrollTo(0,0);
     
     // Tell display to come back up, between titles
+    updateTime();
     MouseMoved();
 }
 
