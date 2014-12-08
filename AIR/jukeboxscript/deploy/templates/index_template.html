@@ -78,7 +78,8 @@ img.folder  {
 <div id='PlayerBox'>
 <div id="title" class="title">Titles Available In TITLE_TEXT</div>
 <br/>
-<button class="button_format" type="button" alt="Prev" onclick="javascript: playPrev(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
+<button class="button_format" type="button" title="Previous Track" onclick="javascript: return playPrev();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
+&nbsp;
 <audio id="audioplayer" controls >
     Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
@@ -88,10 +89,10 @@ img.folder  {
     <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
     <a href="http://www.w3schools.com/html/html5_audio.asp">More info about compatibility...</a><br/>
 </audio>
-<button class="button_format" type="button" alt="Next" onclick="javascript: playNext(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
-&nbsp;&nbsp;
-<button class="button_format" type="button" alt="Sequential" onclick="javascript: MakePlaylist(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAACuUExURQAAAP///////////////////////////////////////////////////////////8zMzP///wAAAAD///Ly8gA/PzMzM2ZmZt/f39LS0vv7+9XV1e/v75mZmQB/f/X19UxMTAC/v9vb26WlpQBfX8/Pz7+/v39/f+Xl5ejo6NjY2OLi4rKysgCPj3JycgDv7wwMDADf3wAfHxkZGevr6/j4+FlZWSYmJgAPDwAvL5MjQvkAAAAQdFJOUwCfzx9vf1/fvw+PP6/vL0+FEI3DAAABYUlEQVQ4y72TaYOCIBCGMUvTDhmwQ8vUstrua8///8cW8ABc/brvF8F5YGaYGYSkTKsnZJmoQU7Xhkp216nbmXl5WmChxckH29LM4w4cAmaKZkxXtgiWMFQuMUfxUZy9Ey6xXIcd6b7zsc0vJytKV6RwBEYJDMPCuQbgOfRyuwfz4hd+ZQqA32AgHIyW5R88nagAjm2RIAQaMJlW2yPwZG0ftwE4ZpmMZQR/gTmYzMO2HQigi4wQtwM4dFFfCQHPSA3w+/8BuGENeCZ6kFqaHCAzPU3tofbkoQH8oZAta4UjkmqAz6vVq4p1jq4cSKLoXPaMpZZ7x9stpU/+2cgLELJgnRMJuaSU3tKMJGrDyJbbfX0/KKWXwl61HGvaMM9k9/q50Yx8is1BNi1yjCLXzX2Skb1YvrMnUGRAHOR55vYgBn20kMdGj8e64fGv2egNGofXF2LDazlNA+65fSFXPf0LCF47HQmY30UAAAAASUVORK5CYII=" /></button>
-<button class="button_format" type="button" alt="Shuffle" onclick="javascript: PlayListShuffle(); playmedia(); return false;"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABSlBMVEUAAAD////////////////////////////////////////////////////////////MzMwAAAD///8A///y8vLf39/7+/vS0tLv7+8APT3V1dUEBAT19fXb29tUVFSkpKTPz88A/f0AOTkAbGzl5eXY2Njo6Oji4uIAUVEAICAAMDAApaUAAgIAgIAA0tIA9fUAxMQADQ3r6+v4+PgAREQsLCwAMTEAOzsAfHwA1tYAkJAAHh4ALCwAiooABgYAhoYA5eUAr68A6+sAiIgAR0d8fHwANzcAf38AZmYAn58Ad3cA/v4A9PQAhIQAW1sAm5sAnJwAEREABQUA+fkAp6cAV1cAVVUAcXEAqakA+voAtbUAoKAAz88AExMA1NQAMjIAJSUA5uYASkoADAwAHx8AXFwAHBwA0NAAjIwAk5MA6OgAXV0AdHQA4uLHjPgBAAAAEHRSTlMAn8+Pb39fv98PHz+v708vKNwzrQAAAbNJREFUOMttU+V/wjAQDVYKGyOXlMKgwIAJTGDu7u7u7vv/vy4NTZqyvW/3y8vdeycIuYhqIQ4tiv5BJKgTCT0YaXxnz6muNOZIdxlE1zzPcT/pTGIFyRRpVpJEY1YHzoNEjlGypt8t7x9qwxgOWh1UgBciPkFoNu3i8EgdLHECTpBQ/b2FJOwYnkvv9PPju1Qq1gm4nTTxArEUD3Pw+vM2wDVkHKmWzg0SRz/00S/Iq146iG1WN5wQLukLYA8s5iReV2ATdmn/Ey8hCQkSZRXaBGF27+Lh/Ox02SUkSRD5TBEBTO/bLieUOmYAhaUEGC8s7pyUy8MKwQgrhDE6PwVeDV7CJJ2DFa8LL2GBrje45ISAEAkzdMNtoitS2oRiYWut+1BtNbcpG5WBzQKlR9X+nqJsuN0opKekz+7jao01ojYgtBj2tEJiWHjETt97c0vvHEKaD0uM20EermgFlAQIaSSrEHJwvd2bUxdGrJxQck97GlaOLa2ZcAmrfaOc0OkuLYr45FIwt/U+DLIWKPARy3s4FvGeFmphpye1ZtnpNf17vAYHO17tz/HyLIEwR0D9/QtGRkbYnQiSSgAAAABJRU5ErkJggg==" /></button>
+&nbsp;
+<button id="bSeq" class="button_format" type="button" title="Sequential" style='display:none;' onclick="javascript: return ClickedSequential();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAABSlBMVEUAAAD////////////////////////////////////////////////////////////MzMwAAAD///8A///y8vLf39/7+/vS0tLv7+8APT3V1dUEBAT19fXb29tUVFSkpKTPz88A/f0AOTkAbGzl5eXY2Njo6Oji4uIAUVEAICAAMDAApaUAAgIAgIAA0tIA9fUAxMQADQ3r6+v4+PgAREQsLCwAMTEAOzsAfHwA1tYAkJAAHh4ALCwAiooABgYAhoYA5eUAr68A6+sAiIgAR0d8fHwANzcAf38AZmYAn58Ad3cA/v4A9PQAhIQAW1sAm5sAnJwAEREABQUA+fkAp6cAV1cAVVUAcXEAqakA+voAtbUAoKAAz88AExMA1NQAMjIAJSUA5uYASkoADAwAHx8AXFwAHBwA0NAAjIwAk5MA6OgAXV0AdHQA4uLHjPgBAAAAEHRSTlMAn8+Pb39fv98PHz+v708vKNwzrQAAAbNJREFUOMttU+V/wjAQDVYKGyOXlMKgwIAJTGDu7u7u7vv/vy4NTZqyvW/3y8vdeycIuYhqIQ4tiv5BJKgTCT0YaXxnz6muNOZIdxlE1zzPcT/pTGIFyRRpVpJEY1YHzoNEjlGypt8t7x9qwxgOWh1UgBciPkFoNu3i8EgdLHECTpBQ/b2FJOwYnkvv9PPju1Qq1gm4nTTxArEUD3Pw+vM2wDVkHKmWzg0SRz/00S/Iq146iG1WN5wQLukLYA8s5iReV2ATdmn/Ey8hCQkSZRXaBGF27+Lh/Ox02SUkSRD5TBEBTO/bLieUOmYAhaUEGC8s7pyUy8MKwQgrhDE6PwVeDV7CJJ2DFa8LL2GBrje45ISAEAkzdMNtoitS2oRiYWut+1BtNbcpG5WBzQKlR9X+nqJsuN0opKekz+7jao01ojYgtBj2tEJiWHjETt97c0vvHEKaD0uM20EermgFlAQIaSSrEHJwvd2bUxdGrJxQck97GlaOLa2ZcAmrfaOc0OkuLYr45FIwt/U+DLIWKPARy3s4FvGeFmphpye1ZtnpNf17vAYHO17tz/HyLIEwR0D9/QtGRkbYnQiSSgAAAABJRU5ErkJggg==" /></button>
+<button id="bRand" class="button_format" type="button" title="Shuffle" onclick="javascript: return ClickedRandom();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAACuUExURQAAAP///////////////////////////////////////////////////////////8zMzP///wAAAAD///Ly8gA/PzMzM2ZmZt/f39LS0vv7+9XV1e/v75mZmQB/f/X19UxMTAC/v9vb26WlpQBfX8/Pz7+/v39/f+Xl5ejo6NjY2OLi4rKysgCPj3JycgDv7wwMDADf3wAfHxkZGevr6/j4+FlZWSYmJgAPDwAvL5MjQvkAAAAQdFJOUwCfzx9vf1/fvw+PP6/vL0+FEI3DAAABYUlEQVQ4y72TaYOCIBCGMUvTDhmwQ8vUstrua8///8cW8ABc/brvF8F5YGaYGYSkTKsnZJmoQU7Xhkp216nbmXl5WmChxckH29LM4w4cAmaKZkxXtgiWMFQuMUfxUZy9Ey6xXIcd6b7zsc0vJytKV6RwBEYJDMPCuQbgOfRyuwfz4hd+ZQqA32AgHIyW5R88nagAjm2RIAQaMJlW2yPwZG0ftwE4ZpmMZQR/gTmYzMO2HQigi4wQtwM4dFFfCQHPSA3w+/8BuGENeCZ6kFqaHCAzPU3tofbkoQH8oZAta4UjkmqAz6vVq4p1jq4cSKLoXPaMpZZ7x9stpU/+2cgLELJgnRMJuaSU3tKMJGrDyJbbfX0/KKWXwl61HGvaMM9k9/q50Yx8is1BNi1yjCLXzX2Skb1YvrMnUGRAHOR55vYgBn20kMdGj8e64fGv2egNGofXF2LDazlNA+65fSFXPf0LCF47HQmY30UAAAAASUVORK5CYII=" /></button>
+<button class="button_format" type="button" title="Next Track" onclick="javascript: return playNext();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAAC9UExURQAAAP///////////////////////////////////////////////////////////8zMzAD//wAAAP///5mZmQC/v/Ly8jMzMwA/P2ZmZtLS0t/f3/v7++/v77+/v9XV1QAfH/X19RkZGQwMDKWlpYyMjAB/f9vb20xMTADv78/Pz7KysgCvr9jY2AAPD+Li4gDPz+jo6ABfXyYmJgBvbwCfn1lZWX9/fwDf3wBPT+vr6/j4+Li4uOXl5XJyco9W9xIAAAAQdFJOUwCfzx9vf1+/3w+PPy9Pr+/Q7HwkAAABeElEQVQ4y32T6XaCMBCFgygCbkkGQXawuGutVbu37/9YDQEkAY/3H2c+JrNdhGqpWo9LU9EdGV0dbtK7RjPOwuExxlzx0QZdk8LDDpw8LMgLYSwkUSfpATe0Cjr1853vLW4pBqUCxkHcjEau6/5Ar4iPwM/mrgzsKKXzAwz4A5MQW+xzIQLrhFypleq8QfAYcEmok9WAMyNTah0gb1a3MQOmZPlM15EM4JR1MgS/AMjmlT65MuCDyl7YlgAhL7OqlBLwoIuUAN8AQvZlKSWAAxP1bREgZSkVYPdbAC9l8QjIc7gPgGmS9yIAplTkxyfl0xCKFNvcLCk9W40260GRK8v+3hoU0sMCYFOib5E8STvfVo8va3+h1Nk1lhXzZZXrlvftJGRPLZ4AIQ1WGWstEu9hwf44/xYHw0/O2jVuLnP//Ork2NEGfvtoT/XRIkOBFvHFRiBIgVQ2TgqytdCIWW91Mw2z3uCueW0uZl7NuGfwkdnnMsW//wFrXD86ZgGCVAAAAABJRU5ErkJggg==" /></button>
 </div>
 
 <br/>
@@ -109,6 +110,26 @@ var bShuffle = false;
 var now_playing = null;
 var audio_box;
 var audio;
+var bRand = document.getElementById("bRand");
+var bSeq = document.getElementById("bSeq");
+
+function ClickedRandom()
+{
+    PlayListShuffle(); 
+    playmedia();
+    bRand.style.display ='none';
+    bSeq.style.display ='';
+    return false;
+}
+function ClickedSequential()
+{
+    MakePlaylist(); 
+    playmedia();
+    bSeq.style.display ='none';
+    bRand.style.display ='';
+    return false;
+}
+
 function PlayerInit()
 {
     audio_box = document.getElementById("PlayerBox");
@@ -221,7 +242,7 @@ function playPrev()
         i = playlist.length-1;
     }
     playmedia(playlist[i].getAttribute('path'));
-    return;
+    return false;
 }
 // Play the next one
 function playNext()
@@ -232,6 +253,7 @@ function playNext()
         i = 0;
     }
     playmedia(playlist[i].getAttribute('path'));
+    return false;
 }
 // Play the next one, re-shuffle if play list hits the end on its own
 function playNextWrap()
