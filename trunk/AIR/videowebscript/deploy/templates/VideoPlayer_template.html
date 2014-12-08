@@ -85,7 +85,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     height: 32px;
     width: auto;
 }
-#progress_loading, #progress_playing, #progress_text, #progress_text_total, #progress_text_title, #progress_clickme {
+#progress_playing, #progress_text, #progress_text_total, #progress_text_title, #progress_clickme {
     position: absolute;
     white-space:nowrap;
     overflow: hidden;
@@ -93,10 +93,6 @@ a:active    { color:#20ffff; text-decoration: none; }
     top: 0;
     height: 100%;
     border: none;
-}
-#progress_loading {
-    z-index:2;
-    background: #888;
 }
 #progress_playing {
     z-index:3;
@@ -194,7 +190,6 @@ img.folder  {
         <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Sequential" style='display:none;' onclick="javascript: return PlayListShuffle(); "><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAA0lBMVEUAAAD////o6Ojq6urs7Oz////w8PD////////////m5ub39/f7+/v////6+vrg4ODq6ur////////////u7u7////////////m5ubx8fH39/fj4+P29vbd3d3f39/29vbMzMwAAAAA///e3t4APz9mZmYzMzPV1dXPz8/Q0NAAf3/d3d2ZmZkAv7/T09NMTEzNzc1/f3+/v7+lpaUAX18MDAzY2NjS0tLa2tqysrLW1tYmJiYALy8ADw9ycnIA398AHx8ZGRnb29sA7+8Aj48Az8+nE4R9AAAAIHRSTlMAL9/Xxz+vXwc35393T2/3z0cPH79XFyffp4fvj/f3h6abUUkAAAF5SURBVDjLvZPXgoIwEEWDBJQmRWxbE1BBBexdV93y/7+0EIIQV173vkAyJ5nczASAXBYnEHEWeKCapIqwQgRFVardx6V3frwfIqLh3jUUjgm36nDrx6GgH+sj/vFfYbOwifWib8jaFU5EfiO5nqevP0/TzfHIcUaYJuK1DGh2aHIGQB4U0njb9ugUui4LAFp3GyTB0zibQYNeEUC6SgwaPgP0BrfhBiZmVReVAUiPnbRErxzwRAtI/LQc8HkJaDIqB5BsgmrhCKiP7wC3+h+AKd8Blwl7SMZmAuB+waYhsRc1w2cGSC4KKHmtUIBDBnCTagl8Vqxd8JEAkyDY0Z4hxbqVe560W+hcks+CzLyRcgMORikxwd+h43yFPZwaWYsN2nIybbnD6cdxnCU9hWcIt6btpE7mh9M5js/IYAu1vK01gxLX45HGP0Wp+HI0WydeFqsVOZ+vd9mnBdpKZRxl9iOXVxp/H69iV1yiiq1wtUcPvG1Wiczi6l9otmLw7pdrYwAAAABJRU5ErkJggg==" /></button>
     </div>
     <div id="progress_bar">
-        <div id="progress_loading"></div>
         <div id="progress_playing"></div>
         <div id="progress_text">00:00:00</div>
         <div id="progress_text_total">00:00:00</div>
@@ -237,7 +232,6 @@ var bRand;
 var bPrev;
 var bNext;
 var progress_bar;
-var progress_loading;
 var progress_playing;
 var progress_text;
 var progress_text_total;
@@ -325,7 +319,7 @@ function ExitFullscreen()
     {
         document.webkitExitFullscreen();
     }
-    else if(document.meExitFullscreen) 
+    else if(document.msExitFullscreen)
     {
         document.msExitFullscreen();
     }
@@ -407,33 +401,9 @@ function hhmmss(t)
 /** Update progress */
 function UpdateTime()
 {   
-    var buffered = 0;
-    if( video.buffered && 0 < video.buffered.length )
-    {   // js gives a whole list of starts and ends.  Just take the end-iest one.
-        var i;
-        var end = 0;
-        for( i = 0; i < video.buffered.length; ++i )
-        {
-            if( video.buffered.end(i) > end )
-                end = video.buffered.end(i);
-        }
-        buffered = end;
-    }
-    else
-    {
-        buffered = 0;
-    }
     progress_playing.style.width = (100*video.currentTime/video.duration)+'%';
     progress_text.innerHTML = hhmmss(video.currentTime);
     progress_text_total.innerHTML = hhmmss(video.duration);
-    if( isNaN(video.duration) )
-    {
-        progress_loading.style.width = '0%';
-    }
-    else
-    {
-        progress_loading.style.width = (100*buffered/video.duration)+'%';
-    }
     return false;
 }
 /** Refresh play time */
@@ -544,6 +514,7 @@ function MouseMoved()
         mouseTimeout = setTimeout( MouseTimeout, 3000 );
         video_box.style.cursor = '';
     }
+    return true;
 }
 
 /**
@@ -563,7 +534,6 @@ function PlayerInit()
     progress_text_total = document.getElementById("progress_text_total");
     progress_text_title = document.getElementById("progress_text_title");
     progress_bar = document.getElementById("progress_bar");
-    progress_loading = document.getElementById("progress_loading");
     progress_playing = document.getElementById("progress_playing");
     progress_clickme = document.getElementById("progress_clickme");
     // Had to add a layer on top of progress bar, to click
@@ -635,8 +605,7 @@ function PlayMedia(video_path)
         title.innerHTML = original_title;
         progress_text_title.innerHTML = '';
         video_box.style.display = 'none';
-        window.removeEventListener( 'mousemove', MouseMoved );
-        video.removeEventListener( 'click', TogglePause );
+        video_box.removeEventListener( 'mousemove', MouseMoved );
         return;
     }
     setTimeout(function() { PlayMedia2(video_path) }, 10);
@@ -663,8 +632,7 @@ function PlayMedia2(video_path)
     // Show video
     window.scrollTo(0,0);
     
-    window.addEventListener( 'mousemove', MouseMoved );
-    video.addEventListener( 'click', TogglePause );
+    video_box.addEventListener( 'mousemove', MouseMoved );
     
     // Tell display to come back up, between titles
     UpdateTime();
