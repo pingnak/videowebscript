@@ -752,8 +752,8 @@ function WhatNext()
 function TitleFromPath(title)
 {
     var titletext = decodeURI(title);
-    titletext = titletext.split('/').pop();
-    titletext = titletext.split('.').shift();
+    titletext = title.substring(title.lastIndexOf('/')+1);
+    titletext = title.substring(0,title.lastIndexOf('.'));
     return titletext;
 }
 </script>
