@@ -473,6 +473,7 @@ function ProgressIn(e)
 /** Mouse exited progress; enable time updates */
 function ProgressOut(e)
 {
+    UpdateTime();
     video.addEventListener( 'timeupdate', UpdateTime );
 }
 /** Update progress bar and time with mouse motion */
