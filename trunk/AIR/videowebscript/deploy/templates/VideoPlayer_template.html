@@ -47,7 +47,6 @@ a:active    { color:#20ffff; text-decoration: none; }
     z-index:1;
     line-height: 32px;
     vertical-align: middle;
-    position: relative;
     width: 100%;
     height: 32px;
 }
@@ -55,13 +54,13 @@ a:active    { color:#20ffff; text-decoration: none; }
     position: fixed;
     left: 0px;
     bottom: 0px;
+    width: 100%;
 }
 #video_controls_alt {
     position: relative;
     z-index:1;
     line-height: 32px;
     vertical-align: middle;
-    position: relative;
     width: 100%;
     height: 32px;
     left: 0px;
@@ -174,7 +173,7 @@ img.folder  {
 
 <body onload="PlayerInit();">
 <div id='video_box' class='video_box' style="display:none;">
-<video id="videoplayer" class='videoplayer' controls >
+<video id="videoplayer" class='videoplayer' controls > <!-- Show controls now, or 'Silk' never will -->
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.apple.com/safari/">Safari</a><br/>
@@ -332,9 +331,26 @@ function ExitFullscreen()
 /** Window changed: Organize and update controls */
 function OnResize()
 {
-    if( bFullscreenEnabled )
+    // Because some browsers don't have this figured out, even though they call me
+    setTimeout(OnResize2,100);
+}
+function OnResize2()
+{
+    // iOS, Android SILK
+    if( !bFullscreenEnabled // Full-screen link won't work, so use native video controls
+     || /\bSilk\b/.test(navigator.userAgent) // Kindle Silk full-screen is BENT
+        )
     {
-        video.removeAttribute("controls")
+        // If full-screen is unavailable to code, stick to native controls
+        video.setAttribute("controls",true);
+        video_controls.className = 'video_controls';
+        video_controls.style.display="none";
+        video_controls_alt.style.display="";
+    }
+    else
+    {   // Sort out full versus windowed playbacl
+        if( video.hasAttribute("controls") )
+            video.removeAttribute("controls");
         if( VideoIsFullScreen() )
         {
             bWindow.style.display="";
@@ -352,22 +368,13 @@ function OnResize()
             video_controls.className = 'video_controls';
             video_box.className = 'video_box';
             videoplayer.className = 'videoplayer';
-            video_controls.style.display="";
+            video_controls.style.display="table";
             if( -1 != mouseTimeout )
                 clearTimeout(mouseTimeout);
             video_box.style.cursor = '';
         }
-        video_controls.style.display="";
+        video_controls.style.display="table";
         video_controls_alt.style.display="none";
-    }
-    else
-    {
-        // Current flavors of iOS don't allow full-screen from outside
-        // its own full-screen handling, nor volume control
-        // If full-screen is unavailable to code, stick to js controls
-        video_controls.style.display="none";
-        video_controls_alt.style.display="";
-        className = 'video_controls';
     }
     
     return false;
@@ -488,7 +495,7 @@ function ProgressTrackMouse(e)
 function UpdateMeta()
 {
     UpdateTime();
-    setTimeout(OnResize,100);
+    OnResize();
 }
 
 /**
@@ -503,7 +510,7 @@ function MouseTimeout()
     }
     else
     {
-        video_controls.style.display="";
+        video_controls.style.display="table";
     }
     mouseTimeout = -1;
 }
@@ -513,7 +520,7 @@ function MouseMoved()
 {
     if( VideoIsFullScreen() )
     {
-        video_controls.style.display="";
+        video_controls.style.display="table";
         if( -1 != mouseTimeout )
             clearTimeout(mouseTimeout);
         mouseTimeout = setTimeout( MouseTimeout, 3000 );
@@ -562,7 +569,7 @@ function PlayerInit()
     window.addEventListener( 'MSFullscreenChange', OnResize );
 
     MakePlaylist();
-    video_controls.style.display = 0 == playlist.length ? 'none' : '';
+    video_controls.style.display = 0 == playlist.length ? 'none' : 'table';
     var params = window.location.href.split('?');
 
     if( 2 == params.length )
