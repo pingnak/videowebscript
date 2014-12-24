@@ -488,7 +488,7 @@ CONFIG::FLASH_AUTHORING
 
                         if( 0 != curr_files.length )
                         {
-                            index_files += "<br/><br/>\n";
+                            index_files += "<br/>\n";
                         }
 
                         // Iterate files and generate code + thumbnails
