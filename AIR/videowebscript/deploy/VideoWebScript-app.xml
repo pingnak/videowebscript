@@ -2,7 +2,7 @@
 <application xmlns="http://ns.adobe.com/air/application/14.0">
 <!--<application xmlns="http://ns.adobe.com/air/application/2.6">-->
     <id>VideoWebScript</id>
-    <versionNumber>1.1</versionNumber>
+    <versionNumber>1.2</versionNumber>
     <filename>VideoWebScript</filename>
     <description>Generate portable web browser interfaces and thumbnails for video content.</description>
     <!-- To localize the description, use the following format for the description element.
