@@ -4,6 +4,7 @@ package
     import flash.utils.*;
     import flash.events.*;
     import flash.filesystem.*;
+    import flash.globalization.*;
 
     /**
      * Given a path, do something like 'gnu find' on it.  Do it asynchronously
@@ -37,6 +38,11 @@ package
         
         /** Stack of folders to iterate depth */
         private var filter : Function;
+
+        /** Localized sort */
+        private static const collator : Collator = new Collator(LocaleID.DEFAULT);
+        collator.numericComparison = true;
+        collator.ignoreSymbols = true;
         
         /**
          * Given a path, do something like 'gnu find' on it.  Do it asynchronously
@@ -133,7 +139,8 @@ package
                 if( 0 == stack.length )
                 {
                     // Sort results...
-                    final_result.sortOn("nativePath");
+                    //final_result.sortOn("nativePath");
+                    final_result.sort(SortOnNative);
                     // Delay completion slightly.
                     function InAMoment(e:Event=null):void
                     {
@@ -153,6 +160,26 @@ package
                 trace(e);
                 Abort();
             }
+        }
+
+        /**
+         * Sort on native path, doing some english-y things
+        **/
+        public static function SortOnNative( p1:File, p2:File ) : int
+        {
+            return collator.compare( GetPathWithoutExt(p1), GetPathWithoutExt(p2) );
+        }
+        
+        /**
+         * Strip .ext from path, return native path
+        **/
+        public static function GetPathWithoutExt(file:File) : String
+        {
+            var np : String = file.nativePath;
+            var index : int = np.lastIndexOf('.');
+            if( -1 == index )
+                return file.nativePath;
+            return decodeURI(np.slice(0,index));
         }
         
         /**

@@ -546,16 +546,10 @@ CONFIG::FLASH_AUTHORING
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
-                        folder_list_db.sort(bypath);
-                        function bypath( p1:Object, p2:Object ) : int
+                        folder_list_db.sort(byNativePath);
+                        function byNativePath( p1:Object, p2:Object ) : int
                         {
-                            var s1 : String = p1.path.nativePath;
-                            var s2 : String = p2.path.nativePath;
-                            if( s1 < s2 )
-                                return -1;
-                            else if( s1 > s2 )
-                                return 1;
-                            return 0;
+                            return Find.SortOnNative( p1.path, p2.path );
                         }
                         var iteration : int;
                         for( iteration = 0; iteration < folder_list_db.length; ++iteration )
