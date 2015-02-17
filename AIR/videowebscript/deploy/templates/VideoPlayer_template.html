@@ -241,7 +241,7 @@ var bToParent;
 var mouseTimeout;
 
 /* If no full screen, or Amazon Silk, give up skinning controls */
-var bUseNativeControls = !bFullscreenEnabled || /\bSilk\b/.test(navigator.userAgent);
+var bUseNativeControls = !bFullscreenEnabled || /\bSilk\b/.test(navigator.userAgent) || /\bAndroid\b/.test(navigator.userAgent);
 
 
 /** Press pause/play button */
