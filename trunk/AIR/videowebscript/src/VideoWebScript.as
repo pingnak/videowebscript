@@ -65,9 +65,6 @@ CONFIG::MXMLC_BUILD
         /** Table of contents file */
         public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
 
-        /** Link to TOC index */
-        public static var INDEX_TOC       : String = SCRIPT_TEMPLATES+"index_toc.html";
-
         /** Play a file in TOC */
         public static var INDEX_TOC_FILE  : String = SCRIPT_TEMPLATES+"index_toc_file.html";
 
@@ -378,22 +375,21 @@ CONFIG::FLASH_AUTHORING
                 var player_template : String= LoadText(PLAYER_TEMPLATE);
                 var index_template : String = LoadText(TOC_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX);
-                var index_small : String    = LoadText(INDEX_SMALL);
                 var index_file : String     = LoadText(INDEX_FILE);
+
+                // TOC pieces
                 var index_toc_file : String = LoadText(INDEX_TOC_FILE);
                 var index_nothumb : String  = LoadText(INDEX_NOTHUMB);
-
-                var index_toc : String = LoadText(INDEX_TOC);
-                //var player_template_folders : String = LoadText(TOC_TEMPLATE);
-
-                // Iterate all of the folders
-                var folders : Array = Find.GetFolders(found);
+                var index_small : String    = LoadText(INDEX_SMALL);
                 var folder_list_db : Array = new Array();
                 var file_list_index : String = "";
                 var bExportedLinks : Boolean = false;
 
+                // Iterate all of the folders
+                var folders : Array = Find.GetFolders(found);
                 setTimeout( ThreadPassFolder );
                 var folder_iteration : int = 0;
+
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
                 {
@@ -426,11 +422,11 @@ CONFIG::FLASH_AUTHORING
                         var curr_files : Array = Find.GetChildren( found, root );
                         var curr_folders : Array = Find.GetFolders(curr_files);
                         curr_files = Find.GetFiles(curr_files);
-//trace("Found Folders:",root.nativePath,curr_folders.length);
-//trace("Found Files:",root.nativePath,curr_folders.length);
 
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
+                        curr_title = Find.FixDecodeURI(curr_title);
+
                         seded = player_template;
                         seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
@@ -457,7 +453,7 @@ CONFIG::FLASH_AUTHORING
 
                                 if( 0 == iteration )
                                 {
-                                    if( folders[0] != curr_folder && 0 != curr_files.length )
+                                    if( /*folders[0] != curr_folder &&*/ 0 != curr_files.length )
                                     {
                                         seded = index_index;
                                         seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
@@ -542,7 +538,8 @@ CONFIG::FLASH_AUTHORING
                 {
                     // If user wanted a flattened table of contents, make one.
                     // We already did all the work for it, above
-                    if( CheckGet( ui.bnTOC ) )
+                    // Don't generate the TOC if there's only one folder
+                    if( CheckGet( ui.bnTOC ) && folder_list_db.length > 1 )
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
