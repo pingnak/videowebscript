@@ -363,14 +363,15 @@ package
         **/
         public static function GetChildren( tree : Array, path : File, max_depth : uint = 0/*uint.MAX_VALUE*/  ) : Array
         {
+            var found : Array = new Array();
+            found.push(path);
             var i : int;
             var f : File;
             var root : File = tree[0];
             var depth : int = File_Depth(path,root);
             if( root.url != path.url )
                 depth += 1;
-            var found : Array = new Array();
-            var url : String = path.url;
+            var url : String = path.url+'/';
             for( i = 0; i < tree.length; ++i )
             {
                 f = tree[i];

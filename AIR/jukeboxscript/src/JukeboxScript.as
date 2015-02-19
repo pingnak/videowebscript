@@ -48,7 +48,7 @@ CONFIG::MXMLC_BUILD
         public static var SCRIPT_TEMPLATES: String ="templates/"
 
         /** Start of movie player and available content */
-        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"index_template.html";
+        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"Jukebox_template.html";
         
         /** Table of contents file */
         public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
@@ -59,6 +59,12 @@ CONFIG::MXMLC_BUILD
         /** Link to folder index */
         public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
 
+        /** Small indexes for folder list on TOC */
+        public static var INDEX_TOC_FILE  : String = SCRIPT_TEMPLATES+"index_toc_file.html";
+
+        /** Link to folder index */
+        public static var INDEX_SMALL     : String = SCRIPT_TEMPLATES+"index_small.html";
+        
         /** Offset for folder depths in TOC file */
         public static var FOLDER_DEPTH : int = 32;
 
@@ -267,16 +273,23 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var index_template_no_player : String = LoadText(TOC_TEMPLATE);
-                var index_template : String = LoadText(PLAYER_TEMPLATE);
+                var jukebox_template : String = LoadText(PLAYER_TEMPLATE);
                 var index_index : String    = LoadText(INDEX_INDEX); 
                 var index_file : String     = LoadText(INDEX_FILE); 
                 
+                // TOC pieces
+                var toc_template : String   = LoadText(TOC_TEMPLATE);
+                var index_toc_file : String = LoadText(INDEX_TOC_FILE);
+                var index_small : String    = LoadText(INDEX_SMALL);
+                var folder_list_db : Array = new Array();
+                var file_list_index : String = "";
+                var bExportedLinks : Boolean = false;
+
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
                 setTimeout( ThreadPassFolder );
-
                 var folder_iteration : int = 0;
+
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
                 {
@@ -298,7 +311,7 @@ CONFIG::FLASH_AUTHORING
                     var folder : File;
                     var root : File = folders[folder_iteration++];
 
-                    ui.tfStatus.text = folder_iteration.toString()+"/"+folders.length.toString();
+                    ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
 
                     // Don't write index files in folders with no audio content
                     var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
@@ -307,6 +320,12 @@ CONFIG::FLASH_AUTHORING
                     {
                         // Get a list of folders in this folder, files in this folder
                         var curr_files : Array = Find.GetChildren( found, root );
+trace("\n\n", root.url );
+var i : int;
+for( i = 0; i < curr_files.length; ++i )
+{
+    trace(curr_files[i].url);
+}
                         var curr_folders : Array = Find.GetFolders(curr_files);
                         curr_files = Find.GetFiles(curr_files);
 
@@ -314,33 +333,61 @@ CONFIG::FLASH_AUTHORING
                         var curr_title : String = Find.File_nameext(root);
                         curr_title = Find.FixDecodeURI(curr_title);
 
-                        // Use an index TOC, if we don't have any files to play at this layer
-                        seded = 0 == curr_files.length ? index_template_no_player : index_template;
+                        // Build jukebox file
+                        seded = jukebox_template;
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
+                        
                         var index_content : String = seded;
                         var index_files : String = "";
+                        var dbnew : Object;
     
                         // Iterate child folders and generate links to them
-                        for( iteration = 1; iteration < curr_folders.length; ++iteration )
+                        for( iteration = 0; iteration < curr_folders.length; ++iteration )
                         {
                             var curr_folder : File  = curr_folders[iteration];
     
                             // Filter folders with no movies in any children from lists
                             total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
                             total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
-                            if( total_files_at_this_depth.length > 0 )
+                            if( total_files_at_this_depth.length > 1 )
                             {
                                 var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
+                                var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
                                 curr_index_title = Find.FixDecodeURI(curr_index_title);
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
-        
-                                // Emit index for child folder
-                                seded = index_index;
-                                seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                                seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                                seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
-                                index_files += seded;
+                                var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
+                                var curr_depth : int = Find.File_Depth(curr_folder,folders[0]);
+
+                                if( 0 == iteration )
+                                {
+                                    if( /*folders[0] != curr_folder &&*/ 0 != curr_files.length )
+                                    {
+                                        seded = index_index;
+                                        seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
+                                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                        seded = seded.replace(/FOLDER_STYLE/g,"");
+                                        file_list_index += seded;
+                                    }
+                                }
+                                else
+                                {
+
+                                    // Emit index for child folder
+                                    seded = index_index;
+                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
+                                    index_files += seded;
+
+                                    // Generate indexes for TOC
+                                    seded = index_small;
+                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
+                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
+                                    dbnew = {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth};
+                                    folder_list_db.push( dbnew );
+                                }
                             }
                         }
                         
@@ -363,13 +410,23 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MUSIC_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
                             index_files += seded;
-                            
+    
+                            // Emit absolute index to play from TOC
+                            curr_file_relative = Find.File_relative( curr_index_file, folders[0] );
+                            var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
+                            var curr_path   : String = curr_file_relative + '?' + curr_name;
+                            seded = index_toc_file;
+                            seded = seded.replace(/MEDIA_PATH/g,curr_path);
+                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                            file_list_index += seded;
+
+                            bExportedLinks = true;
                         }
     
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
 
                         // Now write out index file in one pass
-                        var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
                         var fs : FileStream = new FileStream();
                         fs.open( curr_index_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
@@ -381,9 +438,35 @@ CONFIG::FLASH_AUTHORING
                 function ThreadComplete():void
                 {
                     // If user wanted a flattened table of contents, make one.
-                    if( CheckGet( ui.bnTOC ) )
+                    if( CheckGet( ui.bnTOC ) && folder_list_db.length > 1 )
                     {
-                        DoTOC(found);
+                        // Insert folder list for little link table
+                        var folder_list : String = "";
+                        var dbCurr : Object = folder_list_db[iteration];
+                        var iteration : int;
+                        folder_list_db.sort(byNativePath);
+                        function byNativePath( p1:Object, p2:Object ) : int
+                        {
+                            return Find.SortOnNative( p1.path, p2.path );
+                        }
+                        for( iteration = 0; iteration < folder_list_db.length; ++iteration )
+                        {
+                            dbCurr = folder_list_db[iteration];
+                            //if( 0 == dbCurr.depth && 0 != iteration )
+                            //    folder_list += "<br/>";
+                            folder_list += dbCurr.item;
+                        }
+
+                        var index_content : String = toc_template;
+                        index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
+                        index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+
+                        // Now write out index file in one pass
+                        var toc_file : File = Find.File_AddPath( folders[0], MAIN_TOC );
+                        var fs : FileStream = new FileStream();
+                        fs.open( toc_file, FileMode.WRITE );
+                        fs.writeUTFBytes(index_content);
+                        fs.close();
                     }
                     AudioFilesComplete();
                 }
@@ -395,70 +478,6 @@ CONFIG::FLASH_AUTHORING
                 Interactive();
             }
             // Fall out; timer threads are in charge
-        }
-
-        /**
-         * Iterate through folders and generate a flattened Table of Contents 
-         * of AudioPlayer.html files, throughout the tree.
-        **/
-        protected function DoTOC(found:Array):void
-        {
-            var index_template : String = LoadText(TOC_TEMPLATE);
-            var index_index : String    = LoadText(INDEX_INDEX); 
-
-            var folders : Array = Find.GetFolders(found);
-            var root : File = folders[0];
-            var curr_title : String = Find.File_nameext(root);
-            var seded : String;
-            var bExportedLinks : Boolean = false;
-            
-            seded = index_template;
-            seded = seded.replace(/TITLE_TEXT/g,curr_title);
-            
-            var index_content : String = seded;
-            var folder_list : String = "";
-            
-            var folder_iteration : int;
-            for( folder_iteration = 1; folder_iteration < folders.length; ++folder_iteration )
-            {
-                // Create and build top half of index file
-                var curr_folder : File  = folders[folder_iteration];
-                var curr_index_file : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                if( curr_index_file.exists )
-                {
-                    var curr_depth : int = Find.File_Depth(curr_folder,root);
-                    var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                    var curr_index_title : String = Find.File_nameext( curr_folder );
-                    curr_index_title = Find.FixDecodeURI(curr_index_title);
-                    var curr_index_relative : String = Find.File_relative( curr_index, root );
-
-                    // Emit index for child folder
-                    seded = index_index;
-                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
-                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
-                    bExportedLinks = true;
-                    folder_list += seded;
-                }
-            }
-            
-            // Insert folder list into file template
-            index_content = index_content.replace("<!--INDEXES_HERE-->",folder_list);
-            
-            var toc_file : File = Find.File_AddPath( root, MAIN_TOC );
-            if( bExportedLinks )
-            {
-                // Now write out index file in one pass
-                var fs : FileStream = new FileStream();
-                fs.open( toc_file, FileMode.WRITE );
-                fs.writeUTFBytes(index_content);
-                fs.close();
-            }
-            else
-            {
-                if( toc_file.exists )
-                    toc_file.moveToTrashAsync();
-            }
         }
 
         /**

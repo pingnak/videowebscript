@@ -23,7 +23,7 @@ a:link      { color:#00ffff; text-decoration: none; }
 a:visited   { color:#00ffff; text-decoration: none; }
 a:hover     { color:#00ffff; text-decoration: underline; }
 a:active    { color:#20ffff; text-decoration: none; }
-.title {
+#title {
     width:100%;
     color:#e0e0e0;
     font-size:50px;
@@ -64,7 +64,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     background-color:#101010;
     z-index:2;
 }
-#playlist {
+#PlayList {
     overflow: auto;
     position: absolute;
     width: 100%;
@@ -77,7 +77,7 @@ a:active    { color:#20ffff; text-decoration: none; }
 
 <body onload="PlayerInit();">
 <div id='PlayerBox'>
-<div id="title" class="title">Titles Available In TITLE_TEXT</div>
+<div id="title">Titles Available In TITLE_TEXT</div>
 <br/>
 <button class="button_format" type="button" title="Previous Track" onclick="javascript: return playPrev();"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAADAUExURQAAAP///////////////////////////////////////////////////////////8zMzAD//////wAAADMzMwA/P/Ly8pmZmQC/v9LS0vv7+9/f3+/v79XV1YyMjPX19WZmZgAfH7+/vxkZGdvb23JycgAPDwBfX0xMTAwMDADPz6WlpQCvr8/Pz+Li4gDv7wB/fwAvL+jo6OXl5djY2LKysgCfnyYmJj8/PwDf3+vr6wBvb1lZWcXFxfj4+H9/f7UhKSAAAAAQdFJOUwCfjx8Pf1+/32/PPy9Pr+896aFUAAABc0lEQVQ4y3WTZ2OCMBCGwxBx1eQugoIMB1rrqlbtbv//v2qIKGH0/XpPcus9QnIZVkPKMkiNzJYNd9ktsxwX4fEuoFLBzgHbKoS7bTiOqKLRGB6UT4x+dKIlzb12nr79s6UVBaDdgAcvOCexWyZ8aFzjPfATRHwthtf86wU6MkF/TPmEXVD9YvqIyGlkywZhRPmADVUgXuHywOkJ0mZth5aAcIaDJzbglEaiky74RWDNcbJhTAI+GCLDVgVE8sUzYxkwghbRPKoAafI9uwPU00nTyYFrcqYATlMBwiz5v8AvKu/rAFfUj5/7MqCrRYoiFhdWLLLY5jRGPAwLbZYHdX5DXL4rgyL2uDRqdyZnlQJOuq1GdVnJCidDAQRyWdm6N+o2022LdcsPCLFgHlYM43LkmWGk5cI4KTvO/b5ZTpjW86umPeamJaYGFeJDjECRBlHxcCIonhbpidOb349GnF6n9ngdKXG8lll34D29KaWrr/8Ae+A+0L8GxsYAAAAASUVORK5CYII=" /></button>
 &nbsp;
@@ -97,7 +97,7 @@ a:active    { color:#20ffff; text-decoration: none; }
 </div>
 
 <br/>
-<div id="playlist">
+<div id="PlayList">
 <br/><a class="folder_entry" id="ToParent" style='display:none;' href="../Jukebox.html" ><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAY1BMVEUAAAAyMjIwMDAzMzMxMTEyMjIyMjIzMzMzMzMxMTEyMjIzMzMzMzMyMjIzMzMxMTEA//8zMzMvPz8mZmYZmZkJ2NgMzMwWpaUG5eUD8vIpWVkcjIwff38jcnIPv78sTEwTsrJf4MiOAAAAEHRSTlMA30/PH3/vvw8/j2+vn18v411MkwAAAPZJREFUOMvNktmWgyAQREVFlMRMF+Ca9f+/clhmARPM25ypR7gU3V1dFH+trtu9biWwd18y7AH1ETif88ChwTqQyQEfAmoiIi1eF8cBPVMW6BjUjbx0VT8/721xS7inC9AIXrbx8wb3kb61jOZ6t832v0ZHqJlSLUaB/ZjUX/WnyKSqNp6A3prQEBORycP+HzpKCG8yuGMDzhmMJyDjIAT8sRt1LXEJcJlE6bOY4HwPePipsXRgNk0zwm9MD/fhiNNmHxqoABTs6izWajt1axIACQdMeEqm5KE3DjeZeftHlBB8Pkq+ATL744FVW6ks0IogXvwHfQIK/RVvGadqVwAAAABJRU5ErkJggg==" /></a>
 
 <!--INDEXES_HERE-->
@@ -109,6 +109,8 @@ a:active    { color:#20ffff; text-decoration: none; }
 var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
 var bShuffle = false;
 var now_playing = null;
+var playlist = null;
+var PlayList = document.getElementById("PlayList");;
 var audio_box;
 var audio;
 var bRand = document.getElementById("bRand");
@@ -117,7 +119,7 @@ var bSeq = document.getElementById("bSeq");
 function ClickedRandom()
 {
     PlayListShuffle(); 
-    playmedia();
+    PlayMedia();
     bRand.style.display ='none';
     bSeq.style.display ='';
     return false;
@@ -125,7 +127,7 @@ function ClickedRandom()
 function ClickedSequential()
 {
     MakePlaylist(); 
-    playmedia();
+    PlayMedia();
     bSeq.style.display ='none';
     bRand.style.display ='';
     return false;
@@ -135,10 +137,18 @@ function PlayerInit()
 {
     audio_box = document.getElementById("PlayerBox");
     audio = document.getElementById("audioplayer");
+
     MakePlaylist();
     if( 0 == playlist.length )
     {
         audio_box.style.display = 'none';
+        PlayList.style.top = '0px';
+    }
+
+    var params = window.location.href.split('?');
+    if( 2 == params.length )
+    {   // If we have '?title.mp3' that's the video in this folder, to play
+        PlayMedia(decodeURI(params[1]));
     }
     
     // If we have a parent, show a 'back' link to it
@@ -157,14 +167,18 @@ function PlayerInit()
             }  
         }
     };
-    request.send();
+    try {
+        request.send();
+    } 
+    catch(e) {};
+    
     
 }
 /* 
  * Load the audio when the page finishes loading 
  * http://www.w3.org/2010/05/audio/mediaevents.html
  */
-function playmedia(audio_path)
+function PlayMedia(audio_path)
 {
     if(typeof(audio_path)==='undefined') 
         audio_path = playlist[0].getAttribute('path');
@@ -180,9 +194,10 @@ function playmedia(audio_path)
     audio.addEventListener( "ended", playNextWrap ); // Re-shuffle
     // Show title
     var title = document.getElementById("title");
-    title.innerHTML = "Now Playing: " + now_playing.split('/').pop();
+    title.innerHTML = "Now Playing: " + TitleFromPath(now_playing);
 }
-// Make a play list from title links
+
+/* Make a play list from title links */
 function MakePlaylist()
 {
     var collection = document.getElementsByClassName("index_entry");
@@ -195,7 +210,7 @@ function MakePlaylist()
     bShuffle = false; 
     return playlist = array;
 }
-// Shuffle a play list
+/* Shuffle a play list */
 function PlayListShuffle()
 {
     ArrayShuffle(playlist);
@@ -223,7 +238,7 @@ function ArrayShuffle(array)
     }
     return array;
 }
-// Get index of currently playing media
+/* Get index of currently playing media */
 function indexPlaying()
 {
     var i = playlist.length;
@@ -234,7 +249,7 @@ function indexPlaying()
     }
     return -1;
 }
-// Play the previous one
+/* Play the previous one */
 function playPrev()
 {
     var i = indexPlaying() - 1;
@@ -242,10 +257,10 @@ function playPrev()
     {
         i = playlist.length-1;
     }
-    playmedia(playlist[i].getAttribute('path'));
+    PlayMedia(playlist[i].getAttribute('path'));
     return false;
 }
-// Play the next one
+/* Play the next one */
 function playNext()
 {
     var i = indexPlaying() + 1;
@@ -253,10 +268,10 @@ function playNext()
     {
         i = 0;
     }
-    playmedia(playlist[i].getAttribute('path'));
+    PlayMedia(playlist[i].getAttribute('path'));
     return false;
 }
-// Play the next one, re-shuffle if play list hits the end on its own
+/* Play the next one, re-shuffle if play list hits the end on its own */
 function playNextWrap()
 {
     var i = indexPlaying() + 1;
@@ -268,7 +283,15 @@ function playNextWrap()
             PlayListShuffle();
         }
     }
-    playmedia(playlist[i].getAttribute('path'));
+    PlayMedia(playlist[i].getAttribute('path'));
+}
+/** Turn video URI into title text */
+function TitleFromPath(path)
+{
+    var titletext = decodeURI(path);
+    titletext = titletext.substring(titletext.lastIndexOf('/')+1);
+    titletext = titletext.substring(0,titletext.lastIndexOf('.'));
+    return titletext;
 }
 </script>
 
