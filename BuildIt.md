@@ -1,0 +1,56 @@
+# Introduction #
+
+Look at all of that source code.  If you're feeling adventurous, then you can build it and modify it, yourself.
+
+# Building It #
+
+The source can be built with Apache Ant, and some recent version of Flex SDK (both require a Java runtime environment).  Whatever Flex SDK is in your path, is what the ant script will use.  So be sure to configure the right one in the path.
+
+You will still need Adobe Flash CS6, or later to change the hideous little UI's appearance.
+
+https://ant.apache.org/
+
+http://www.adobe.com/devnet/flex/flex-sdk-download.html
+
+You can get Flex 4.5, matching exactly what I built with, here.  It downloads a swf, and running that will reveal the path.  I don't know why.  I guess they just felt that everyone should have a 'flash runtime' installed.
+
+http://sourceforge.net/adobe/flexsdk/wiki/Downloads/
+
+The build script will generate a self signed certificate for your AIR app, if you don't have one.  Once you've built your own, you'll probably encounter the same problem, where the certificate doesn't match, so AIR won't install your app.  Just remove the previous version, yourself, and you'll be able to install the new one, that you built, with your own certificate.
+
+According to which version of the AIR SDK, you'll need to edit the second line of jukeboxscript-app.xml and videowebscript-app.xml and contactscript-app.xml (AIR SDK configuration), to match.
+
+So for AIR 4.0 SDK...
+
+
+
+&lt;application xmlns="http://ns.adobe.com/air/application/4.0"&gt;
+
+
+
+For AIR 2.6 SDK...
+
+
+
+&lt;application xmlns="http://ns.adobe.com/air/application/2.6"&gt;
+
+
+
+
+See Also: [SecurityCaveats](SecurityCaveats.md)
+
+I build alternately with Flash 5.5, and the Flex SDK.
+
+Flex/Flash Builder and 'Eclipse' make me want to vomit.  I'm old fashioned, and prefer the command line tools, so we build with 'ant' and the free Flex 4.5 SDK (AIR 2.6).
+
+Anyway, with Flash, just load it up and publish it.  Though initially created with Flash CS6, I decided to go back half a version (Flash CS5.5), because I don't have to pay monthly rent on it.  If you have newer Flash, it will volunteer to 'upgrade', and you can drop the 'JPGEncoder.as' file from Adobe, because there's a BitmapData.encode() function for JPEG export (and a line dyked out, with the right call).
+
+You can build this project with any newer versions of AIR, but 2.6 turned out to be the last version that supported Linux.  (Thanks Adobe, you morons!  I hope you all enjoy watching Unity eat you alive on SteamOS.)
+
+The best way to manage multiple Flex versions that I've found is to put them all in one place, and set a 'flex\_sdk' symbolic link pointing at the 'current' one that you're working with, and add that to the path.  Then you can simply point at the 'right' one.  You could do much the same renaming folders, too.
+
+Anyway, the pretty UI (who am I kidding?) is made in Flash.  It has two export project types.  A naked swf (for the flex build to import), and an AIR build.  You'll need to poke around in your AIR settings to point it at your certificate, and type your password in.
+
+To debug outside of flash, what you need to do is launch 'fdb' in a terminal/cmd shell window, and type the 'run' command.  Then 'ant rundebug' in another window, in the project folder.  Then use fdb, which works sort of like gdb, except far less conveniently.
+
+You may also try 'ant runtrace'.  This will run a debug build with trace output.  Windows users will need to install 'tail', from some 'GNU Tools' collection, or another (it's sort of like 'more', only better behaved, with more options for watching live output).  For most debugging, this is more than adequate.  Throw some traces in, 'ant runtrace', look at the output, and soon the problem is identified.

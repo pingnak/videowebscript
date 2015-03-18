@@ -1,0 +1,1 @@
+This is Google's video playback dongle.  Do your own web searches.

@@ -1,0 +1,25 @@
+# Caveats #
+
+I have some important cautions for you, if your media content is licensed, copyrighted, private, etc.  Like any other electronic means of viewing things, it is easy to inadvertently share your videos with the world.  Take proper precautions.  These are not necessarily 'all' of the precautions you should take.  Just some examples to get you thinking about your liability.
+
+1. Put a password on your wireless router.  Or you'll share it all with everyone within a mile of your wireless network.
+
+2. It would be trivial to configure a web server to use the output of this script.  If you do, make sure either you own all of the content, or that anyone who pings your network router from the outside world doesn't discover a web server with your media collection on it... unless it was your intention to share with the whole wide world.  You know, configure the firewall right, or configure the web server to require passwords and https communication.
+
+3. If you have to share protected content with others, over a distance, perhaps make sure it's done over a VPN.
+
+4. Even on your own LAN, you might want to slap a password on access to your media folder.  Just because.  For instance, to keep the kids out of it.
+
+# Special Pleading #
+
+Hey, this is just a script.  It has many valuable uses, and like anything that's useful, it can be used to do 'wrong'.  I take no responsibility for your willful, personal misconduct in distributing copyrighted materials, or other crimes, in whatever jurisdictions that you are in.
+
+I don't warrant this to work under any circumstances, because it relies on HTML5 'web standards' that aren't standardized at all, and even the BASH shell and related tools vary quite a bit across platforms that support them.
+
+# BACK UP YOUR DATA #
+
+I should probably mention the intrinsic value of 'Backups' and, if you produce content, version control for your development.  So I just did.  Back things up, in general, or you'll eventually have some 'regrets' to deal with.
+
+For someone who like scripts, a tool like rsync (OSX/Linux/UNIX) or xcopy (Windows), in a little script is your savior.  External USB hard drives are dirt cheap, and have enormous capacity.  There are friendly GUI tools that do backups, too, but exercise caution; some of them require that particular brand of software to recover, and if that's lost in your 'disaster', and you can't find that version of the software, you could be stuck.
+
+Even if you have something like 'Time Machine' running under OSX (and if you have it, you damned well should), a separate offline backup is recommended.  Generally a combination of very routine, incremental backups, and occasional 'complete' backups.  Don't delete 'old' backups.  Don't wipe 'old' backups.  Keep buying new drives for backups, if you can afford to, and if you can, store a backup 'off-site', at a trusted friend's or relative's home.  You know, in case you have a fire, flood, meteorite strike, etc.

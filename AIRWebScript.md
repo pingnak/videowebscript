@@ -1,0 +1,88 @@
+# Introduction #
+
+This is the Adobe AIR version of 'making web interfaces for things tool'.  It's not pretty, but it works.
+
+# Setup #
+
+If you have Adobe AIR installed, just download and open the VideoWebScript.air file to run it.  You may see a lot of 'self signed' warnings.  That's because I used a 'self signed' certificate to build it.  If you don't like it, there's the code, so build it yourself, with your own certificate.
+
+  * [Get the VideoWebScript.air app from version control.](https://videowebscript.googlecode.com/svn/trunk/AIR/videowebscript/deploy/VideoWebScript.air)
+
+If you don't have adobe AIR installed (you open the .air file, and nothing good happens), then install AIR from here, and try again...
+
+  * http://get.adobe.com/air/
+
+# It Says I Didn't Configure The Installer Right! #
+
+Actually, that's Adobe having fits about the self signed certificate being different.  If you manually remove the previous version from the computer, you can install the next (and later) versions, just fine.
+
+# Using It #
+
+Click the [...] button next to the path, and navigate to your content.  Navigate to folder/tree that you want to index, click 'DO IT', and let it work away at it for a while.  It will appear to hang briefly a few times, if it's dealing with lots of files.  You can also edit the paths directly.  If a path is invalid, a little arrow will flash over it, when you try to 'DO IT'.
+
+'DO IT' will cause several things to happen, in order:
+
+  1. It searches for files and folders in the path.  On a locally connected hard disk, this will be quick.  Over a network, this can take a minute.
+  1. It generates a VideoPlayer.html in each folder, with links to child folders with additional video content, if any.
+  1. If you picked 'Make index.html', it will generate a second index at the root, with a flattened version of the folder tree's VideoPlayer.html file links.
+  1. It generates thumbnails from each movie.  It takes several seconds, per file to open, seek and write a jpeg file from the content.  Sometimes a bit longer, if the thumbnail 'sucks', or the movie has a lot of dark, or low contrast imagery.  This will take a long time, the first time, if you have a lot of video files, but will be quicker on successive passes, as it does not re-create existing images.
+
+The app remembers its settings, so the next time you run it, it will be able to quickly redo the same operations.
+
+  * Don't leave it pointing at 'home', or at C:\ or '/'.  Point it where the actual mp4 video files are, or this will not generate anything like what you want.  In fact, the first times you run it, point at some small subset of your video collection, to see how it works quickly, and how your settings look, before committing to doing the rest..
+
+  * The AIR app only handles thumbnailing MP4 files, so at the moment, it only searches for MP4 files.
+
+  * 'Make index.html' Checkbox
+
+This will generate an index.html at the root of the video tree, linked to all of the folders' VideoPlayer.html files listed as the folders.  If you don't like navigating through three pages to get to something three folders deep, you can open this to get directly to a folder.
+
+  * '♫' Checkbox
+
+Uncheck this if the little 'beep-boop' tone after it does something annoys you.  Since processing can take a while, an audible prompt lets you know it's done... or otherwise stopped.
+
+  * Thumbnail Size
+
+Enter a number, or leave it alone.  Smaller thumbnails load faster, and fit more files on screen, but it's harder to see what they're a thumbnail of.  Bigger thumbnails make the interface unwieldy, and html page loads pretty slow, over a network.
+
+  * [...]
+
+Use folder explorer to set path.
+
+  * [`*`]
+
+Open OS Finder/Explorer/File Manager/etc. file browser on the current path.
+
+# Thumbnails #
+
+The tool will not re-generate thumbnails that already exist.  It opens the video file, randomly seeks from 20~80% of the way in, then captures a frame and writes it out as a JPEG file.
+
+Some thumbnails will... suck.  'Randomly' means the tool can find the end of a 'fade to black', or camera pointed at a wall, or blurry pan, or various other examples of bad thumbnails.  It's a computer, not an art critic.  Just delete the thumbnails you hate, and run the script again, until you can tolerate what you see on the pages.
+
+A simple heuristic based on the size of the jpeg file is applied. to at least discover nearly solid-colored, or very low contrast scenes, and try again automatically, so you're a bit more likely to have complaints about the context of the thumbnails, than them being a blurry pan of a stucco wall, or the tail end of a fade.
+
+# Tools #
+
+The 'Tools' menu has a few items that needed burying, that could do harm.
+
+First is 'Remove Thumbnails'.  It does what it says.  If you pick that, a suitably noisome 'Are You Sure?' prompt pops up, and demands your permission.  While I took care to delete only jpg files that match an identically named file with the '.(mp4|m4v|m4p|m4r|3gp|3g2)' extension types, you should still use it with care, or it could 'throw away' images that just happened to match this pattern.
+
+The other one is 'Remove VideoPlayer.html' files.  This will recursively delete all of the VideoPlayer.html files.
+
+Make all kinds of sure you are navigated to the right path, before you put either of these tools to work.
+
+These tools are 'mostly harmless', except for the things in the 'Tools' menu.  They can be dangerous, but are (in my opinion) somewhat less dangerous than clicking, deleting, or scripting deletions by hand.  It's pretty easy to accidentally 'disappear' a video, while 'cleaning up thumbnails', yourself.  A good and timely backup will make this kind of error a lot less annoying.
+
+For instance, I had typed...
+```
+find . -name '*.jpg' -exec rm -v \{\} \;
+```
+... after a round of testing, and accidentally closed the the shell.  When I re-opened it after another round of testing, I absent-mindedly hit 'up arrow' (repeat last command), and enter, and realized I had done that in my 'home' folder, which is where the shell opens, by default.  I stopped it pretty quickly, but a lot of files were gone.  Fortunately, I had a recent incremental backup of all of that, and had it restored within a few minutes.
+
+# Long-Winded Technical Rants #
+
+What's checked in right now generates MP4 video thumbnails in AS3 code, and it's the only open source example I could find of Actionscript code to generate a thumbnail from video (in other words, I found no other examples of this, in the wild).  It took a bit of tinkering, since I could find no explicit 'a frame is ready to be rendered/captured' notification for after the seek.  The brief freezes while thumbnailing are from the jpeg encoder.  Eventually, I'll set aside a window for the thumbnails, as they're generated, so you can watch.
+
+See: [BuildIt](BuildIt.md)
+
+See Also: [SecurityCaveats](SecurityCaveats.md)

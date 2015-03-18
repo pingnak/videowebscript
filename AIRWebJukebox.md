@@ -1,0 +1,34 @@
+# Jukebox Script #
+
+This works almost exactly like the videowebscript.  It iterates through folders, looking for MP3 files, and builds indexes of them, with a player.
+
+Very much a work in progress.  Added a random play, and track seek.  Will probably add the buttons to the video thing, too.
+
+# Setup #
+
+[You can get the jukebox maker here.](https://videowebscript.googlecode.com/svn/trunk/AIR/jukeboxscript/deploy/JukeboxScript.air)
+
+[If you run it, and nothing good happens, you'll need Adobe AIR.](http://get.adobe.com/air/)
+
+# It Says I Didn't Configure The Installer Right! #
+
+Actually, that's Adobe having fits about the self signed certificate being different. If you manually remove the previous version from the computer, you can install the next (and later) versions, just fine.
+
+The idea here is that you made a play list, and you know damned well a computer will be able to play it, if it has a modern web browser installed.  The html output is pretty straight-forward, so you can edit the order it plays with a bit of copy/paste in a text editor.
+
+# How To Use It #
+
+This works just the same as 'VideoWebScript', iterating folders and files, generating audio players, instead of video players, and builds a tree of 'Jukebox.html' files that play folders.
+
+This is beta quality, and there are going to be bugs, for a bit.
+
+  * [...] Pick a path.
+  * [`*`] Open path in your OS' file browser.
+  * [♫] Checkbox enable 'ding dong' at end.
+  * Generate index.html Makes a single index.html with all of the ContactSheet.html files linked together.
+
+It builds just like VideoWebScript.  I probably need to make a way to export and override the html templates, so it's easier to customize the appearance and behavior of what this spits out.
+
+# TO DO #
+
+Parse some common 'Play List' formats, to export folders.
