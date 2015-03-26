@@ -15,26 +15,30 @@ This provides a consistent, portable user interface for that content on practica
 ## To Just Get The Binaries (What you're probably here for...)
 
 https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/deploy/VideoWebScript.air
+
 VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
 
 https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air
+
 Generate Web Interfaces To Play MP3
 
 https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air
+
 Generate Web Interfaces To View Photos]
 
 https://get.adobe.com/air/
+
 You'll need the Adobe AIR runtime, to run the AIR projects.
 
 ## The Projects
 
-  * [AIRWebScript] - An Adobe AIR app For Mac, Windows, ~~Linux~~ (thanks, Adobe, for being short-sighted nitwits), etc. users.  With setup software for your OS, and a graphical user interface.
+  * AIRWebScript - An Adobe AIR app For Mac, Windows, ~~Linux~~ (thanks, Adobe, for being short-sighted nitwits), etc. users.  With setup software for your OS, and a graphical user interface.
 
-  * [AIRContactSheet] - An organizer/indexer/thumbnailer for digital photographs.
+  * AIRContactSheet - An organizer/indexer/thumbnailer for digital photographs.
 
-  * [AIRWebJukebox] - An organizer/indexer/player for MP3 music.
+  * AIRWebJukebox - An organizer/indexer/player for MP3 music.
 
-  * [BASHWebScript] - A set of simple BASH (Mac, Linux, UNIX) shell scripts based on several command line tools, to do the video export.
+  * BASHWebScript - A set of simple BASH (Mac, Linux, UNIX) shell scripts based on several command line tools, to do the video export.
 
 ##License
 
