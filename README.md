@@ -1,6 +1,6 @@
 # videowebscript
 
-Scripts to generate a web interface for a collection of videos, music or pictures.
+Scripts to generate a web interface for a collection of videos, music or pictures.  See the wiki links, somewhere on this page, for details about setting up or building the various pieces.
 
 ## Introduction
 
@@ -17,9 +17,10 @@ This provides a consistent, portable user interface for that content on practica
 https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/deploy/VideoWebScript.air
 VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air JukeboxScript.air Generate Web Interfaces To Play MP3
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air
+Generate Web Interfaces To Play MP3
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air ContactSheet.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air
 Generate Web Interfaces To View Photos]
 
 ## The Projects
@@ -31,21 +32,6 @@ Generate Web Interfaces To View Photos]
   * [AIRWebJukebox] - An organizer/indexer/player for MP3 music.
 
   * [BASHWebScript] - A set of simple BASH (Mac, Linux, UNIX) shell scripts based on several command line tools, to do the video export.
-
-## Compatibility
-
-Works with iOS, Android, various browsers, basically, anything 'new' enough to claim support for HTML5 video/audio.
-
-  * http://www.w3schools.com/html/html5_canvas.asp  (Contact Sheet)
-  * http://www.w3schools.com/html/html5_audio.asp (Jukebox)
-  * http://www.w3schools.com/html/html5_video.asp (Video Player)
-  * Works with a desktop Chrome browser and a ChromeCast device, but inefficiently.
-  * Pointing a symbolic link at the accessible content with a web server works great, to stream to devices
-
-http://html5test.com/results/other.html 
-Also try HTML5test, for a list attempting to break down these capabilities by devices and browsers...
-
-## Building It
 
 ##License
 
