@@ -8,7 +8,7 @@ So you have a bunch of MP4s, MP3s, JPEGs, perhaps for a library, perhaps for cla
 
 Maybe you just need to knock together a simple, snappy web site to play your home movies?
 
-All these scripts do are iterate through folders and build a web page interface for the media, with a table of contents.  It can be browsed and played by a web browser that supports the relevant HTML5 features, either locally, on a hard disk, or served by a web server built into NAS or on your computer, over your LAN.
+All these scripts do, is iterate through folders and build a web page interface for the media, with a table of contents.  It can be browsed and played by a web browser that supports the relevant HTML5 features, either locally, on a hard disk, or served by a web server built into NAS or on your computer, over your LAN.
 
 This provides a consistent, portable user interface for that content on practically any computer you open it with, given an HTML5 compatible-enough browser.
 
@@ -22,6 +22,9 @@ Generate Web Interfaces To Play MP3
 
 https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air
 Generate Web Interfaces To View Photos]
+
+https://get.adobe.com/air/
+You'll need the Adobe AIR runtime, to run the AIR projects.
 
 ## The Projects
 
