@@ -2,7 +2,7 @@
 
 Scripts to generate a web interface for a collection of videos, music or pictures.
 
-= Introduction =
+## Introduction
 
 So you have a bunch of MP4s, MP3s, JPEGs, perhaps for a library, perhaps for classes?  
 
@@ -12,15 +12,17 @@ All these scripts do are iterate through folders and build a web page interface 
 
 This provides a consistent, portable user interface for that content on practically any computer you open it with, given an HTML5 compatible-enough browser.
 
-= To Just Get The Binaries (What you're probably here for...) =
+## To Just Get The Binaries (What you're probably here for...)
 
-  * [https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/deploy/VideoWebScript.air VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/deploy/VideoWebScript.air
+VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
 
-  * [https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air JukeboxScript.air - Generate Web Interfaces To Play MP3]
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air JukeboxScript.air Generate Web Interfaces To Play MP3
 
-  * [https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air ContactSheet.air - Generate Web Interfaces To View Photos]
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air ContactSheet.air
+Generate Web Interfaces To View Photos]
 
-= The Projects =
+## The Projects
 
   * [AIRWebScript] - An Adobe AIR app For Mac, Windows, ~~Linux~~ (thanks, Adobe, for being short-sighted nitwits), etc. users.  With setup software for your OS, and a graphical user interface.
 
@@ -30,23 +32,22 @@ This provides a consistent, portable user interface for that content on practica
 
   * [BASHWebScript] - A set of simple BASH (Mac, Linux, UNIX) shell scripts based on several command line tools, to do the video export.
 
-= Compatibility =
+## Compatibility
 
 Works with iOS, Android, various browsers, basically, anything 'new' enough to claim support for HTML5 video/audio.
 
-  * [http://www.w3schools.com/html/html5_canvas.asp  HTML5 Canvas] (Contact Sheet)
-  * [http://www.w3schools.com/html/html5_audio.asp  HTML5 Audio + MP3] (Jukebox)
-  * [http://www.w3schools.com/html/html5_video.asp HTML5 Video + MP4] (Video Player)
-  * Works with a desktop Chrome browser and a [ChromeCast] device, but inefficiently.
-  * Pointing a symbolic link at the accessible content with a web server works great, to stream to devices *See [SecurityCaveats]
+  * http://www.w3schools.com/html/html5_canvas.asp  (Contact Sheet)
+  * http://www.w3schools.com/html/html5_audio.asp (Jukebox)
+  * http://www.w3schools.com/html/html5_video.asp (Video Player)
+  * Works with a desktop Chrome browser and a ChromeCast device, but inefficiently.
+  * Pointing a symbolic link at the accessible content with a web server works great, to stream to devices
 
-[http://html5test.com/results/other.html Also try HTML5test, for a list attempting to break down these capabilities by devices and browsers...]
+http://html5test.com/results/other.html 
+Also try HTML5test, for a list attempting to break down these capabilities by devices and browsers...
 
-= Building It = 
+## Building It
 
-See: [BuildIt]
-
-= License =
+##License
 
 I picked the MIT license, mainly because the 'contact sheet' app [https://github.com/bashi/exif-as3 uses an 'exif-as3' library from GitHub] that picks through the EXIF data in jpeg files, and that's its license.
 
