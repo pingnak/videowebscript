@@ -14,33 +14,34 @@ This provides a consistent, portable user interface for that content on practica
 
 ## To Just Get The Binaries (What you're probably here for...)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air?raw=true
+### VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg?raw=true
+[Video Web Player Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air?raw=true)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe?raw=true
+[Video Web Player Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg?raw=true)
 
-VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
+[Video Web Player Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe?raw=true)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air?raw=true
+### Generate Web Interfaces To Play MP3
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg?raw=true
+[Jukebox Web Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air?raw=true)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe?raw=true
+[Jukebox Web Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg?raw=true)
 
-Generate Web Interfaces To Play MP3
+[Jukebox Web Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe?raw=true)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air?raw=true
+### Generate Web Interfaces To View Photos
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg?raw=true
+[Contact Sheet Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air?raw=true)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true
+[Contact Sheet Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg?raw=true)
 
-Generate Web Interfaces To View Photos
+[Contact Sheet Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true)
+
 
 https://get.adobe.com/air/
 
-You'll need the Adobe AIR runtime, to run the AIR projects, though the native installers have their own copy of that.
+You'll need the Adobe AIR runtime, to run the AIR projects, or use the native installers that have their own copy of AIR.
 
 ## The Projects
 
