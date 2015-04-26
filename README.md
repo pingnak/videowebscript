@@ -14,27 +14,27 @@ This provides a consistent, portable user interface for that content on practica
 
 ## To Just Get The Binaries (What you're probably here for...)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe?raw=true
 
 VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe?raw=true
 
 Generate Web Interfaces To Play MP3
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg?raw=true
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true
 
 Generate Web Interfaces To View Photos
 
