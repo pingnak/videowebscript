@@ -10,25 +10,37 @@ Maybe you just need to knock together a simple, snappy web site to play your hom
 
 All these scripts do, is iterate through folders and build a web page interface for the media, with a table of contents.  It can be browsed and played by a web browser that supports the relevant HTML5 features, either locally, on a hard disk, or served by a web server built into NAS or on your computer, over your LAN.
 
-This provides a consistent, portable user interface for that content on practically any computer you open it with, given an HTML5 compatible-enough browser.
+This provides a consistent, portable user interface for that content on practically any computer that you open it with, given an HTML5 compatible-enough browser.
 
 ## To Just Get The Binaries (What you're probably here for...)
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/deploy/VideoWebScript.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air
+
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg
+
+https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe
 
 VideoWebScript.air - Generate Web Interfaces To Play MP4/M4V]
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/deploy/JukeboxScript.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air
+
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg
+
+https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe
 
 Generate Web Interfaces To Play MP3
 
-https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/deploy/ContactSheet.air
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air
 
-Generate Web Interfaces To View Photos]
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg
+
+https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe
+
+Generate Web Interfaces To View Photos
 
 https://get.adobe.com/air/
 
-You'll need the Adobe AIR runtime, to run the AIR projects.
+You'll need the Adobe AIR runtime, to run the AIR projects, though the native installers have their own copy of that.
 
 ## The Projects
 
