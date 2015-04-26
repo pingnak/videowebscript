@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Install JDK (Java Development Kit, not JRE - it has JRE)
+    http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+    Install ANT from http://ant.apache.org/bindownload.cgi
+    Basically, unzip it somewhere, and add it to the PATH environment variable
+
+    ant -f setup.xml
+    
+    Once this has run once, you can re-generate the config files...
+
+    ant -DJustConfigure=true -f setup.xml 
+    
+-->
+<project basedir="." name="Download and Setup" default="setup" >
+
+	<!-- Import settings from environment -->
+	<property environment="env" />
+
+	<!-- Import user settings (air.certificate.password could go there) -->
+	<property file="${user.home}/ant/my.build.properties"/>
+
+	<!-- Import settings from local setup.properties -->
+    <property file="setup.properties"/>
+
+    <!-- Debugging...
+	<echoproperties/>
+   	-->
+
+	<!-- Self-signed Certificate generation -->
+	<target name="checkcert" >
+		<available property="cert.available" file="${air.certificate.filename}" />
+	</target>
+	
+	<!-- 
+	    This will make a new .p12 file.  If you don't have one already, this makes
+	    another.  If you make a new .p12 file of your own, you may not  be able to 
+	    reinstall your local modifications until you go into your /Applications
+	    folder (or whatever) and remove it, yourself.
+	-->
+	<target name="aircert" description="Build Self-Signed Certificate for AIR" unless="cert.available" depends="checkcert">
+		<sequential>
+            <echo>Cooking up a fake, self-signed development certificate...</echo>
+            <exec executable="${basedir}/${depends}/${windows.AIRSDK.unpacked}/bin/adt" searchpath="true" vmlauncher="false" failonerror="true" >
+                <arg line="-certificate"/>
+                <arg line="-cn '${air.certificate.name}'" />
+                <arg line="-o  '${air.certificate.org}'" />
+                <arg line="-ou '${air.certificate.orgunit}'" />
+                <arg line="-c  '${air.certificate.country}'" />
+                <arg line="2048-RSA"/>
+                <arg line="${air.certificate.filename}"/>
+                <arg line="${air.certificate.password}"/>
+            </exec>
+		</sequential>
+	</target>
+    
+    <condition property="is.windows">
+        <os family="windows" />
+    </condition>
+    <target name="download.windows" if="is.windows" unless="JustConfigure" depends="aircert" >
+        <echo>Getting Windows Tools...</echo>
+        <mkdir dir="${depends}"/>
+        <!-- 
+            Download+extract a couple of things at a time, trying to overlap
+            downloads and extractions. 
+
+            Note: In Windowsland, all files are 'executable', so ant/JAVA 
+            has no problem with permissions.
+
+            Ant's 'progress' option for downloads is useless.  It just fills
+            the screen with dots... and then tells you nothing.
+            
+            So, to see if it's actually downloading or downloafing... 
+            
+                'Task Manager' or 'Resource Monitor' for Windows
+                
+                'Activity Monitor' for OS X
+                
+                'System Monitor' or 'Performance Monitor' or other names, for Linux
+		-->
+        <parallel threadCount="2">
+
+
+            <sequential>
+                <get dest="${depends}" skipexisting="true" ignoreerrors="false"  >
+                    <url url="${windows.AIRSDK.url}"/>
+                </get>
+                <echo>Extracting ${depends}/${windows.AIRSDK.filename}</echo>
+                <unzip src="${depends}/${windows.AIRSDK.filename}" dest="${depends}/${windows.AIRSDK.unpacked}" />
+                <echo>${windows.AIRSDK.filename} extracted.  If you're stuck, a download is probably still going on.</echo>
+            </sequential>
+
+		</parallel>
+        
+        <echo>Invoke ${configure.bat} to set up build environments.</echo>
+    </target>
+
+    <target name="configure.windows" if="is.windows" >
+        <sequential>
+            <echo>Exporting Windows Environment...</echo>
+
+<echo file="${configure.bat}" append="false">@echo off
+REM Set up build environment.
+set ANT_ROOT=${ant.home}\bin
+set AIR_ROOT=${basedir}\${depends}\${windows.AIRSDK.unpacked}
+set Path=%AIR_ROOT%\bin;%Path%
+
+</echo>
+<path id="ant.home.DOS">
+    <pathelement path="${ant.home}" />
+</path>
+<pathconvert targetos="unix" property="ant.home.unix" refid="ant.home.DOS"/>
+<path id="basedir.depends">
+    <pathelement path="${basedir}/depends" />
+</path>
+<pathconvert targetos="unix" property="basedir.depends.unix" refid="basedir.depends"/>
+
+<property name="basedir.depends" location="${depends}" relative="false" />
+<echo file="${configure.properties}" append="false">
+# Ant configuration properties for Cocos2d-js
+ANT_ROOT=${ant.home.unix}/bin
+
+# Ant configuration properties for Adobe AIR
+SHELL=cmd
+SHELL.c=/c
+AIR_ROOT=${basedir.depends.unix}/${windows.AIRSDK.unpacked}
+AIR.MXMLC=${AIR_ROOT}/bin/mxmlc.bat
+AIR.COMPC=${AIR_ROOT}/bin/acompc.bat
+AIR.ADT=${AIR_ROOT}/bin/adt.bat
+AIR.ADL=${AIR_ROOT}/bin/adl.bat
+AIR.ASDOC=${AIR_ROOT}/bin/asdoc.bat
+GNU.TAIL=tail
+
+# Certificate stuff
+air.certificate.name=${air.certificate.name}
+air.certificate.org=${air.certificate.org}
+air.certificate.orgunit==${air.certificate.orgunit}
+air.certificate.country==${air.certificate.country}
+
+# This really shouldn't be part of this file.  Import from somewhere 'safe' from version control.
+air.certificate.filename=../${air.certificate.filename}
+air.certificate.password=${air.certificate.password}
+air.certificate.type=${air.certificate.type}
+
+</echo>
+        </sequential>
+    </target>
+    
+    <condition property="is.osx">
+        <and>
+            <os family="mac"/>
+            <os family="unix"/>
+        </and>
+    </condition>
+    <target name="download.osx" if="is.osx" unless="JustConfigure" depends="aircert" >
+        <echo>Getting OS X Tools...</echo>
+        <mkdir dir="${depends}"/>
+
+        <!-- 
+            Download+extract a couple of things at a time, trying to overlap
+            downloads and extractions. 
+
+            Note: GNU unzip/tar are shell versions, because JAVA won't set 
+            permissions.  We can expect these tools in a UNIX shell.
+        -->
+
+        <parallel threadCount="2">
+        
+            <sequential>
+                <get dest="${depends}" skipexisting="true" ignoreerrors="false"  >
+                    <url url="${osx.AIRSDK.url}"/>
+                </get>
+                <echo>Extracting ${depends}/${osx.AIRSDK.filename}</echo>
+                <mkdir dir="${depends}/${osx.AIRSDK.unpacked}"/>
+                <exec executable="tar" failonerror="true" >
+                    <arg line="jxf '${depends}/${osx.AIRSDK.filename}' -C '${depends}/${osx.AIRSDK.unpacked}'" />
+                </exec>
+                <echo>${osx.AIRSDK.filename} extracted.  If you're stuck, a download is probably still going on.</echo>
+            </sequential>
+
+        </parallel>
+
+<echo>Invoke 'source configure.sh' to set up build environments, or add configure.sh
+to your ~/.bash_profile
+</echo>
+            
+    </target>
+
+    <target name="configure.osx" if="is.osx" >
+        <sequential>
+            <echo>Exporting OS X Environment...</echo>
+            <!-- Ask nicely for which ant -->
+            <exec executable="sh" outputproperty='ANT_FILE' failonerror="true"  >
+                <arg line="-c 'which ant'" />
+            </exec>
+            <dirname file="${ANT_FILE}" property="ANT_ROOT" />
+<echo file="${configure.sh}" append="false">#!/bin/sh
+# Set up build environment.
+export ANT_ROOT=${ANT_ROOT}
+export AIR_ROOT=${basedir}/${depends}/${osx.AIRSDK.unpacked}
+export PATH=$AIR_ROOT/bin:$PATH
+</echo>
+<exec executable="sh" failonerror="true" searchPATH="true" >
+    <arg line="-c 'chmod +x ${configure.sh}'" />
+</exec>
+<echo file="${configure.properties}" append="false">
+# Ant configuration properties for Cocos2d-js
+ANT_ROOT=${ANT_ROOT}
+
+# Ant configuration properties for Adobe AIR
+SHELL=sh
+SHELL.c=-c
+AIR_ROOT=${basedir}/${depends}/${osx.AIRSDK.unpacked}
+AIR.MXMLC=${AIR_ROOT}/bin/mxmlc
+AIR.COMPC=${AIR_ROOT}/bin/acompc
+AIR.ADT=${AIR_ROOT}/bin/adt
+AIR.ADL=${AIR_ROOT}/bin/adl
+AIR.ASDOC=${AIR_ROOT}/bin/asdoc
+GNU.TAIL=tail
+
+# Certificate stuff
+air.certificate.name=${air.certificate.name}
+air.certificate.org=${air.certificate.org}
+air.certificate.orgunit==${air.certificate.orgunit}
+air.certificate.country==${air.certificate.country}
+
+# This really shouldn't be part of this file.  Import from somewhere 'safe' from version control.
+air.certificate.filename=../${air.certificate.filename}
+air.certificate.password=${air.certificate.password}
+air.certificate.type=pkcs12
+
+</echo>
+        </sequential>
+    </target>
+    
+    <!--
+        Setup: 
+            Depends: Check OS types and invoke the one that matches
+    -->
+    <target name="setup" description="Download Based On OS" depends="download.windows,download.osx,configure.windows,configure.osx" >
+   
+    </target>    
+</project>

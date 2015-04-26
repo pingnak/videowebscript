@@ -40,7 +40,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     width:auto;
     height:100%;
 }
-.video_controls, .video_controls_full, .video_controls_alt {
+.video_controls, .video_controls_bottom, .video_controls_alt {
     display: table;
     padding: 0;
     margin: 0;
@@ -50,7 +50,7 @@ a:active    { color:#20ffff; text-decoration: none; }
     width: 100%;
     height: 32px;
 }
-.video_controls_full {
+.video_controls_bottom {
     position: fixed;
     left: 0px;
     bottom: 0px;
@@ -238,11 +238,13 @@ var bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscree
 var bFull;
 var bWindow;
 var bToParent;
-var mouseTimeout;
+var mouseTimeout = -1;
+var resizeTimeout = -1;
+var browserWidth;
+var browserHeight;
 
-/* If no full screen, or Amazon Silk, give up skinning controls */
-var bUseNativeControls = !bFullscreenEnabled || /\bSilk\b/.test(navigator.userAgent) || /\bAndroid\b/.test(navigator.userAgent);
-
+/* If no full screen, or some kinda 'mobile' browser that ignores all the rules, use the native controls */
+var bUseNativeControls = !bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 /** Press pause/play button */
 function TogglePause()
@@ -341,6 +343,11 @@ function CheckAspect()
         {
             video_box.className = 'video_box_full';
             videoplayer.className = 'videoplayer_full';
+        }
+        var videoPlayerBottom = videoplayer.offsetTop + videoplayer.offsetHeight;
+        if( videoPlayerBottom + video_controls.offsetHeight > browserHeight )
+        {
+            video_controls.className = 'video_controls_bottom';
         }
     }
 }
@@ -452,11 +459,12 @@ function MouseTimeout()
 {
     if( VideoIsFullScreen() )
     {
-        video_controls.style.display="none";
+        video_controls.style.visibility = 'hidden';
         video_box.style.cursor = 'none';
     }
     else
     {
+        video_controls.style.visibility = '';
         video_controls.style.display="table";
     }
     mouseTimeout = -1;
@@ -467,7 +475,7 @@ function MouseMoved()
 {
     if( VideoIsFullScreen() )
     {
-        video_controls.style.display="table";
+        video_controls.style.visibility = '';
         if( -1 != mouseTimeout )
             clearTimeout(mouseTimeout);
         mouseTimeout = setTimeout( MouseTimeout, 3000 );
@@ -508,15 +516,7 @@ function PlayerInit()
     {
         // If full-screen is unavailable to code, stick to native controls
         video.setAttribute("controls",true);
-        video_controls.className = "video_controls_alt";
-        // Drag these out of video controls, to make them accessible
-        video_controls.appendChild(bPrev);
-        video_controls.appendChild(bSeq );
-        video_controls.appendChild(bRand);
-        video_controls.appendChild(bNext);
-        video_controls.removeChild(document.getElementById("video_controls_left"));
-        video_controls.removeChild(document.getElementById("video_controls_right"));
-        video_controls.removeChild(progress_bar);
+        video_controls.style.display = 'none';
     }
     else
     {
@@ -532,8 +532,9 @@ function PlayerInit()
         video.addEventListener( 'loadedmetadata', UpdateMeta );
 
         window.addEventListener( 'OnResize', OnResize );
+        window.addEventListener( 'fullscreenchange', OnResize );
         window.addEventListener( 'webkitfullscreenchange', OnResize );
-        window.addEventListener( 'mozfullscreenchangefullscreenchange', OnResize );
+        window.addEventListener( 'mozfullscreenchange', OnResize );
         window.addEventListener( 'MSFullscreenChange', OnResize );
     }
 
@@ -574,11 +575,15 @@ function PlayerInit()
 /** Window changed: Organize and update controls */
 function OnResize()
 {
-    // Because some browsers don't have this figured out, even though they call me
-    setTimeout(OnResizeNow,30);
+    // Because some browsers don't have this figured out yet, even though they call me
+    if( -1 != resizeTimeout )
+        clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(OnResizeNow,30);
 }
 function OnResizeNow()
 {
+    browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
     if( !bUseNativeControls )
     {   // Sort out full versus windowed playbacl
         if( video.hasAttribute("controls") )
@@ -587,11 +592,11 @@ function OnResizeNow()
         {
             bWindow.style.display="";
             bFull.style.display="none";
-            video_controls.className = 'video_controls_full';
             video_box.className = 'video_box_full';
+            video_controls.className = 'video_controls';
             videoplayer.className = 'videoplayer';
             // Once we re-render, check video aspect, and adjust
-            setTimeout(CheckAspect,100);
+            setTimeout(CheckAspect,30);
         }
         else
         {

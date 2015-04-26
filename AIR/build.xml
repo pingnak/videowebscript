@@ -6,7 +6,15 @@
 
 <project basedir="." name="${output.file}" default="build" >
 
-	<target name="build" description="Build all the other build.xml files"  >
+    <!-- If setup wasn't run, run setup -->
+    <available file="configure.properties" property="setupWasRun" />
+	<target name="Setup" unless="setupWasRun">
+	    <subant target="">
+            <fileset dir="." includes="setup.xml"/>
+	    </subant>
+	</target>
+
+	<target name="build" description="Build all the other build.xml files" depends="Setup" >
         <sequential>
             <subant target="">
                 <fileset dir="." includes="*/build.xml"/>
