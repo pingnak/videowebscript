@@ -811,21 +811,22 @@ for( i = 0; i < curr_files.length; ++i )
         {
             /* Regular expressions to eat spaces around operators */ 
             const notInQuotes : String = "";
-            // List of operators...   ([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+
-            // Not between quotes...  (?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)
-            // Not between > and <... (?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)
-            const regexOperatorSpace : RegExp = /([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)(?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)/msg;
-            const regexSpaceOperator : RegExp = /[ \t]+([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)(?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)/msg;
 
             // Eat html multiline comments
             outputFile = outputFile.replace(/\<\!\-\-.*?\-\-\>/msg,"");
 
-            // Eat C multiline comments (ignore '//' commens)
+            // Eat C-style multiline comments (ignore '//' comments)
             outputFile = outputFile.replace(/\/\*.*?\*\//msg,"");
             
             // Eat white space around operators, not in strings
-            outputFile = outputFile.replace(regexOperatorSpace,'$1');
-            outputFile = outputFile.replace(regexSpaceOperator,'$1');
+            // Doing this to html+js is a little too complex for regex.
+            // It skips quoted text nicely, but html has text that's not in quotes.  Like in links.
+            // List of operators...   ([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+
+            // Not between quotes...  (?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)
+            const regexOperatorSpace : RegExp = /([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)/msg;
+            const regexSpaceOperator : RegExp = /[ \t]+([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)/msg;
+            //outputFile = outputFile.replace(regexOperatorSpace,'$1');
+            //outputFile = outputFile.replace(regexSpaceOperator,'$1');
 
             // Eat spaces at starts of lines
             outputFile = outputFile.replace(/^[ \t]+/mg,"");
