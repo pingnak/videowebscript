@@ -25,8 +25,8 @@ package
     
     public class JukeboxScript extends applet
     {
-        internal static const SO_PATH : String = "JukeboxScriptData";
-        internal static const SO_SIGN : String = "JUKEBOXSCRIPT_SIGN_00";
+        protected static const SO_PATH : String = "JukeboxScriptData";
+        protected static const SO_SIGN : String = "JUKEBOXSCRIPT_SIGN_01";
 
 CONFIG::MXMLC_BUILD
 {
@@ -36,40 +36,28 @@ CONFIG::MXMLC_BUILD
 }
 
         /** Where the main UI lives */
-        internal var ui : MovieClip;
+        protected var ui : MovieClip;
         
         /** What to call the 'top level' index file */
-        public static var HTML_PLAYER     : String = "Jukebox.html";
+        public static const HTML_PLAYER     : String = "Jukebox.html";
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
-        public static var MAIN_TOC        : String = "index.html";
-        
-        /** Where to look for script template content */
-        public static var SCRIPT_TEMPLATES: String ="templates/"
+        public static const MAIN_TOC        : String = "index.html";
 
         /** Start of movie player and available content */
-        public static var PLAYER_TEMPLATE : String = SCRIPT_TEMPLATES+"Jukebox_template.html";
+        public static const PLAYER_TEMPLATE : String = "player_template.html";
         
         /** Table of contents file */
-        public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
+        public static const INDEX_TEMPLATE  : String = "index_template.html";
         
-        /** A movie file link with player logic */
-        public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
-
-        /** Link to folder index */
-        public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
-
-        /** Small indexes for folder list on TOC */
-        public static var INDEX_TOC_FILE  : String = SCRIPT_TEMPLATES+"index_toc_file.html";
-
-        /** Link to folder index */
-        public static var INDEX_SMALL     : String = SCRIPT_TEMPLATES+"index_small.html";
+        /** Where to look for script template content */
+        public static const SCRIPT_TEMPLATES: String ="templates/"
         
         /** Offset for folder depths in TOC file */
-        public static var FOLDER_DEPTH : int = 32;
+        public static const FOLDER_DEPTH : int = 32;
 
         /** File/folder left padding*/        
-        public static var LEFT_PADDING : int = 6;
+        public static const LEFT_PADDING : int = 6;
         
         /** 
          * Regular expressions that we accept as 'MP3 content' 
@@ -77,10 +65,19 @@ CONFIG::MXMLC_BUILD
         public static var REGEX_MP3        : String = ".(mp3|ogg)";
         
         /** Path to do the job in */
-        internal var root_path_audio : File;
+        protected var root_path_media : File;
 
+        /** Path to get templates from */
+        protected var root_path_template : File;
+
+        /** Path to file containing player template */
+        protected var player_template_file : File;
+
+        /** Path to file containing index template */
+        protected var index_template_file : File;
+        
         /** Finder while searching files/folders */
-        internal var finding : Find;
+        protected var finding : Find;
         
         public function JukeboxScript()
         {
@@ -117,6 +114,12 @@ CONFIG::FLASH_AUTHORING
             
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoAudio );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
+            
+            CheckSetup(ui.bnTempate);
+            ui.bnTempate.addEventListener( MouseEvent.CLICK, ChangeTemplateEnable );
+            ui.bFindTemplate.addEventListener( MouseEvent.CLICK, BrowsePathTemplate );
+            ui.tfPathTemplate.addEventListener( Event.CHANGE, onTemplateEdited );
+            
             LoadSharedData();
 
             // Build our menu of doom
@@ -141,9 +144,9 @@ CONFIG::FLASH_AUTHORING
             
         }
 
-        internal function FindStatus(e:Event):void
+        protected function FindStatus(e:Event):void
         {
-            //var list : Array = Find.FindBlock(root_path_audio);
+            //var list : Array = Find.FindBlock(root_path_media);
             var found_so_far : int = finding.results.length;
             ui.tfStatus.text = found_so_far.toString();
         }
@@ -175,7 +178,7 @@ CONFIG::FLASH_AUTHORING
         /**
          * Process halted or error
         **/
-        internal function Aborted(e:Event):void
+        protected function Aborted(e:Event):void
         {
             AbortTimeouts();
             Interactive();
@@ -184,7 +187,7 @@ CONFIG::FLASH_AUTHORING
         /**
          * Clicked abort button
         **/
-        internal function Abort(e:Event):void
+        protected function Abort(e:Event):void
         {
             AbortTimeouts();
             if( null != finding )
@@ -199,19 +202,47 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoAudio(e:Event=null):void
         {
-            trace("DoAudio",root_path_audio.nativePath);
+            trace("DoAudio",root_path_media.nativePath);
 
             /**
              * Do parameter checks before we launch into processes
             **/
-            ui.tfPathAudio.text = root_path_audio.nativePath;
+            ui.tfPathAudio.text = root_path_media.nativePath;
 
-            if( !root_path_audio.exists || !root_path_audio.isDirectory )
+            if( !root_path_media.exists || !root_path_media.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
                 return;
             }
 
+            // If we are using external template files...
+            if( CheckGet( ui.bnTempate ) )
+            {
+                try
+                {
+                    player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
+                    index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
+                }
+                catch( e:Error )
+                {
+                    trace(e.getStackTrace());
+                    ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                    return;
+                }
+                if( !player_template_file.exists || !index_template_file.exists )
+                {
+                    trace("Could not open template file.");
+                    ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                    return;
+                }
+            }
+            else
+            {
+                var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+                index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
+            }
+            
             CommitSharedData();
             
             // MP3, PNG, folders
@@ -229,7 +260,7 @@ CONFIG::FLASH_AUTHORING
                 return null == ext.match( rxMP3 );
             }
             
-            finding = new Find( root_path_audio, filter_mp4_png_folders );
+            finding = new Find( root_path_media, filter_mp4_png_folders );
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
@@ -273,14 +304,51 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var jukebox_template : String = LoadText(PLAYER_TEMPLATE);
-                var index_index : String    = LoadText(INDEX_INDEX); 
-                var index_file : String     = LoadText(INDEX_FILE); 
+                var player_template : String    = LoadText(player_template_file);
                 
+                const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
+                var index_index : String = player_template.match( rxFolder )[0];
+                index_index = index_index.replace(rxFolder,"$1");
+
+                const rxFile : RegExp = /\<\!\-\-INDEX_FILE(.*?)\-\-\>/ms;
+                var index_file : String = player_template.match( rxFile )[0];
+                index_file = index_file.replace( rxFile, "$1");
+
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_INDEX or INDEX_FILE in", player_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+            }
+                
+            try
+            {
                 // TOC pieces
-                var toc_template : String   = LoadText(TOC_TEMPLATE);
-                var index_toc_file : String = LoadText(INDEX_TOC_FILE);
-                var index_small : String    = LoadText(INDEX_SMALL);
+                var index_template : String = LoadText(index_template_file);
+
+                const rxIndexToc_Small : RegExp = /\<\!\-\-INDEX_SMALL(.*?)\-\-\>/ms;
+                var index_small : String  = index_template.match( rxIndexToc_Small )[0];
+                index_small = index_small.replace( rxIndexToc_Small, "$1" );
+                
+                const rxIndexToc_File : RegExp = /\<\!\-\-INDEX_TOC_FILE(.*?)\-\-\>/ms;
+                var index_toc_file : String = index_template.match( rxIndexToc_File )[0];
+                index_toc_file = index_toc_file.replace( rxIndexToc_File, "$1" );
+                
+                const rxIndexToc_Folder : RegExp = /\<\!\-\-INDEX_TOC_FOLDER(.*?)\-\-\>/ms;
+                var index_toc_folder : String  = index_template.match( rxIndexToc_Folder )[0];
+                index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_SMALL or INDEX_TOC_FILE or INDEX_TOC_FOLDER in", index_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+            }
+
+
+            try
+            {
                 var folder_list_db : Array = new Array();
                 var file_list_index : String = "";
                 var bExportedLinks : Boolean = false;
@@ -320,12 +388,12 @@ CONFIG::FLASH_AUTHORING
                     {
                         // Get a list of folders in this folder, files in this folder
                         var curr_files : Array = Find.GetChildren( found, root );
-trace("\n\n", root.url );
+/*trace("\n\n", root.url );
 var i : int;
 for( i = 0; i < curr_files.length; ++i )
 {
     trace(curr_files[i].url);
-}
+}*/
                         var curr_folders : Array = Find.GetFolders(curr_files);
                         curr_files = Find.GetFiles(curr_files);
 
@@ -334,7 +402,7 @@ for( i = 0; i < curr_files.length; ++i )
                         curr_title = Find.FixDecodeURI(curr_title);
 
                         // Build jukebox file
-                        seded = jukebox_template;
+                        seded = player_template;
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         
                         var index_content : String = seded;
@@ -361,9 +429,10 @@ for( i = 0; i < curr_files.length; ++i )
 
                                 if( 0 == iteration )
                                 {
-                                    if( /*folders[0] != curr_folder &&*/ 0 != curr_files.length )
+                                    // Make index entry if folder has contents
+                                    if( 0 != curr_files.length )
                                     {
-                                        seded = index_index;
+                                        seded = index_toc_folder;
                                         seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
                                         seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
                                         seded = seded.replace(/FOLDER_STYLE/g,"");
@@ -417,7 +486,7 @@ for( i = 0; i < curr_files.length; ++i )
                             var curr_path   : String = curr_file_relative + '?' + curr_name;
                             seded = index_toc_file;
                             seded = seded.replace(/MEDIA_PATH/g,curr_path);
-                            seded = seded.replace(/MOVIE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
                             file_list_index += seded;
 
@@ -425,6 +494,8 @@ for( i = 0; i < curr_files.length; ++i )
                         }
     
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
+
+                        index_content = PackOutput(index_content);
 
                         // Now write out index file in one pass
                         var fs : FileStream = new FileStream();
@@ -457,10 +528,12 @@ for( i = 0; i < curr_files.length; ++i )
                             folder_list += dbCurr.item;
                         }
 
-                        var index_content : String = toc_template;
+                        var index_content : String = index_template;
                         index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
                         index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
-
+                        
+                        index_content = PackOutput(index_content);
+                        
                         // Now write out index file in one pass
                         var toc_file : File = Find.File_AddPath( folders[0], MAIN_TOC );
                         var fs : FileStream = new FileStream();
@@ -473,7 +546,7 @@ for( i = 0; i < curr_files.length; ++i )
             }
             catch( e:Error )
             {
-                trace(e);
+                trace(e.getStackTrace());
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
                 Interactive();
             }
@@ -485,10 +558,16 @@ for( i = 0; i < curr_files.length; ++i )
         **/
         protected function ResetSharedData() : Object
         {
-            root_path_audio = File.desktopDirectory;
+            root_path_media = File.desktopDirectory;
             onFolderChanged();
             CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
+            
+            CheckSet( ui.bnTempate, false );
+            ChangeTemplateEnable();
+            root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            onTemplateChanged();
+            
             return CommitSharedData();
         }
         
@@ -519,7 +598,7 @@ for( i = 0; i < curr_files.length; ++i )
             }
             catch( e:Error )
             {
-                trace(e,e.getStackTrace());
+                trace(e.getStackTrace());
                 ResetSharedData();
             }
 
@@ -531,15 +610,26 @@ for( i = 0; i < curr_files.length; ++i )
             }
             
             // Decode the saved data
-            root_path_audio = new File(share_data.url_audio);
-            if( !root_path_audio.exists )
-                root_path_audio = File.desktopDirectory;
+            root_path_media = new File(share_data.url_audio);
+            if( !root_path_media.exists )
+                root_path_media = File.desktopDirectory;
             onFolderChanged();
 
             CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
             
             onFolderChanged();
+            
+            CheckSet( ui.bnTempate, share_data.bTemplate );
+            ChangeTemplateEnable();
+
+            root_path_template = new File(share_data.url_template);
+            if( !root_path_media.isDirectory )
+            {
+                root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            }
+            onTemplateChanged();
+            
         }
         
         /**
@@ -555,9 +645,12 @@ for( i = 0; i < curr_files.length; ++i )
             fs.open(f, FileMode.WRITE);
 
             // Copy data to our save 'object
-            share_data.url_audio = root_path_audio.url;
+            share_data.url_audio = root_path_media.url;
             share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
+
+            share_data.bTemplate = CheckGet( ui.bnTempate );
+            share_data.url_template = root_path_template.url;
             
             share_data.sign = SO_SIGN;
 
@@ -570,23 +663,23 @@ for( i = 0; i < curr_files.length; ++i )
         }
         
         /** Find path to audio content */
-        internal function BrowsePathAudio(e:Event=null):void
+        protected function BrowsePathAudio(e:Event=null):void
         {
-            root_path_audio.addEventListener(Event.SELECT, onFolderChanged);
-            root_path_audio.browseForDirectory("Choose a folder");
+            root_path_media.addEventListener(Event.SELECT, onFolderChanged);
+            root_path_media.browseForDirectory("Choose a folder");
         }
         
         /** Open an OS Finder/Explorer/whatever browser */
-        internal function OpenFolder(e:Event=null):void
+        protected function OpenFolder(e:Event=null):void
         {
-            root_path_audio.openWithDefaultApplication();
+            root_path_media.openWithDefaultApplication();
         }
         
 
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
-        internal function onFolderEdited(e:Event=null):void
+        protected function onFolderEdited(e:Event=null):void
         {
-            root_path_audio.nativePath = ui.tfPathAudio.text;
+            root_path_media.nativePath = ui.tfPathAudio.text;
         }
         
         // Convenience - hit enter in port to start up
@@ -601,24 +694,80 @@ for( i = 0; i < curr_files.length; ++i )
         
 
         /** User navigated a different path */
-        internal function onFolderChanged(e:Event=null):void
+        protected function onFolderChanged(e:Event=null):void
         {
-            ui.tfPathAudio.text = root_path_audio.nativePath; 
+            ui.tfPathAudio.text = root_path_media.nativePath; 
         }
 
+        /** Enable/disable template controls */
+        protected function ChangeTemplateEnable( e: MouseEvent = null ) : void
+        {
+            if( CheckGet( ui.bnTempate ) )
+            {
+                ui.bFindTemplate.mouseEnabled = true;
+                ui.tfPathTemplate.mouseEnabled = true;
+                ui.bFindTemplate.alpha = 1;
+                ui.tfPathTemplate.alpha = 1;
+            }
+            else
+            {
+                ui.bFindTemplate.mouseEnabled = false;
+                ui.tfPathTemplate.mouseEnabled = false;
+                ui.bFindTemplate.alpha = 0.5;
+                ui.tfPathTemplate.alpha = 0.5;
+            }
+            
+        }
+        
+        /** Look for template with file browser */
+        protected function BrowsePathTemplate( e: MouseEvent ) : void
+        {
+            root_path_template.addEventListener(Event.SELECT, onTemplateChanged );
+            root_path_template.browseForDirectory("Choose a template folder");
+        }
+        
+        /** Refresh hand edits into File */
+        protected function onTemplateEdited( e: Event ) : void
+        {
+            if( '' == ui.tfPathTemplate.text )
+            {
+                root_path_template.nativePath = '/';
+            }
+            else
+            {
+                try
+                {
+                    root_path_template.nativePath = ui.tfPathTemplate.text;
+                }
+                catch( e:Error )
+                {
+                    trace(e.getStackTrace());
+                }
+            }
+        }
+
+        /** Change template path text, when something else changes it */
+        protected function onTemplateChanged( e: Event = null ) : void
+        {
+            if( !root_path_template.isDirectory )
+            {
+                root_path_template = File.userDirectory;
+            }
+            ui.tfPathTemplate.text = root_path_template.nativePath;
+        }
 
         /**
          * Invoke index file nuker
         **/
         private function RemoveIndexes(event:Event):void 
         { 
-            if( !root_path_audio.exists || !root_path_audio.isDirectory )
+            if( !root_path_media.exists || !root_path_media.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
                 return;
             }
 
-            var warning : String = "Every "+HTML_PLAYER+" from the Audio Player path will be wiped out!\n\n" + root_path_audio.nativePath;
+            var warning : String = "Every "+HTML_PLAYER+" from the Audio Player path will be wiped out!\n\n" + root_path_media.nativePath;
             AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Audio Index Files", yeah, warning, "DO IT!", "ABORT!" );
             var rxIndex : RegExp = new RegExp(HTML_PLAYER,"i");
             function yeah():void
@@ -636,7 +785,7 @@ for( i = 0; i < curr_files.length; ++i )
                     var found:Array = filename.match(rxIndex);
                     return null == found;
                 }
-                finding = new Find( root_path_audio, OnlyHTML );
+                finding = new Find( root_path_media, OnlyHTML );
                 finding.addEventListener( Find.FOUND, doit );
                 finding.addEventListener( Find.MORE, FindStatus );
                 function doit(e:Event):void
@@ -654,6 +803,41 @@ for( i = 0; i < curr_files.length; ++i )
             }
         } 
         
+        /**
+         * Keep file 'legible', but remove excess comments and whitespace
+         * Like all such hackish regex toys, caveat emptor.
+        **/
+        private function PackOutput(outputFile:String):String
+        {
+            /* Regular expressions to eat spaces around operators */ 
+            const notInQuotes : String = "";
+            // List of operators...   ([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+
+            // Not between quotes...  (?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)
+            // Not between > and <... (?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)
+            const regexOperatorSpace : RegExp = /([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)[ \t]+(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)(?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)/msg;
+            const regexSpaceOperator : RegExp = /[ \t]+([/\>\<\!\=\+\*\&\|\(\)\{\}\:\;]+)(?=(?:[^\r\n"\\]++|\\.)*+[^\r\n"\\]*+$)(?=(?:[^\r\n\>\\]++|\\.)*+[^\r\n\<\\]*+$)/msg;
+
+            // Eat html multiline comments
+            outputFile = outputFile.replace(/\<\!\-\-.*?\-\-\>/msg,"");
+
+            // Eat C multiline comments (ignore '//' commens)
+            outputFile = outputFile.replace(/\/\*.*?\*\//msg,"");
+            
+            // Eat white space around operators, not in strings
+            outputFile = outputFile.replace(regexOperatorSpace,'$1');
+            outputFile = outputFile.replace(regexSpaceOperator,'$1');
+
+            // Eat spaces at starts of lines
+            outputFile = outputFile.replace(/^[ \t]+/mg,"");
+
+            // Eat spaces at ends of lines
+            outputFile = outputFile.replace(/[ \t]+$/mg,"");
+
+            // Eat excess runs of newlines
+            outputFile = outputFile.replace(/[\r\n]+/msg,"\n");
+            
+            return outputFile;
+        }
     }
 }
     

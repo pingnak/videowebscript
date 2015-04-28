@@ -278,18 +278,16 @@ package
         /**
          * Load a text file (e.g. HTML template parts)
          * @param path Where to find the text
-         * @return String containing the text
+         * @return String containing the text; if error, empty string
         **/
-        protected function LoadText( path:String ) : String
+        protected function LoadText( path:File ) : String
         {
             try
             {
-                var root : File = File.applicationDirectory;
-                var f : File = Find.File_AddPath(root,path);
-                if( f.exists && !f.isDirectory )
+                if( path.exists && !path.isDirectory )
                 {
                     var fs:FileStream = new FileStream();
-                    fs.open(f, FileMode.READ);
+                    fs.open(path, FileMode.READ);
                     var ret : String = fs.readUTFBytes(fs.bytesAvailable);
                     fs.close();
                     return ret;
