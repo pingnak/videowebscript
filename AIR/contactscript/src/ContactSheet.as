@@ -1,4 +1,11 @@
-﻿package
+
+/*
+ * Web (HTML5) MP3 player Generator
+ *
+ * Will work as well as your web browser does... which isn't saying much, in some cases. 
+ */
+
+package
 {
     import flash.system.*;
     import flash.utils.*;
@@ -8,6 +15,7 @@
     import flash.text.*;
     import flash.net.*;
     import flash.filters.*;
+    import flash.ui.*;
 
     import flash.desktop.NativeApplication; 
     import flash.filesystem.*;
@@ -25,8 +33,8 @@
     **/
     public class ContactSheet extends applet
     {
-        internal static const SO_PATH : String = "ContactSheetData";
-        internal static const SO_SIGN : String = "CONTACT_SIGN_00";
+        protected static const SO_PATH : String = "ContactSheetData";
+        protected static const SO_SIGN : String = "CONTACT_SIGN_01";
 
 CONFIG::MXMLC_BUILD
 {
@@ -36,44 +44,57 @@ CONFIG::MXMLC_BUILD
 }
 
         /** Where the main UI lives */
-        internal var ui : MovieClip;
+        protected var ui : MovieClip;
         
         /** What to call the index files */
-        public static var HTML_INDEXES    : String = "ContactSheet.html";
+        public static const HTML_INDEXES    : String = "ContactSheet.html";
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
-        public static var MAIN_TOC        : String = "index.html";
+        public static const MAIN_TOC        : String = "index.html";
         
         /** Where to look for script template content */
-        public static var SCRIPT_TEMPLATES: String ="templates/"
+        public static const SCRIPT_TEMPLATES: String ="templates/"
 
         /** Start of movie player and available content */
-        public static var CONTACT_TEMPLATE: String = SCRIPT_TEMPLATES+"index_template.html";
-
-        /** Link to folder index */
-        public static var INDEX_INDEX     : String = SCRIPT_TEMPLATES+"index_index.html";
-
-        /** A movie file link with player logic */
-        public static var INDEX_FILE      : String = SCRIPT_TEMPLATES+"index_file.html";
+        public static const PLAYER_TEMPLATE : String = "viewer_template.html";
         
-        /** Table of contents file begin */
-        public static var TOC_TEMPLATE    : String = SCRIPT_TEMPLATES+"TOC_template.html";
-
+        /** Table of contents file */
+        public static const INDEX_TEMPLATE  : String = "index_template.html";
+        
         /** Width of thumbnails for image */
-        public static var THUMB_SIZE      : int = 240;
+        public static const THUMB_SIZE      : int = 240;
 
         /** Offset for folder depths in TOC file */
-        public static var FOLDER_DEPTH : int = 32;
+        public static const FOLDER_DEPTH : int = 32;
         
         /** Regular expressions that we accept as 'JPEG content'*/
-        public static var REGEX_JPEG       : String = ".(jpg|jpeg|png|gif)";
+        public static const REGEX_JPEG       : String = ".(jpg|jpeg|png|gif)";
+
+        public static const JPEG_QUALITY : int = 90; 
         
         /** Path to do the job in */
-        internal var root_path_image : File;
+        protected var root_path_image : File;
 
+        /** Path to do the job in */
+        protected var root_path_media : File;
+        
+        protected var thumb_size : int = THUMB_SIZE;
+
+        /** Path to get templates from */
+        protected var root_path_template : File;
+
+        /** Path to file containing player template */
+        protected var player_template_file : File;
+
+        /** Path to file containing index template */
+        protected var index_template_file : File;
+        
         /** Finder while searching files/folders */
-        internal var finding : Find;
+        protected var finding : Find;
 
+        /** JPEG encoding options for BitmapData.encode */
+        protected var jpeg_compression_quality : JPEGEncoderOptions = new JPEGEncoderOptions(JPEG_QUALITY);
+        
         public function ContactSheet()
         {
             super();
@@ -101,6 +122,7 @@ CONFIG::FLASH_AUTHORING
             SortTabs(ui);
 
             ui.tfPathImages.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfPathImages.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.maxChars = 3;
             ui.tfThumbnailSize.restrict = "0-9";
@@ -111,6 +133,11 @@ CONFIG::FLASH_AUTHORING
             
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoImages );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
+
+            CheckSetup(ui.bnTempate);
+            ui.bnTempate.addEventListener( MouseEvent.CLICK, ChangeTemplateEnable );
+            ui.bFindTemplate.addEventListener( MouseEvent.CLICK, BrowsePathTemplate );
+            ui.tfPathTemplate.addEventListener( Event.CHANGE, onTemplateEdited );
             
             LoadSharedData();
 
@@ -137,7 +164,7 @@ CONFIG::FLASH_AUTHORING
         }
 
 
-        internal function FindStatus(e:Event):void
+        protected function FindStatus(e:Event):void
         {
             //var list : Array = Find.FindBlock(root_path_image);
             var found_so_far : int = finding.results.length;
@@ -170,7 +197,7 @@ CONFIG::FLASH_AUTHORING
         /**
          * Process halted or error
         **/
-        internal function Aborted(e:Event):void
+        protected function Aborted(e:Event):void
         {
             AbortTimeouts();
             Interactive();
@@ -179,7 +206,7 @@ CONFIG::FLASH_AUTHORING
         /**
          * Clicked abort button
         **/
-        internal function Abort(e:Event):void
+        protected function Abort(e:Event):void
         {
             AbortTimeouts();
             if( null != finding )
@@ -208,19 +235,47 @@ CONFIG::FLASH_AUTHORING
                 bHaveError = true;
             }
             // Make sure we don't go way out of range on thumb size
-            if( THUMB_SIZE < 64 )
+            if( thumb_size < 64 )
             {
-                THUMB_SIZE = 64;
-                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                thumb_size = 64;
+                ui.tfThumbnailSize.text = thumb_size.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 bHaveError = true;
             }
-            if( THUMB_SIZE > 640 )
+            if( thumb_size > 640 )
             {
-                THUMB_SIZE = 640;
-                ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+                thumb_size = 640;
+                ui.tfThumbnailSize.text = thumb_size.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
                 bHaveError = true;
+            }
+
+            // If we are using external template files...
+            if( CheckGet( ui.bnTempate ) )
+            {
+                try
+                {
+                    player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
+                    index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
+                }
+                catch( e:Error )
+                {
+                    trace(e.getStackTrace());
+                    ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                    bHaveError = true;
+                }
+                if( !player_template_file.exists || !index_template_file.exists )
+                {
+                    trace("Could not open template file.");
+                    ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                    bHaveError = true;
+                }
+            }
+            else
+            {
+                var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+                index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
             }
             
             if( bHaveError )
@@ -283,15 +338,29 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoImageFileTree(found:Array):void
         {
-            //try
+            try
             {
                 // Preload the various template elements we'll be writing for each folder/file
-                var index_template : String = LoadText(CONTACT_TEMPLATE);
-                var index_index : String    = LoadText(INDEX_INDEX);
-                var index_file : String     = LoadText(INDEX_FILE); 
+                var index_template : String = LoadText(player_template_file);
 
-                var jpgEncoder : JPGEncoder = new JPGEncoder(90);
-                var bmThumbnail : BitmapData = new BitmapData(THUMB_SIZE,THUMB_SIZE,false,0x000000);
+                const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
+                var index_index : String = index_template.match( rxFolder )[0];
+                index_index = index_index.replace(rxFolder,"$1");
+
+                const rxFile : RegExp = /\<\!\-\-INDEX_FILE(.*?)\-\-\>/ms;
+                var index_file : String = index_template.match( rxFile )[0];
+                index_file = index_file.replace( rxFile, "$1");
+                
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_INDEX or INDEX_FILE in", player_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+            }
+            try
+            {
+                var bmThumbnail : BitmapData = new BitmapData(thumb_size,thumb_size,false,0x000000);
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -328,8 +397,9 @@ CONFIG::FLASH_AUTHORING
                         
                         // Create and build top half of index file
                         var curr_title : String = Find.File_nameext(root);
+                        curr_title = Find.FixDecodeURI(curr_title);
                         seded = index_template;
-                        seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                        seded = seded.replace(/THUMB_SIZE/g,thumb_size.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
 
@@ -347,6 +417,7 @@ CONFIG::FLASH_AUTHORING
                             {
                                 var curr_index : File = Find.File_AddPath( curr_folder, HTML_INDEXES );
                                 var curr_index_title : String = Find.File_nameext( curr_folder );
+                                curr_index_title = Find.FixDecodeURI(curr_index_title);
                                 var curr_index_relative : String = Find.File_relative( curr_index, root );
 
                                 // Emit index for child folder
@@ -380,13 +451,14 @@ CONFIG::FLASH_AUTHORING
                             var curr_file : File = curr_files[iteration++];
                             var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
+                            curr_file_title = Find.FixDecodeURI(curr_file_title);
 
                             trace("ThreadPassImage:", curr_file.nativePath);
                             
                             seded = seded.replace(/FILE_TITLE/g,curr_file_title);
                             seded = seded.replace(/FILE_STYLE/g,'');
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
-                            seded = seded.replace(/THUMB_SIZE/g,THUMB_SIZE.toString());
+                            seded = seded.replace(/THUMB_SIZE/g,thumb_size.toString());
                             
                             var jpeg_loaded : ByteArray = new ByteArray();
                             var fs_jpeg : FileStream = new FileStream();
@@ -666,8 +738,8 @@ CONFIG::FLASH_AUTHORING
                                 seded = seded.replace(/IMG_HEIGHT/g,loading.height);
                                 
                                 
-                                scale = THUMB_SIZE / loading.width;
-                                offsetY = 0.5 * (THUMB_SIZE-(loading.height*scale));
+                                scale = thumb_size / loading.width;
+                                offsetY = 0.5 * (thumb_size-(loading.height*scale));
                                 matrix = new Matrix( scale,0,0,scale, offsetX,offsetY );
                                 // Determine if matrix should be rotated, to show the image upright
                                 if( "Orientation" in anyexif )
@@ -684,21 +756,21 @@ CONFIG::FLASH_AUTHORING
                                         matrix = new Matrix();
                                         matrix.scale(scale,scale);
                                         matrix.rotate(-0.5*Math.PI);
-                                        matrix.translate(offsetY, THUMB_SIZE);
+                                        matrix.translate(offsetY, thumb_size);
                                         seded = seded.replace(/ORIENT_ANGLE/g,270);
                                         break;
                                     case 3:     // Upside-down
                                         matrix = new Matrix();
                                         matrix.scale(scale,scale);
                                         matrix.rotate(Math.PI);
-                                        matrix.translate(THUMB_SIZE, THUMB_SIZE-offsetY);
+                                        matrix.translate(thumb_size, thumb_size-offsetY);
                                         seded = seded.replace(/ORIENT_ANGLE/g,180);
                                         break;
                                     case 6:     // Rotated counter-clockwise
                                         matrix = new Matrix();
                                         matrix.scale(scale,scale);
                                         matrix.rotate(0.5*Math.PI);
-                                        matrix.translate(THUMB_SIZE-offsetY, 0);
+                                        matrix.translate(thumb_size-offsetY, 0);
                                         seded = seded.replace(/ORIENT_ANGLE/g,90);
                                         break;
                                         // Oddball orientations
@@ -716,7 +788,7 @@ CONFIG::FLASH_AUTHORING
                                 
                                 // Render and encode our thumbnail image
                                 bmThumbnail.draw( loading, matrix, null, null, null, true );
-                                var jpegdata : ByteArray = jpgEncoder.encode(bmThumbnail);
+                                var jpegdata : ByteArray = bmThumbnail.encode(bmThumbnail.rect, jpeg_compression_quality);
                                 jpegdata.position = 0;
 
                                 // Get rid of any leftover exif tags, now that we've been through the data
@@ -772,14 +844,12 @@ CONFIG::FLASH_AUTHORING
                     ImageFilesComplete();
                 }
             }
-            /*
             catch( e:Error )
             {
-                trace(e);
+                trace(e.getStackTrace());
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathImages);
                 Interactive();
             }
-            */
             // Fall out; timer threads are in charge
         }
 
@@ -790,12 +860,27 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoTOC(found:Array):void
         {
-            var index_template : String = LoadText(TOC_TEMPLATE);
-            var index_index : String    = LoadText(INDEX_INDEX); 
+            try
+            {
+                // Preload the various template elements we'll be writing for each folder/file
+                // TOC pieces
+                var index_template : String = LoadText(index_template_file);
+
+                const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
+                var index_index : String = index_template.match( rxFolder )[0];
+                index_index = index_index.replace(rxFolder,"$1");
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_INDEX in", index_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+            }
 
             var folders : Array = Find.GetFolders(found);
             var root : File = folders[0];
             var curr_title : String = Find.File_nameext(root);
+            curr_title = Find.FixDecodeURI(curr_title);
 
             index_template = index_template.replace(/TITLE_TEXT/g,curr_title);
             var folder_content : String = "";
@@ -812,6 +897,7 @@ CONFIG::FLASH_AUTHORING
                     var curr_depth : int = Find.File_Depth(curr_folder,root);
                     var curr_index : File = Find.File_AddPath( curr_folder, HTML_INDEXES );
                     var curr_index_title : String = Find.File_nameext( curr_folder );
+                    curr_index_title = Find.FixDecodeURI(curr_index_title);
                     var curr_index_relative : String = Find.File_relative( curr_index, root );
 
                     // Emit index for child folder
@@ -852,8 +938,13 @@ CONFIG::FLASH_AUTHORING
             onFolderChanged();
             CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
+
+            CheckSet( ui.bnTempate, false );
+            ChangeTemplateEnable();
+            root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            onTemplateChanged();
             
-            THUMB_SIZE = 240;
+            thumb_size = THUMB_SIZE;
             return CommitSharedData();
         }
         
@@ -884,7 +975,7 @@ CONFIG::FLASH_AUTHORING
             }
             catch( e:Error )
             {
-                trace(e,e.getStackTrace());
+                trace(e.getStackTrace());
                 ResetSharedData();
             }
 
@@ -903,8 +994,18 @@ CONFIG::FLASH_AUTHORING
             CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
 
-            THUMB_SIZE = share_data.thumb_size;
-            ui.tfThumbnailSize.text = THUMB_SIZE.toString();
+            CheckSet( ui.bnTempate, share_data.bTemplate );
+            root_path_template = new File(share_data.url_template);
+            if( !root_path_template.isDirectory )
+            {
+                root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                CheckSet( ui.bnTempate, false );
+            }
+            ChangeTemplateEnable();
+            onTemplateChanged();
+            
+            thumb_size = share_data.thumb_size;
+            ui.tfThumbnailSize.text = thumb_size.toString();
             
             //onFolderChanged();
 
@@ -926,7 +1027,10 @@ CONFIG::FLASH_AUTHORING
             share_data.url_image = root_path_image.url;
             share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
-            share_data.thumb_size = THUMB_SIZE;
+            share_data.thumb_size = thumb_size;
+            share_data.bTemplate = CheckGet( ui.bnTempate );
+            share_data.url_template = root_path_template.url;
+
             share_data.sign = SO_SIGN;
 
             // Commit file stream
@@ -938,32 +1042,98 @@ CONFIG::FLASH_AUTHORING
         }
         
         /** Find path to image content */
-        internal function BrowsePathVideo(e:Event=null):void
+        protected function BrowsePathVideo(e:Event=null):void
         {
             root_path_image.addEventListener(Event.SELECT, onFolderChanged);
             root_path_image.browseForDirectory("Choose a folder");
         }
         
         /** Open an OS Finder/Explorer/whatever browser */
-        internal function OpenFolder(e:Event=null):void
+        protected function OpenFolder(e:Event=null):void
         {
             root_path_image.openWithDefaultApplication();
         }
         
 
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
-        internal function onFolderEdited(e:Event=null):void
+        protected function onFolderEdited(e:Event=null):void
         {
             root_path_image.nativePath = ui.tfPathImages.text;
-            THUMB_SIZE = int(ui.tfThumbnailSize.text);
+            thumb_size = int(ui.tfThumbnailSize.text);
+        }
+        // Convenience - hit enter in port to start up
+        private function HitEnter(event:KeyboardEvent):void
+        {
+            if(Keyboard.ENTER == event.charCode)
+            {
+                onFolderEdited();
+                DoImages();
+            }
         }
 
         /** User navigated a different path */
-        internal function onFolderChanged(e:Event=null):void
+        protected function onFolderChanged(e:Event=null):void
         {
             ui.tfPathImages.text = root_path_image.nativePath; 
         }
 
+        /** Enable/disable template controls */
+        protected function ChangeTemplateEnable( e: MouseEvent = null ) : void
+        {
+            if( CheckGet( ui.bnTempate ) )
+            {
+                ui.bFindTemplate.mouseEnabled = true;
+                ui.tfPathTemplate.mouseEnabled = true;
+                ui.bFindTemplate.alpha = 1;
+                ui.tfPathTemplate.alpha = 1;
+            }
+            else
+            {
+                ui.bFindTemplate.mouseEnabled = false;
+                ui.tfPathTemplate.mouseEnabled = false;
+                ui.bFindTemplate.alpha = 0.5;
+                ui.tfPathTemplate.alpha = 0.5;
+            }
+            
+        }
+        
+        /** Look for template with file browser */
+        protected function BrowsePathTemplate( e: MouseEvent ) : void
+        {
+            root_path_template.addEventListener(Event.SELECT, onTemplateChanged );
+            root_path_template.browseForDirectory("Choose a template folder");
+        }
+        
+        /** Refresh hand edits into File */
+        protected function onTemplateEdited( e: Event ) : void
+        {
+            if( '' == ui.tfPathTemplate.text )
+            {
+                root_path_template.nativePath = '/';
+            }
+            else
+            {
+                try
+                {
+                    root_path_template.nativePath = ui.tfPathTemplate.text;
+                }
+                catch( e:Error )
+                {
+                    trace(e.getStackTrace());
+                }
+            }
+        }
+
+        /** Change template path text, when something else changes it */
+        protected function onTemplateChanged( e: Event = null ) : void
+        {
+            if( !root_path_template.isDirectory )
+            {
+                root_path_template = File.userDirectory;
+            }
+            ui.tfPathTemplate.text = root_path_template.nativePath;
+        }
+        
         /**
          * Invoke index file nuker
         **/

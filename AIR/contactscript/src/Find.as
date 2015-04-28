@@ -4,6 +4,7 @@ package
     import flash.utils.*;
     import flash.events.*;
     import flash.filesystem.*;
+    import flash.globalization.*;
 
     /**
      * Given a path, do something like 'gnu find' on it.  Do it asynchronously
@@ -37,6 +38,11 @@ package
         
         /** Stack of folders to iterate depth */
         private var filter : Function;
+
+        /** Localized sort */
+        private static const collator : Collator = new Collator(LocaleID.DEFAULT);
+        collator.numericComparison = true;
+        collator.ignoreSymbols = true;
         
         /**
          * Given a path, do something like 'gnu find' on it.  Do it asynchronously
@@ -133,7 +139,8 @@ package
                 if( 0 == stack.length )
                 {
                     // Sort results...
-                    final_result.sortOn("nativePath");
+                    //final_result.sortOn("nativePath");
+                    final_result.sort(SortOnNative);
                     // Delay completion slightly.
                     function InAMoment(e:Event=null):void
                     {
@@ -153,6 +160,26 @@ package
                 trace(e);
                 Abort();
             }
+        }
+
+        /**
+         * Sort on native path, doing some english-y things
+        **/
+        public static function SortOnNative( p1:File, p2:File ) : int
+        {
+            return collator.compare( GetPathWithoutExt(p1), GetPathWithoutExt(p2) );
+        }
+        
+        /**
+         * Strip .ext from path, return native path
+        **/
+        public static function GetPathWithoutExt(file:File) : String
+        {
+            var np : String = file.nativePath;
+            var index : int = np.lastIndexOf('.');
+            if( -1 == index )
+                return file.nativePath;
+            return decodeURI(np.slice(0,index));
         }
         
         /**
@@ -336,14 +363,15 @@ package
         **/
         public static function GetChildren( tree : Array, path : File, max_depth : uint = 0/*uint.MAX_VALUE*/  ) : Array
         {
+            var found : Array = new Array();
+            found.push(path);
             var i : int;
             var f : File;
             var root : File = tree[0];
             var depth : int = File_Depth(path,root);
             if( root.url != path.url )
                 depth += 1;
-            var found : Array = new Array();
-            var url : String = path.url;
+            var url : String = path.url+'/';
             for( i = 0; i < tree.length; ++i )
             {
                 f = tree[i];
@@ -395,6 +423,37 @@ package
             }
             return ret;
         }
+
+        /**
+         * After various filtering, remove folders without children
+         * @param tree A tree, like results would return 
+         * @return New copy of array, without empty folders
+        **/
+        public static function PruneEmpties( tree : Array ) : Array
+        {
+            var ret : Array = new Array();
+            var j : int;
+            var f : File;
+            var i : int;
+            for( i = 0; i < tree.length; ++i )
+            {
+                f = tree[i];
+                if( f.isDirectory )
+                {
+                    var kids : Array = GetChildren( tree, f, uint.MAX_VALUE );
+                    var files : Array = GetFiles( kids );
+                    if( 0 != files.length )
+                    {
+                        ret.push(f);
+                    }
+                }
+                else
+                {
+                    ret.push(f);
+                }
+            }
+            return ret;
+        }
         
         /**
          * Re-filter contents
@@ -433,6 +492,36 @@ package
                     return true;
             }
             return false;
+        }
+
+        /**
+         * The AS3 DecodeURI is not fixing lower-case hex spew in paths from 
+         * Windows nativePath.  Fix the leftover %2c, etc. in the path, for titles
+         * Apparently, if we 'fix' the paths File returns, these codes no longer 'find' the files in Windows.
+        **/
+        public static function FixDecodeURI( path : String ) : String
+        {
+            var rx2HexDigits : RegExp = /^[0-9a-fA-F][0-9a-fA-F].*/;
+            path = decodeURI(path);
+            var parts : Array = path.split('%');
+            if( 1 == parts.length )
+                return path;
+            var ret : String = parts.shift();
+            var ss : String;
+            var i : int;
+            while( 0 < parts.length )
+            {
+                ss = parts.shift();
+                if( null != ss.match(rx2HexDigits) )
+                {
+                    ret += String.fromCharCode( parseInt(ss.slice(0,2), 16) ) + ss.slice(2);
+                }
+                else
+                {
+                    ret += '%'+ss;
+                }
+            }
+            return ret;
         }
         
     }

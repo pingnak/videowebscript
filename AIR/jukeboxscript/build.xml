@@ -159,7 +159,9 @@ with the previous certificate.
 				<arg line="${air.output}"/>		<!-- Output file -->
 				<arg line="${air.profile}"/>		<!-- AIR project info -->
 				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
-				<arg line="."/> 				<!-- Recursively add everything in deploy -->
+				<arg line="${deploy.file}"/>
+				<arg line="icons"/>
+				<arg line="templates"/>
 				<!-- Add other files/folders to list -->
 			</exec>
 			
@@ -177,7 +179,9 @@ with the previous certificate.
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
 				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
-				<arg line="."/> 				<!-- Recursively add everything in deploy -->
+				<arg line="${deploy.file}"/>
+				<arg line="icons"/>
+				<arg line="templates"/>
 			</exec>
 
 			<exec executable="${AIR.ADT}" osfamily="mac" searchpath="true" vmlauncher="false" failonerror="true" >
@@ -189,7 +193,9 @@ with the previous certificate.
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
 				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
-				<arg line="."/> 				<!-- Recursively add everything in deploy -->
+				<arg line="${deploy.file}"/>
+				<arg line="icons"/>
+				<arg line="templates"/>
 			</exec>
 			
 		</sequential>

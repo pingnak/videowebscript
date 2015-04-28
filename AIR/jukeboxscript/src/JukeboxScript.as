@@ -613,7 +613,6 @@ for( i = 0; i < curr_files.length; ++i )
             root_path_media = new File(share_data.url_audio);
             if( !root_path_media.exists )
                 root_path_media = File.desktopDirectory;
-            onFolderChanged();
 
             CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
@@ -621,13 +620,13 @@ for( i = 0; i < curr_files.length; ++i )
             onFolderChanged();
             
             CheckSet( ui.bnTempate, share_data.bTemplate );
-            ChangeTemplateEnable();
-
             root_path_template = new File(share_data.url_template);
-            if( !root_path_media.isDirectory )
+            if( !root_path_template.isDirectory )
             {
                 root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                CheckSet( ui.bnTempate, false );
             }
+            ChangeTemplateEnable();
             onTemplateChanged();
             
         }

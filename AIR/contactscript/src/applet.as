@@ -277,19 +277,17 @@ package
         
         /**
          * Load a text file (e.g. HTML template parts)
-         * @param path Where to find the text
+         * @param file File oblect with path
          * @return String containing the text
         **/
-        protected function LoadText( path:String ) : String
+        protected function LoadText( file:File ) : String
         {
             try
             {
-                var root : File = File.applicationDirectory;
-                var f : File = Find.File_AddPath(root,path);
-                if( f.exists && !f.isDirectory )
+                if( file.exists && !file.isDirectory )
                 {
                     var fs:FileStream = new FileStream();
-                    fs.open(f, FileMode.READ);
+                    fs.open(file, FileMode.READ);
                     var ret : String = fs.readUTFBytes(fs.bytesAvailable);
                     fs.close();
                     return ret;

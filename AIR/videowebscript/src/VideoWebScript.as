@@ -774,14 +774,15 @@ CONFIG::FLASH_AUTHORING
             onFolderChanged();
 
             CheckSet( ui.bnTempate, share_data.bTemplate );
-            ChangeTemplateEnable();
 
             root_path_template = new File(share_data.url_template);
-            if( !root_path_media.isDirectory )
+            if( !root_path_template.isDirectory )
             {
                 root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                CheckSet( ui.bnTempate, false );
             }
             onTemplateChanged();
+            ChangeTemplateEnable();
             
             
         }
