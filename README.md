@@ -40,6 +40,11 @@ You'll need the [Adobe AIR Runtime](https://get.adobe.com/air/), to run the AIR 
 
 [Contact Sheet Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true)
 
+### Skinning
+
+Now you can skin/change the HTML templates in all of the tools, from a couple of files (one for the player, one for the index).
+
+See: https://github.com/pingnak/videowebscript/wiki/Skinning-or-Theming
 
 ##License
 
