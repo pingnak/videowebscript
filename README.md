@@ -40,15 +40,15 @@ You'll need the [Adobe AIR Runtime](https://get.adobe.com/air/), to run the AIR 
 
 [Contact Sheet Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true)
 
-### Skinning
+## Skinning
 
-Now you can skin/change the HTML templates in all of the tools, from a couple of files (one for the player, one for the index).  Without recompiling.
+Now you can skin/change the HTML templates for all of the tools, from a couple of files (one for the player, one for the index).  Without recompiling.
 
 See: https://github.com/pingnak/videowebscript/wiki/Skinning-or-Theming
 
 ##License
 
-I picked the MIT license, mainly because the 'contact sheet' app [https://github.com/bashi/exif-as3 uses an 'exif-as3' library from GitHub] that picks through the EXIF data in jpeg files, and that's its license.
+I picked the MIT license, mainly because the 'contact sheet' app [uses an 'exif-as3' library](https://github.com/bashi/exif-as3) that picks through the EXIF data in jpeg files, and that's its license.
 
 I can't control what you do with it, and don't really care, because _I can't control what you do with it_.  Use it, abuse it, modify and release it again as your own without giving me any 'credit'.  Just don't blame me for what happens if you break laws or try to use it as part of a missile guidance system and blow yourself up, or whatever.
 
