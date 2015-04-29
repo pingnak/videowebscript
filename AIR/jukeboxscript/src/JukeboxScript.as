@@ -51,7 +51,7 @@ CONFIG::MXMLC_BUILD
         public static const INDEX_TEMPLATE  : String = "index_template.html";
         
         /** Where to look for script template content */
-        public static const SCRIPT_TEMPLATES: String ="templates/"
+        public static const SCRIPT_TEMPLATES: String ="default"
         
         /** Offset for folder depths in TOC file */
         public static const FOLDER_DEPTH : int = 32;

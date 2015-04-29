@@ -1,0 +1,246 @@
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta charset="UTF-8">
+<style type="text/css">
+body {
+    font-family: "Arial", Helvetica, sans-serif;
+    background-color: #000000;
+    color:#c0c0c0;
+}
+/* Bright links that only underline when tracked */
+a:link      { color:#ffff00; text-decoration: none; }
+a:visited   { color:#ffff00; text-decoration: none; }
+a:hover     { color:#ffff00; text-decoration: underline; }
+a:active    { color:#ffff20; text-decoration: none; }
+.video_box {
+    vertical-align: middle;
+    text-align: center;
+    width:75%;
+    height:auto;
+    position: relative;
+    margin-left: auto;
+    margin-right: auto;
+    background: transparent;
+}
+.videoplayer {
+    z-index:0;
+    width:100%;
+    height:auto;
+}
+.title {
+    clear: both;
+    width:100%;
+    color:#ffff00;
+    font-size:40px;
+    white-space:nowrap;
+    /*text-align:center;*/
+}
+#playlist {
+    padding-left:10pt;
+}
+.index_entry {
+    color:#ffff00;
+    font-size:28px;
+    white-space:nowrap;
+}
+img.index_thumbnail {
+    width:THUMB_SIZEpx;
+    vertical-align:middle;
+    padding-bottom:8px;
+    padding-right:8px;
+}
+.folder_entry {
+    color:#00c0c0;
+    font-size:32;
+    white-space:nowrap;
+}
+.folder_icon {
+    display: inline-block;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAABGdBTUEAALGPC/xhBQAAAAFzUkdCAK7OHOkAAACTUExURQAAAFrW/23b/1S7/2fO/2LL/0rn/2XO/2PO/0jp/2bM/0iv/1rB/0br/2TT/1XO/03C/1HG/17E/2XN/2HR/0no/0br/0Ts/1e9/1jZ/0vm/0Pu/1W8/060/0Oq/2HI/0Gn/2bM/1i//zP//z/y/0y//zOZ/zn4/0yz/zT9/zb7/z+m/0Lv/zqh/zSa/zmf/z2k/1D7ZHAAAAAjdFJOUwB3B78vJ98/H98P32/nF7fv119HX+fv949/3++vz+9P9zd/9Jz7BQAAAJtJREFUOMvN0skOgjAUheEKxRbEeR5Ri6U4wfs/ndLEpJW0Z2Xiv/4Wze0h5PexT5EL3AvdcuYCudCV8yn/KrGAuC5iu27HBq2KNQDiopRKvUDK4wmAHgcg9L9BVmcA6gyAAwVgn/jBcwcO9UgBuDEA3mfyg7D5LLp1g1UDeOwGEwBGFIDxwA/KoV4U3+RG/fYmA2YWmasOyJ/0As+xUtPOgUqZAAAAAElFTkSuQmCC) no-repeat;
+    height:32px;
+    width:32px;
+}
+.info_text {
+  color: #808080;
+  font-size: 10px;
+}
+.center {
+    text-align:center;
+    margin: auto;
+    width:50%;
+}
+</style>
+
+<title>TITLE_TEXT</title>
+
+</head>
+
+<body onload="PlayerInit();">
+<div id='video_box' class='video_box' style="display:none;">
+<video id="videoplayer" class='videoplayer' controls > <!-- Show controls now, or 'Silk' never will -->
+    Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
+    <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
+    <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
+    <a href="http://www.apple.com/safari/">Safari</a><br/>
+    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
+    <a href="http://www.w3schools.com/html/html5_video.asp">More info about compatibility...</a><br/>
+</video>
+</div>
+<a class="folder_entry" id="bToParent" style='display:none;' title="To Parent Folder" href="../VideoPlayer.html" ><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAMAAABEpIrGAAAAY1BMVEUAAAAyMjIwMDAzMzMxMTEyMjIyMjIzMzMzMzMxMTEyMjIzMzMzMzMyMjIzMzMxMTEA//8zMzMvPz8mZmYZmZkJ2NgMzMwWpaUG5eUD8vIpWVkcjIwff38jcnIPv78sTEwTsrJf4MiOAAAAEHRSTlMA30/PH3/vvw8/j2+vn18v411MkwAAAPZJREFUOMvNktmWgyAQREVFlMRMF+Ca9f+/clhmARPM25ypR7gU3V1dFH+trtu9biWwd18y7AH1ETif88ChwTqQyQEfAmoiIi1eF8cBPVMW6BjUjbx0VT8/721xS7inC9AIXrbx8wb3kb61jOZ6t832v0ZHqJlSLUaB/ZjUX/WnyKSqNp6A3prQEBORycP+HzpKCG8yuGMDzhmMJyDjIAT8sRt1LXEJcJlE6bOY4HwPePipsXRgNk0zwm9MD/fhiNNmHxqoABTs6izWajt1axIACQdMeEqm5KE3DjeZeftHlBB8Pkq+ATL744FVW6ks0IogXvwHfQIK/RVvGadqVwAAAABJRU5ErkJggg==" /></a>
+<div id="title" class="title"><img class="folder" />TITLE_TEXT</div>
+<div id="playlist">
+
+<!-- 
+    These definitions are sought out in this file, and used to replace the 
+    'INDEXES_HERE' with files and folders 
+-->
+
+<!-- A movie file link with thumbnail -->
+
+<!--INDEX_FILE
+<div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
+    <a href="" onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" >
+    <img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
+</div>
+-->
+
+<!-- A movie file link with no thumbnail -->
+
+<!--INDEX_FILE_NOTHUMB
+<div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
+    <a href="" onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" >MEDIA_TITLE</a>
+</div>
+-->
+
+<!-- A folder -->
+
+<!--INDEX_INDEX
+<br/><a class="folder_entry" title="Browse FOLDER_TITLE" style='FOLDER_STYLE' href="FOLDER_PATH" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+-->
+
+<!--INDEXES_HERE-->
+
+</div>
+<br/>
+<div class="info_text">
+    <a href="https://github.com/pingnak/videowebscript">Generated by VideoWebScript</a>
+</div>
+
+<script type="text/javascript">
+var playlist;
+var now_playing = null;
+var video_box;
+var video;
+var bToParent;
+var browserWidth;
+var browserHeight;
+
+
+/**
+ * Set things up, when the page loads
+**/
+function PlayerInit()
+{
+    video_box = document.getElementById("video_box");
+    video_box.style.display = 'none';
+
+    video = document.getElementById("videoplayer");
+
+    bToParent = document.getElementById("bToParent");
+    
+    /* If full-screen is unavailable to code, stick to native controls */
+    video.setAttribute("controls",true);
+
+    MakePlaylist();
+
+    var params = window.location.href.split('?');
+    if( 2 == params.length )
+    {   /* If we have '?title.mp4' that's the video in this folder, to play */
+        PlayMedia(decodeURI(params[1]));
+    }
+
+    /*
+        If we have a parent, show a 'back' link to it
+        Note: This will only work with pages served from a web server.
+        If you open it from the file system, it will remain hidden, and get an
+        error in the page's log output about needing to be 'same domain'.
+    */
+    var request = new XMLHttpRequest();
+    request.open('GET', '../VideoPlayer.html', true);
+    request.onreadystatechange = function()
+    {
+        if (request.readyState === 4)
+        {
+            if (request.status === 200)
+            {   /* If a parent html page exists, display a link to it */
+                bToParent.style.display = 'inline';
+            }
+        }
+    };
+    try {
+        request.send();
+    } 
+    catch(e) {};
+
+}
+
+
+/*
+ * Play a video
+ * http://www.w3.org/2010/05/video/mediaevents.html
+ */
+function PlayMedia(video_path)
+{   // Setting attributes blows up 
+    if(typeof(video_path)==='undefined')
+    {
+        video_path = playlist[0].getAttribute('path');
+    }
+    now_playing = video_path;
+    if( 'undefined' == typeof(now_playing) )
+    {
+        progress_text_title.innerHTML = '';
+        video_box.style.display = 'none';
+        video_box.removeEventListener( 'mousemove', MouseMoved );
+        return;
+    }
+
+    video_box.style.display = '';
+
+    var video_type='video/'+now_playing.split('.').pop();
+    video.setAttribute("type",video_type);
+    video.setAttribute("src",now_playing);
+    video.load();
+    video.play();
+
+    // Show video
+    window.scrollTo(0,0);
+}
+
+/** Make a play list from title links */
+function MakePlaylist()
+{
+    var collection = document.getElementsByClassName("index_entry");
+    var array = new Array();
+    var i;
+    for( i = 0; i < collection.length; ++i )
+    {
+        array.push(collection[i]);
+    }
+    playlist = array;
+}
+
+
+/** Turn video URI into title text */
+function TitleFromPath(path)
+{
+    var titletext = decodeURI(path);
+    titletext = titletext.substring(titletext.lastIndexOf('/')+1);
+    titletext = titletext.substring(0,titletext.lastIndexOf('.'));
+    return titletext;
+}
+</script>
+
+</body>
+</html>

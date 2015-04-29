@@ -53,7 +53,7 @@ CONFIG::MXMLC_BUILD
         public static const MAIN_TOC        : String = "index.html";
         
         /** Where to look for script template content */
-        public static const SCRIPT_TEMPLATES: String ="templates/"
+        public static const SCRIPT_TEMPLATES: String ="default"
 
         /** Start of movie player and available content */
         public static const PLAYER_TEMPLATE : String = "viewer_template.html";

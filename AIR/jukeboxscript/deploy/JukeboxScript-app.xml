@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <application xmlns="http://ns.adobe.com/air/application/17.0">
     <id>JukeboxScript</id>
-    <versionNumber>1.0</versionNumber>
+    <versionNumber>1.2</versionNumber>
     <filename>JukeboxScript</filename>
     <description>Generate portable web browser interfaces and audio content.</description>
     <!-- To localize the description, use the following format for the description element.
