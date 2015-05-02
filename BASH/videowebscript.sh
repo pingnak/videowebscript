@@ -112,7 +112,7 @@ function export_folder {
 
     # Complete list of files in this folder, at this depth
     # Note: This is the simplest way to get relative paths...
-    filelist=$(find -s . -depth 1 -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
+    filelist=$(find . -maxdepth 1 -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
     
     echo > ~/tmp.txt
     echo "$filelist" | while read movie_path ; 
@@ -121,8 +121,7 @@ function export_folder {
         filename_noext=${filename%.*}
         filename_jpeg=${movie_path%.*}.jpg
 
-        which -s "$THUMBNAILER"
-        if [ $? -ne 0 ]; then
+        if [ "$(which "$THUMBNAILER")" = "" ]; then
             # No thumbnailer means no thumbnails
             echo $INDEX_FILE_NOTHUMB | \
                 sed -e "s@MEDIA_PATH@$movie_path@g" \
@@ -174,7 +173,7 @@ echo
 echo Generating file list from "$CONTENT_ROOT"
 pushd "$CONTENT_ROOT"
 
-complete_file_list=$(find -s . -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
+complete_file_list=$(find . -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
 complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort --unique --ignore-nonprinting --ignore-case)
 
 echo > ~/toc1.txt

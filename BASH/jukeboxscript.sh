@@ -112,7 +112,7 @@ function export_folder {
 
     # Complete list of files in this folder, at this depth
     # Note: This is the simplest way to get relative paths...
-    filelist=$(find -s . -depth 1 -type f -name '*.mp3' -o -name '*.ogg')
+    filelist=$(find . -maxdepth 1 -type f -name '*.mp3' -o -name '*.ogg')
     
     echo > ~/tmp.txt
     echo "$filelist" | while read movie_path ; 
@@ -151,7 +151,7 @@ echo
 echo Generating file list from "$CONTENT_ROOT"
 pushd "$CONTENT_ROOT"
 
-complete_file_list=$(find -s . -type f -name '*.mp3' -o -name '*.ogg')
+complete_file_list=$(find . -type f -name '*.mp3' -o -name '*.ogg' )
 complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort --unique --ignore-nonprinting --ignore-case)
 
 echo > ~/toc1.txt
