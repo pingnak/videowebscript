@@ -5,17 +5,17 @@
 #
 
 # Default (no parameter) search path for video files
-CONTENT_ROOT="/Volumes/media/Video"
+CONTENT_ROOT="/Volumes/media/Music"
 
 # What to call the video player files
-WEBIFY_PLAYER_INDEX="VideoPlayer.html"
+WEBIFY_PLAYER_INDEX="Jukebox.html"
 
 # What to call the index/table of contents
 WEBIFY_INDEX="index.html"
 
 # Get root of script, where we assume the template folder will be
 SCRIPT_ROOT=$(dirname "$0")
-SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/videowebscript"
+SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/jukeboxscript"
 
 # What our thumbnailer is called.  Dike out if you don't want thumbnails.
 THUMBNAILER=ffmpegthumbnailer
@@ -50,9 +50,8 @@ INDEX_TOC_FOLDER=$(echo $INDEX_TEMPLATE | perl -wln -0777 -e 'm/\<\!\-\-INDEX_TO
 # Play file index   
 INDEX_TOC_FILE=$(echo $INDEX_TEMPLATE | perl -wln -0777 -e 'm/\<\!\-\-INDEX_TOC_FILE(.*?)\-\-\>/s and print $1;')
 
-
 # What kinds of files to find
-FIND_PARAMS="-type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm'"
+FIND_PARAMS="-type f -name '*.mp3' -o -name '*.ogg'"
 
 # Override CONTENT_ROOT if we pass in a directory/folder 
 if test -d "$1" ; then 
@@ -105,6 +104,7 @@ function export_folder {
         sed -e "s@FOLDER_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX@g" \
             -e "s@FOLDER_STYLE@@g" \
             -e "s@FOLDER_TITLE@$folder_name@g" >> ~/toc1.txt
+            
     echo $INDEX_TOC_FOLDER | \
         sed -e "s@FOLDER_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX@g" \
             -e "s@FOLDER_STYLE@@g" \
@@ -112,7 +112,7 @@ function export_folder {
 
     # Complete list of files in this folder, at this depth
     # Note: This is the simplest way to get relative paths...
-    filelist=$(find -s . -depth 1 -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
+    filelist=$(find -s . -depth 1 -type f -name '*.mp3' -o -name '*.ogg')
     
     echo > ~/tmp.txt
     echo "$filelist" | while read movie_path ; 
@@ -121,43 +121,20 @@ function export_folder {
         filename_noext=${filename%.*}
         filename_jpeg=${movie_path%.*}.jpg
 
-        which -s "$THUMBNAILER"
-        if [ $? -ne 0 ]; then
-            # No thumbnailer means no thumbnails
-            echo $INDEX_FILE_NOTHUMB | \
-                sed -e "s@MEDIA_PATH@$movie_path@g" \
-                    -e "s@FILE_STYLE@@g" \
-                    -e "s@MEDIA_TITLE@$filename_noext@g" >> ~/tmp.txt
-        else
-            # Spit out a line of table of contents
-            # Generate a thumbnail (if it doesn't already exist)
-            # https://code.google.com/p/ffmpegthumbnailer/
-            # Puts it along-side the movies, since that's the way my DLNA server takes 'em.
-            # If you think that's 'messy', you can dump all the thumbnails into a different
-            # folder by tinkering with the 'filename_jpeg', and making that folder.
-            # e.g. filename_jpeg=$CONTENT_ROOT/thumbnails/$filename_noext.jpg
-            randomtime=$((25+($RANDOM*50/32768)))
-            
-            if test ! -f "$filename_jpeg"; then
-                "$THUMBNAILER" -t$randomtime% -s$THUMB_SIZE -i "$movie_path" -o "$filename_jpeg"
-            fi
+        # Emit file playback html
+        echo $INDEX_FILE | \
+            sed -e "s@MEDIA_PATH@$movie_path@g" \
+                -e "s@FILE_STYLE@@g" \
+                -e "s@MUSIC_TITLE@$filename_noext@g" >> ~/tmp.txt
     
-            # Spit out a line of table of contents
-            echo $INDEX_FILE | \
-                sed -e "s@MEDIA_PATH@$movie_path@g" \
-                    -e "s@FILE_STYLE@@g" \
-                    -e "s@MEDIA_IMAGE@$filename_jpeg@g" \
-                    -e "s@MEDIA_TITLE@$filename_noext@g" >> ~/tmp.txt
-        fi        
-
         # Record file for index/TOC
         echo $INDEX_TOC_FILE | \
             sed -e "s@MEDIA_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX?$movie_path@g" \
                 -e "s@FILE_STYLE@@g" \
                 -e "s@MEDIA_TITLE@$filename_noext@g" >> ~/toc2.txt
-        
     done
-    
+
+    # Make the player file.
     echo "$PLAYER_TEMPLATE" | \
         sed -e "s@TITLE_TEXT@$folder_name@g" | \
         perl -pe 's/<\!\-\-INDEXES_HERE\-\-\>/`cat \~\/tmp.txt`/ge' > $WEBIFY_PLAYER_INDEX
@@ -174,12 +151,11 @@ echo
 echo Generating file list from "$CONTENT_ROOT"
 pushd "$CONTENT_ROOT"
 
-complete_file_list=$(find -s . -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
+complete_file_list=$(find -s . -type f -name '*.mp3' -o -name '*.ogg')
 complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort --unique --ignore-nonprinting --ignore-case)
 
 echo > ~/toc1.txt
 echo > ~/toc2.txt
-
 echo "$complete_folder_list" | while read folder_relative ;
 do
     pushd "$folder_relative"
