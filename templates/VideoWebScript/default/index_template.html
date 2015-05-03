@@ -30,12 +30,12 @@
     }
 
     /* Bright links that only underline when tracked */
-    a:link      { color:#c0c000; text-decoration: none; }
-    a:visited   { color:#c0c000; text-decoration: none; }
-    a:hover     { color:#e0e000; text-decoration: underline; }
-    a:active    { color:#ffff20; text-decoration: none; }
+    a:link      { color:#00ffff; text-decoration: none; }
+    a:visited   { color:#00ffff; text-decoration: none; }
+    a:hover     { color:#00ffff; text-decoration: underline; }
+    a:active    { color:#20ffff; text-decoration: none; }
     .folder_entry {
-        color:#c0c000;
+        color:#00c0c0;
         font-size:32px;
         white-space:nowrap;
     }
@@ -43,24 +43,28 @@
         display: inline-block;
         background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wD//wC9Wq90AAAAEHRSTlMA758vD9+vP3+/T89fbx+PcBUV9QAAAQpJREFUWMPt10tuhDAQRdECDC7zSd/9rzYDm44jGoGrImXCnTHgCD0hZESenv6kYdXfxaHp/oVDWxPQH4EutADpCDC1Alv8aQHQRiBW16EDSFf1p4AMHXfaTgGZbwF6DojeAVJ+Zz4CEi/q6wf5BFxVPWL3f0BSTUAyAyoyASo9sNqAEZj3CwMQAL4cQAQ6cQAKJA+QN3QAeUM7UDa0A2VDO1A2tANlQztQNjQDr7KhGUhlQzNA2dAFqBeYvUAQEVmB3gaM+RO+j9EOTF5AvUD0AsEJjOIEJi+gXiB6geAExv1IBCwW4H0WBLAA6gWiFwg1kNoaqw0zYGjyAtp2rDy0VL8EQzQU5OndN+fTN/BxvmAlAAAAAElFTkSuQmCC) no-repeat;
         background-size:cover;
+        filter: hue-rotate(120deg);
+        -webkit-filter: hue-rotate(120deg);
+        -moz-filter: hue-rotate(120deg);
+        -ms-filter: hue-rotate(120deg);
+        -o-filter: hue-rotate(120deg);
         height:32px;
         width:32px;
     }
     .folder_small {
-        color:#c0c000;
+        color:#00c0c0;
         font-size:20px;
         white-space:nowrap;
     }
     .index_entry {
-        color:#c0c000;
+        color:#00ffff;
         font-size:24px;
         white-space:nowrap;
-        margin-left:32px;
     }
     .info_text {
-      color: #808080;
-      font-size: 10px;
-      clear:both;
+        color: #808080;
+        font-size: 10px;
+        clear:both;
     }
 }
 @media print {
