@@ -42,7 +42,7 @@ You'll need the [Adobe AIR Runtime](https://get.adobe.com/air/), to run the AIR 
 
 ## Skinning
 
-Now you can skin/change the HTML templates for all of the tools, from a couple of files (one for the player, one for the index).  Without recompiling.
+Now you can skin/change the HTML templates for all of the tools, from a couple of files (or just customize the CSS).  Without recompiling.
 
 See: https://github.com/pingnak/videowebscript/wiki/Skinning-or-Theming
 
