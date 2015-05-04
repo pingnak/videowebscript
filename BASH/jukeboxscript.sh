@@ -23,6 +23,10 @@ THUMBNAILER=ffmpegthumbnailer
 # Thumbnail image width (height determined by video size)
 THUMB_SIZE=240
 
+# File to suck css out of (exported to be findable in backquotes)
+CSS_TEMPLATE_FILE="$SCRIPT_TEMPLATES/template.css"
+cat "$CSS_TEMPLATE_FILE" > ~/css.txt
+
 # Which template to use 
 PLAYER_TEMPLATE_FILE="$SCRIPT_TEMPLATES/player_template.html"
 
@@ -115,21 +119,21 @@ function export_folder {
     filelist=$(find . -maxdepth 1 -type f -name '*.mp3' -o -name '*.ogg')
     
     echo > ~/tmp.txt
-    echo "$filelist" | while read movie_path ; 
+    echo "$filelist" | while read media_path ; 
     do 
-        filename=${movie_path##*/}
+        filename=${media_path##*/}
         filename_noext=${filename%.*}
-        filename_jpeg=${movie_path%.*}.jpg
+        filename_jpeg=${media_path%.*}.jpg
 
         # Emit file playback html
         echo $INDEX_FILE | \
-            sed -e "s@MEDIA_PATH@$movie_path@g" \
+            sed -e "s@MEDIA_PATH@$media_path@g" \
                 -e "s@FILE_STYLE@@g" \
                 -e "s@MUSIC_TITLE@$filename_noext@g" >> ~/tmp.txt
     
         # Record file for index/TOC
         echo $INDEX_TOC_FILE | \
-            sed -e "s@MEDIA_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX?$movie_path@g" \
+            sed -e "s@MEDIA_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX?$media_path@g" \
                 -e "s@FILE_STYLE@@g" \
                 -e "s@MEDIA_TITLE@$filename_noext@g" >> ~/toc2.txt
     done
@@ -137,6 +141,7 @@ function export_folder {
     # Make the player file.
     echo "$PLAYER_TEMPLATE" | \
         sed -e "s@TITLE_TEXT@$folder_name@g" | \
+        perl -pe 's/\/\*INSERT_CSS_HERE\*\//`cat \~\/css.txt`/ge' | \
         perl -pe 's/<\!\-\-INDEXES_HERE\-\-\>/`cat \~\/tmp.txt`/ge' > $WEBIFY_PLAYER_INDEX
 
     rm ~/tmp.txt
@@ -166,10 +171,12 @@ done
 # Generate the index file
 content_name=${CONTENT_ROOT##*}
 echo "$INDEX_TEMPLATE" | \
+    perl -pe 's/\/\*INSERT_CSS_HERE\*\//`cat \~\/css.txt`/ge' | \
     perl -pe 's/<\!\-\-FOLDERS_HERE\-\-\>/`cat \~\/toc1.txt`/ge' |\
     perl -pe 's/<\!\-\-INDEXES_HERE\-\-\>/`cat \~\/toc2.txt`/ge' > $WEBIFY_INDEX
 
 rm ~/toc1.txt
 rm ~/toc2.txt
+rm ~/css.txt
 
 popd > /dev/null

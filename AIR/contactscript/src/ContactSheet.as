@@ -60,6 +60,9 @@ CONFIG::MXMLC_BUILD
         
         /** Table of contents file */
         public static const INDEX_TEMPLATE  : String = "index_template.html";
+
+        /** A css file with theming details */
+        public static const CSS_TEMPLATE  : String = "template.css";
         
         /** Width of thumbnails for image */
         public static const THUMB_SIZE      : int = 240;
@@ -88,6 +91,9 @@ CONFIG::MXMLC_BUILD
 
         /** Path to file containing index template */
         protected var index_template_file : File;
+
+        /** Path to file containing common css */
+        protected var css_template_file : File;
         
         /** Finder while searching files/folders */
         protected var finding : Find;
@@ -232,7 +238,7 @@ CONFIG::FLASH_AUTHORING
             if( !root_path_image.exists || !root_path_image.isDirectory )
             {
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathImages);
-                bHaveError = true;
+                return;
             }
             // Make sure we don't go way out of range on thumb size
             if( thumb_size < 64 )
@@ -240,21 +246,27 @@ CONFIG::FLASH_AUTHORING
                 thumb_size = 64;
                 ui.tfThumbnailSize.text = thumb_size.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
-                bHaveError = true;
+                return;
             }
             if( thumb_size > 640 )
             {
                 thumb_size = 640;
                 ui.tfThumbnailSize.text = thumb_size.toString();
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfThumbnailSize);
-                bHaveError = true;
+                return;
             }
 
+            var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
+            player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+            index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
+            
             // If we are using external template files...
             if( CheckGet( ui.bnTempate ) )
             {
                 try
                 {
+                    css_template_file   = Find.File_AddPath( root_path_template, CSS_TEMPLATE );
                     player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
                     index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
                 }
@@ -262,25 +274,31 @@ CONFIG::FLASH_AUTHORING
                 {
                     trace(e.getStackTrace());
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
-                    bHaveError = true;
+                    return;
                 }
-                if( !player_template_file.exists || !index_template_file.exists )
+                if( !player_template_file.exists && !index_template_file.exists && !css_template_file.exists )
                 {
-                    trace("Could not open template file.");
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
-                    bHaveError = true;
+                    trace("Could not find expected files in",css_template_file.nativePath);
+                    return;
+                }
+                if( !player_template_file.exists )
+                {
+                    player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+                    trace("Could not find player template file.  Using default.");
+                }
+                if( !index_template_file.exists )
+                {
+                    index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
+                    trace("Could not find index template file.  Using default.");
+                }
+                if( !css_template_file.exists )
+                {
+                    css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
+                    trace("Could not find CSS template file.  Using default.");
                 }
             }
-            else
-            {
-                var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
-                player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
-                index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
-            }
-            
-            if( bHaveError )
-                return;
-                
+
             CommitSharedData();
             
             // JPEG images and folders containing them
@@ -338,6 +356,20 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoImageFileTree(found:Array):void
         {
+            try
+            {
+                // CSS
+                var css_template : String = LoadText(css_template_file);
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed CSS", css_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
+            }
+
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
@@ -813,6 +845,7 @@ CONFIG::FLASH_AUTHORING
                             // Emit bottom of file
 
                             // Merge thumbnails and folders into content
+                            index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
                             index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_content);
                             index_content = index_content.replace("<!--THUMBNAILS_HERE-->",thumbnail_content);
                             
@@ -860,6 +893,20 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoTOC(found:Array):void
         {
+            try
+            {
+                // CSS
+                var css_template : String = LoadText(css_template_file);
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed CSS", css_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
+            }
+            
             try
             {
                 // Preload the various template elements we'll be writing for each folder/file
@@ -911,6 +958,7 @@ CONFIG::FLASH_AUTHORING
                 }
             }
             
+            index_template = index_template.replace("/*INSERT_CSS_HERE*/",css_template);
             index_template = index_template.replace("<!--FOLDERS_HERE-->",folder_content);
             
             var toc_file : File = Find.File_AddPath( root, MAIN_TOC );

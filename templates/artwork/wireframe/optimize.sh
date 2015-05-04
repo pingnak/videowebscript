@@ -1,4 +1,10 @@
 #!/bin/sh
+
+# Convert to 8 bit palettes
 pngquant -v --ext .png --force *.png
-optipng -strip all -o7 *.png
-find . -name '*.png' -exec printf "\n<!--%s-->\ndata:image/png;base64," \{\} \; -exec base64 \{\} \; > scratch.txt
+
+# Remove any metadata, try various techniques to shrink further
+optipng -strip all -o9 *.png
+
+# Format for easy css copy/paste 
+find . -name '*.png' -exec printf "\n\n    /* %s */\n    background: url(data:image/png;base64," \{\} \; -exec base64 \{\} \; -exec printf ") no-repeat;" \; | perl -0007 -pe 's/\n\)/)/g' > scratch.txt

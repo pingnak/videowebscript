@@ -52,7 +52,9 @@ CONFIG::MXMLC_BUILD
 
         /** A movie file link with player logic */
         public static const INDEX_TEMPLATE  : String = "index_template.html";
-
+        
+        /** A css file with theming details */
+        public static const CSS_TEMPLATE  : String = "template.css";
 
         /** Width of thumbnails for video */
         public static const THUMB_SIZE_DEFAULT : int = 240;
@@ -61,8 +63,7 @@ CONFIG::MXMLC_BUILD
         public static const FOLDER_DEPTH : int = 32;
 
         /** File/folder left padding*/
-        public static const LEFT_PADDING : int = 6;
-
+        public static const LEFT_PADDING : int = 0;
 
         /** Regular expressions that we accept as 'MP4 content'
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs
@@ -85,6 +86,8 @@ CONFIG::MXMLC_BUILD
         /** Path to file containing index template */
         protected var index_template_file : File;
 
+        /** Path to file containing common css */
+        protected var css_template_file : File;
         
         /** Finder while searching files/folders */
         protected var finding : Find;
@@ -94,8 +97,8 @@ CONFIG::MXMLC_BUILD
         /** Thumbnailer */
         protected var thumbnail : Thumbnail;
 
+        /** Set width of thumbnails */
         protected var thumb_size : int;
-        
         
         public function VideoWebScript()
         {
@@ -279,10 +282,15 @@ CONFIG::FLASH_AUTHORING
             }
             
             // If we are using external template files...
+            var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
+            player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+            index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
             if( CheckGet( ui.bnTempate ) )
             {
                 try
                 {
+                    css_template_file   = Find.File_AddPath( root_path_template, CSS_TEMPLATE );
                     player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
                     index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
                 }
@@ -292,18 +300,21 @@ CONFIG::FLASH_AUTHORING
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                     return;
                 }
-                if( !player_template_file.exists || !index_template_file.exists )
+                if( !player_template_file.exists )
                 {
-                    trace("Could not open template file.");
-                    ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
-                    return;
+                    player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
+                    trace("Could not find player template file.  Using default.");
                 }
-            }
-            else
-            {
-                var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
-                player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
-                index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
+                if( !index_template_file.exists )
+                {
+                    index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
+                    trace("Could not find index template file.  Using default.");
+                }
+                if( !css_template_file.exists )
+                {
+                    css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
+                    trace("Could not find CSS template file.  Using default.");
+                }
             }
 
             // Configuration looks kosher.  Go ahead and save it.            
@@ -422,9 +433,23 @@ CONFIG::FLASH_AUTHORING
         {
             try
             {
+                // CSS
+                var css_template : String = LoadText(css_template_file);
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed CSS", css_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
+            }
+            
+            try
+            {
                 // Preload the various template elements we'll be writing for each folder/file
                 var player_template : String    = LoadText(player_template_file);
-                
+
                 const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
                 var index_index : String = player_template.match( rxFolder )[0];
                 index_index = index_index.replace(rxFolder,"$1");
@@ -442,6 +467,8 @@ CONFIG::FLASH_AUTHORING
                 trace( "Missing or malformed INDEX_INDEX or INDEX_FILE or INDEX_FILE_NOTHUMB in", player_template_file.nativePath );
                 trace(e.getStackTrace());
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
             }
                 
             try
@@ -466,8 +493,11 @@ CONFIG::FLASH_AUTHORING
                 trace( "Missing or malformed INDEX_SMALL or INDEX_TOC_FILE or INDEX_TOC_FOLDER in", index_template_file.nativePath );
                 trace(e.getStackTrace());
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
             }
-                
+            
+            
             try
             {
                 
@@ -560,7 +590,7 @@ CONFIG::FLASH_AUTHORING
                                     seded = index_index;
                                     seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
                                     seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
-                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
+                                    seded = seded.replace(/FOLDER_STYLE/g,'');
                                     index_files += seded;
 
                                     // Generate indexes for TOC
@@ -601,7 +631,7 @@ CONFIG::FLASH_AUTHORING
                             }
                             seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
                             seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
-                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+LEFT_PADDING+'px;');
+                            seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
 
                             // Emit absolute index to play from TOC
@@ -611,12 +641,13 @@ CONFIG::FLASH_AUTHORING
                             seded = index_toc_file;
                             seded = seded.replace(/MEDIA_PATH/g,curr_path);
                             seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
-                            seded = seded.replace(/FILE_STYLE/g,'padding-left:'+(LEFT_PADDING+FOLDER_DEPTH)+'px;');
+                            seded = seded.replace(/FILE_STYLE/g,'');
                             file_list_index += seded;
 
                             bExportedLinks = true;
                         }
 
+                        index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
                         index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
 
                         // Pack output file a bit
@@ -646,14 +677,13 @@ CONFIG::FLASH_AUTHORING
                         for( iteration = 0; iteration < folder_list_db.length; ++iteration )
                         {
                             var dbCurr : Object = folder_list_db[iteration];
-                            //if( 0 == dbCurr.depth && 0 != iteration )
-                            //    folder_list += "<br/>";
                             folder_list += dbCurr.item;
                         }
 
                         var index_content : String = index_template;
                         index_content = index_content.replace(/THUMB_SIZE/g,thumb_size.toString());
                         //index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
+                        index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
                         index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
                         index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
 
