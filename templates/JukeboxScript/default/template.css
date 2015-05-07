@@ -10,7 +10,7 @@ body {
     color:#00c0c0;
 }
 
-/* Links that only underline when tracked, don't change color */
+/* Links that only underline when tracked, change color if visited (already watched) */
 a:link      { color:#00c0c0; text-decoration: none; }
 a:visited   { color:#00c0c0; text-decoration: none; }
 a:hover     { color:#00c0c0; text-decoration: underline; }

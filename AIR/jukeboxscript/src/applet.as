@@ -399,6 +399,28 @@ CONFIG::DEBUG {
 }
         }        
         
+        /**
+         * Dump public contents of an Object/Dictionary/Array
+         * @param o Object to trace publicly accessible contents of
+         * @param s If passed, tells us something about this object
+        **/
+        public static function TraceObject( o:*, s:* = "" ) : void
+        {
+CONFIG::DEBUG {
+            { CONFIG::DEBUG { trace(s+": "+o ); } }
+            if( o is XML )
+            {
+                { CONFIG::DEBUG { trace(o.toXMLString() ); } }
+            }
+            else
+            {
+                for( var m:String in o )
+                {
+                    { CONFIG::DEBUG { trace("    " + m + ": " + o[m] ); } }
+                }
+            }
+}
+        }
     }
 }
     

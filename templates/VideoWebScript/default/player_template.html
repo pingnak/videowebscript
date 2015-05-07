@@ -141,8 +141,8 @@ img.index_thumbnail {
 </head>
 
 <body onload="PlayerInit();">
-<div id='video_box' class='video_box_windowed' style="display:none;">
-<video id="videoplayer" class='videoplayer_windowed' controls > <!-- Show controls now, or 'Silk' never will -->
+<div id='video_box' class='video_box_windowed' >
+<video id="videoplayer" class='videoplayer_windowed' style="display:none;" controls > <!-- Show controls now, or 'Silk' never will -->
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
@@ -483,9 +483,10 @@ function MouseMoved()
 function PlayerInit()
 {
     video_box = document.getElementById("video_box");
-    video_box.style.display = 'none';
 
     video = document.getElementById("videoplayer");
+    video.style.display = 'none';
+
     video_controls = document.getElementById("video_controls");
 
     bPause= document.getElementById("bPause");
@@ -530,6 +531,11 @@ function PlayerInit()
     }
 
     MakePlaylist();
+    if( 0 == playlist.length )
+    {
+        video_box.style.display = 'none';
+    }
+    
     OnResizeNow();
 
     var params = window.location.href.split('?');
@@ -600,7 +606,7 @@ function PlayMedia(video_path)
     if( 'undefined' == typeof(now_playing) )
     {
         progress_text_title.innerHTML = '';
-        video_box.style.display = 'none';
+        video.style.display = 'none';
         video_box.removeEventListener( 'mousemove', MouseMoved );
         return;
     }
@@ -615,10 +621,10 @@ function PlayMedia(video_path)
 /** Setting attributes kills the video... so let the stack unwind and start it second */
 function PlayMedia2(video_path)
 {
-    video_box.style.display = '';
+    video.style.display = '';
 
-    var video_type='video/'+now_playing.split('.').pop();
-    video.setAttribute("type",video_type);
+    //var video_type='video/'+now_playing.split('.').pop();
+    //video.setAttribute("type",video_type);
     video.setAttribute("src",now_playing);
     video.load();
     video.play();

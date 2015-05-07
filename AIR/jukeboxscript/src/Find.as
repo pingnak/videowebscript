@@ -463,6 +463,8 @@ package
         public static function Filter( tree : Array, fnFilter : Function ) : Array
         {
             var ret : Array = new Array();
+            if( 0 == tree.length )
+                return ret;
             ret.push(tree[0]);
             var i : int;
             var f : File;
@@ -501,7 +503,7 @@ package
         **/
         public static function FixDecodeURI( path : String ) : String
         {
-            var rx2HexDigits : RegExp = /^[0-9a-fA-F][0-9a-fA-F].*/;
+            var rx2HexDigits : RegExp = /^[0-9A-F][0-9A-F]/i;
             path = decodeURI(path);
             var parts : Array = path.split('%');
             if( 1 == parts.length )

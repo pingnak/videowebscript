@@ -463,6 +463,8 @@ package
         public static function Filter( tree : Array, fnFilter : Function ) : Array
         {
             var ret : Array = new Array();
+            if( 0 == tree.length )
+                return ret;
             ret.push(tree[0]);
             var i : int;
             var f : File;
