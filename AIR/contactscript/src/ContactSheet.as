@@ -454,8 +454,8 @@ CONFIG::FLASH_AUTHORING
 
                                 // Emit index for child folder
                                 seded = index_index;
-                                seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                                seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                                seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
+                                seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));                      
                                 seded = seded.replace(/FOLDER_STYLE/g,'');
                                 folder_content += seded;
                             }
@@ -487,9 +487,9 @@ CONFIG::FLASH_AUTHORING
 
                             trace("ThreadPassImage:", curr_file.nativePath);
                             
-                            seded = seded.replace(/FILE_TITLE/g,curr_file_title);
+                            seded = seded.replace(/FILE_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
-                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
+                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
                             seded = seded.replace(/THUMB_SIZE/g,thumb_size.toString());
                             
                             var jpeg_loaded : ByteArray = new ByteArray();
@@ -949,8 +949,8 @@ CONFIG::FLASH_AUTHORING
 
                     // Emit index for child folder
                     var seded : String = index_index;
-                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);                      
+                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
+                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));                      
                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(curr_depth*FOLDER_DEPTH)+'px;');
                     bExportedLinks = true;
 

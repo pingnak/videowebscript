@@ -497,7 +497,7 @@ package
         }
 
         /**
-         * The AS3 DecodeURI is not fixing lower-case hex spew in paths from 
+         * The AS3 decodeURI is not fixing lower-case hex spew in paths from 
          * Windows nativePath.  Fix the leftover %2c, etc. in the path, for titles
          * Apparently, if we 'fix' the paths File returns, these codes no longer 'find' the files in Windows.
         **/
@@ -525,7 +525,23 @@ package
             }
             return ret;
         }
-        
+
+        /**
+         * The AS3 encodeURI is not escaping '#' in paths 
+        **/
+        public static function FixEncodeURI( path : String ) : String
+        {
+            path=encodeURI(path);
+            return path.replace('#','%23');
+        }
+
+        /**
+         * Remove quotes from text to go into attributes 
+        **/
+        public static function EscapeQuotes( text : String ) : String
+        {
+            return text.replace('"','&quot;').replace("'",'&apos;');
+        }
     }
 }
 

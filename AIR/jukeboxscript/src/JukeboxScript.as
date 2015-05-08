@@ -481,8 +481,8 @@ CONFIG::FLASH_AUTHORING
                                     if( 0 != curr_files.length )
                                     {
                                         seded = index_toc_folder;
-                                        seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
-                                        seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                        seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
+                                        seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
                                         seded = seded.replace(/FOLDER_STYLE/g,"");
                                         file_list_index += seded;
                                     }
@@ -492,15 +492,15 @@ CONFIG::FLASH_AUTHORING
 
                                     // Emit index for child folder
                                     seded = index_index;
-                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_relative);
-                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
+                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'');
                                     index_files += seded;
 
                                     // Generate indexes for TOC
                                     seded = index_small;
-                                    seded = seded.replace(/FOLDER_PATH/g,curr_index_absolute);
-                                    seded = seded.replace(/FOLDER_TITLE/g,curr_index_title);
+                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
+                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
                                     dbnew = {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth};
                                     folder_list_db.push( dbnew );
@@ -523,8 +523,8 @@ CONFIG::FLASH_AUTHORING
                             
                             // Emit index+code to play file
                             seded = index_file;
-                            seded = seded.replace(/MEDIA_PATH/g,curr_file_relative);
-                            seded = seded.replace(/MUSIC_TITLE/g,curr_file_title);
+                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
+                            seded = seded.replace(/MUSIC_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
     
@@ -533,8 +533,8 @@ CONFIG::FLASH_AUTHORING
                             var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
                             var curr_path   : String = curr_file_relative + '?' + curr_name;
                             seded = index_toc_file;
-                            seded = seded.replace(/MEDIA_PATH/g,curr_path);
-                            seded = seded.replace(/MEDIA_TITLE/g,curr_file_title);
+                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_path));
+                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             file_list_index += seded;
 
@@ -785,8 +785,8 @@ CONFIG::FLASH_AUTHORING
                             var curr_index_absolute : String = Find.File_relative( foundFile, root_path_media );
 
                             var seded : String = index_file;
-                            seded = seded.replace(/MEDIA_PATH/g,curr_index_absolute);
-                            seded = seded.replace(/MUSIC_TITLE/g,curr_index_title);
+                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_index_absolute));
+                            seded = seded.replace(/MUSIC_TITLE/g,Find.EscapeQuotes(curr_index_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
                         }
@@ -812,8 +812,8 @@ CONFIG::FLASH_AUTHORING
 
                         // Generate indexes for TOC, for our new player file
                         seded = index_small;
-                        seded = seded.replace(/FOLDER_PATH/g, Find.File_relative( outputFile, root_path_media ) );
-                        seded = seded.replace(/FOLDER_TITLE/g, curr_title);
+                        seded = seded.replace(/FOLDER_PATH/g, Find.FixEncodeURI(Find.File_relative( outputFile, root_path_media )) );
+                        seded = seded.replace(/FOLDER_TITLE/g, Find.EscapeQuotes(curr_title));
                         seded = seded.replace(/FOLDER_STYLE/g,'');
                         var dbnew : Object = {name:curr_title,item:seded,path:outputFile,depth:0};
                         play_list_db.push( dbnew );

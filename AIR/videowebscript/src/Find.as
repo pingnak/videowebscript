@@ -526,6 +526,22 @@ package
             return ret;
         }
         
+        /**
+         * The AS3 encodeURI is not escaping '#' in paths 
+        **/
+        public static function FixEncodeURI( path : String ) : String
+        {
+            path=encodeURI(path);
+            return path.replace('#','%23');
+        }
+
+        /**
+         * Remove quotes from text to go into attributes 
+        **/
+        public static function EscapeQuotes( text : String ) : String
+        {
+            return text.replace('"','&quot;').replace("'",'&apos;');
+        }
     }
 }
 
