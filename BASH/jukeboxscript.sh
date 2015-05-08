@@ -68,10 +68,10 @@ else
         echo "Invalid parameter."
         echo
         echo "$0"
-        echo "    Generate video indexes/players in default location set in 'CONTENT_ROOT'."
+        echo "    Generate Audio indexes/players in default location set in 'CONTENT_ROOT'."
         echo
-        echo "$0 PATH_TO_VIDEO"
-        echo "    Change path to 'PATH_TO_VIDEO', and do the job."
+        echo "$0 PATH_TO_AUDIO"
+        echo "    Change path to 'PATH_TO_AUDIO', and do the job."
         exit 1
     fi
 fi
@@ -93,54 +93,70 @@ needed_root=
 # We only do one pass of find.
 complete_file_list=
 
+# Escape reserved characters in URI
+function uri_escape {
+    echo $1 | sed -e 's/ /%20/g' -e 's/\!/%21/g' -e 's/\#/%23/g' -e 's/\$/%24/g' -e 's/\&/%26/g' -e "s/\'/%27/g" -e 's/(/%28/g' -e 's/)/%29/g' -e 's/\*/%2A/g' -e 's/\+/%2B/g' -e 's/\,/%2C/g' -e 's/\:/%3A/g' -e 's/\;/%3B/g' -e 's/\=/%3D/g' -e 's/\?/%3F/g' -e 's/\@/%40/g' -e 's/\[/%5B/g' -e 's/\]/%5D/g'
+}
+# Escape quotes in text
+function quote_escape {
+    # The ampersand '&' is a real pain... escape '@', too, since I use that as a delimiter for sed
+    echo $1 | sed -e 's@&@\\\&amp;@g' -e "s@'@\\\\\&apos;@g" -e 's@"@\\\\\&quot;@g' -e 's@<@\\\\\&lt;@g' -e 's@>@\\\\\&gt;@g' -e 's/@/\\\\\&U+00A9;/g'
+}
 
 function export_folder {
 
     # Just the path
     folder_curr="$1"
-    folder_name=$(basename "$folder_curr")
+    folder_name=$(basename "$1")
     if [ "." = "$folder_name" ] ; then
         folder_name=$(basename `pwd`)
     fi
 
+    folder_name_escaped=$(quote_escape "$folder_name")
+    folder_curr_escaped=$(uri_escape "$folder_curr")
+
     # Record folder for index/TOC
     echo $INDEX_SMALL | \
-        sed -e "s@FOLDER_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX@g" \
+        sed -e "s@FOLDER_PATH@$folder_curr_escaped/$WEBIFY_PLAYER_INDEX@g" \
             -e "s@FOLDER_STYLE@@g" \
-            -e "s@FOLDER_TITLE@$folder_name@g" >> ~/toc1.txt
+            -e "s@FOLDER_TITLE@$folder_name_escaped@g" >> ~/toc1.txt
             
     echo $INDEX_TOC_FOLDER | \
-        sed -e "s@FOLDER_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX@g" \
+        sed -e "s@FOLDER_PATH@$folder_curr_escaped/$WEBIFY_PLAYER_INDEX@g" \
             -e "s@FOLDER_STYLE@@g" \
-            -e "s@FOLDER_TITLE@$folder_name@g" >> ~/toc2.txt
+            -e "s@FOLDER_TITLE@$folder_name_escaped@g" >> ~/toc2.txt
 
     # Complete list of files in this folder, at this depth
     # Note: This is the simplest way to get relative paths...
-    filelist=$(find . -maxdepth 1 -type f -name '*.mp3' -o -name '*.ogg')
+    filelist=$(find . -maxdepth 1 -type f -name '*.mp3' -o -name '*.ogg' -o -name '*.webm' | sort )
     
     echo > ~/tmp.txt
     echo "$filelist" | while read media_path ; 
     do 
         filename=${media_path##*/}
-        filename_noext=${filename%.*}
+        filename_title=${filename%.*}
         filename_jpeg=${media_path%.*}.jpg
+
+        media_path_escaped=$(uri_escape "$media_path")
+        filename_jpeg_escaped=$(uri_escape "$filename_jpeg")
+        filename_title_escaped=$(quote_escape "$filename_title")
 
         # Emit file playback html
         echo $INDEX_FILE | \
-            sed -e "s@MEDIA_PATH@$media_path@g" \
+            sed -e "s@MEDIA_PATH@$media_path_escaped@g" \
                 -e "s@FILE_STYLE@@g" \
-                -e "s@MUSIC_TITLE@$filename_noext@g" >> ~/tmp.txt
+                -e "s@MUSIC_TITLE@$filename_title_escaped@g" >> ~/tmp.txt
     
         # Record file for index/TOC
         echo $INDEX_TOC_FILE | \
-            sed -e "s@MEDIA_PATH@$folder_curr/$WEBIFY_PLAYER_INDEX?$media_path@g" \
+            sed -e "s@MEDIA_PATH@$folder_curr_escaped/$WEBIFY_PLAYER_INDEX?$media_path_escaped@g" \
                 -e "s@FILE_STYLE@@g" \
-                -e "s@MEDIA_TITLE@$filename_noext@g" >> ~/toc2.txt
+                -e "s@MEDIA_TITLE@$filename_title_escaped@g" >> ~/toc2.txt
     done
 
     # Make the player file.
     echo "$PLAYER_TEMPLATE" | \
-        sed -e "s@TITLE_TEXT@$folder_name@g" | \
+        sed -e "s@TITLE_TEXT@$folder_name_escaped@g" | \
         perl -pe 's/\/\*INSERT_CSS_HERE\*\//`cat \~\/css.txt`/ge' | \
         perl -pe 's/<\!\-\-INDEXES_HERE\-\-\>/`cat \~\/tmp.txt`/ge' > $WEBIFY_PLAYER_INDEX
 
@@ -169,7 +185,6 @@ do
 done
 
 # Generate the index file
-content_name=${CONTENT_ROOT##*}
 echo "$INDEX_TEMPLATE" | \
     perl -pe 's/\/\*INSERT_CSS_HERE\*\//`cat \~\/css.txt`/ge' | \
     perl -pe 's/<\!\-\-FOLDERS_HERE\-\-\>/`cat \~\/toc1.txt`/ge' |\

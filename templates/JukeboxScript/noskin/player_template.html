@@ -122,7 +122,6 @@ a:active    { color:#ffff20; text-decoration: none; }
 
 <script type="text/javascript">
 var original_title = "Titles Available In TITLE_TEXT";   // Original title, before play list monkeyed with it
-var playlist = null;
 var PlayList = document.getElementById("PlayList");;
 var now_playing;
 var audio_box;
@@ -133,8 +132,8 @@ function PlayerInit()
     audio_box = document.getElementById("PlayerBox");
     audio = document.getElementById("audioplayer");
 
-    MakePlaylist();
-    if( 0 == playlist.length )
+    var collection = document.getElementsByClassName("index_entry");
+    if( 0 == collection.length )
     {
         audio_box.style.display = 'none';
         PlayList.style.top = '0px';
@@ -146,26 +145,6 @@ function PlayerInit()
         PlayMedia(decodeURI(params[1]));
     }
     
-    // If we have a parent, show a 'back' link to it
-    // Note: This will only work with pages served from a web server.
-    // If you open it from the file system, it will remain hidden, and get an 
-    // error in the page's log output about needing to be 'same domain'.
-    var request = new XMLHttpRequest();  
-    request.open('GET', '../Jukebox.html', true);
-    request.onreadystatechange = function()
-    {
-        if (request.readyState === 4)
-        {
-            if (request.status === 200) 
-            {   // If a parent html page exists, display a link to it
-                document.getElementById("ToParent").style.display = '';
-            }  
-        }
-    };
-    try {
-        request.send();
-    } 
-    catch(e) {};
 }
 /* 
  * Load the audio when the page finishes loading 
@@ -185,31 +164,8 @@ function PlayMedia(audio_path)
     audio.load();
     audio.play();
 
-    // Show title
-    var title = document.getElementById("title");
-    title.innerHTML = "Now Playing: " + TitleFromPath(now_playing);
 }
 
-/* Make a play list from title links */
-function MakePlaylist()
-{
-    var collection = document.getElementsByClassName("index_entry");
-    var array = new Array();
-    var i;
-    for( i = 0; i < collection.length; ++i )
-    {
-        array.push(collection[i]);
-    }
-    return playlist = array;
-}
-/** Turn video URI into title text */
-function TitleFromPath(path)
-{
-    var titletext = decodeURI(path);
-    titletext = titletext.substring(titletext.lastIndexOf('/')+1);
-    titletext = titletext.substring(0,titletext.lastIndexOf('.'));
-    return titletext;
-}
 </script>
 
 </body>

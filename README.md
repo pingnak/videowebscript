@@ -1,4 +1,4 @@
-# videowebscript
+# Video Web Script, Jukebox Script, Contact Sheet
 
 Scripts to generate a web interface for a collection of videos, music or pictures.  See the wiki links, somewhere on this page, for details about setting up or building the various pieces.
 

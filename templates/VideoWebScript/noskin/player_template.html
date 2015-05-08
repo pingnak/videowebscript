@@ -173,9 +173,7 @@ function PlayMedia(video_path)
     now_playing = video_path;
     if( 'undefined' == typeof(now_playing) )
     {
-        progress_text_title.innerHTML = '';
         video_box.style.display = 'none';
-        video_box.removeEventListener( 'mousemove', MouseMoved );
         return;
     }
 

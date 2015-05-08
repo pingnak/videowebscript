@@ -754,10 +754,28 @@ function WhatNext()
 /** Turn video URI into title text */
 function TitleFromPath(path)
 {
-    var titletext = decodeURI(path);
-    titletext = titletext.substring(titletext.lastIndexOf('/')+1);
-    titletext = titletext.substring(0,titletext.lastIndexOf('.'));
-    return titletext;
+    path = path.substring(path.lastIndexOf('/')+1);
+    path = path.substring(0,path.lastIndexOf('.'));
+    
+    // URI decoders don't do the whole job, apparently.
+    var parts = path.split('%');
+    if( 1 == parts.length )
+        return path;
+    var ss;
+    path = parts.shift();
+    while( 0 < parts.length )
+    {
+        ss = parts.shift();
+        if( ss.match( /^[0-9A-F][0-9A-F].*/i ) )
+        {
+            path += String.fromCharCode( parseInt(ss.slice(0,2), 16) ) + ss.slice(2);
+        }
+        else
+        {
+            path += '%'+ss;
+        }
+    }
+    return path;
 }
 </script>
 
