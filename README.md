@@ -12,39 +12,21 @@ All these scripts do, is iterate through folders and build a web page interface 
 
 This provides a consistent, portable user interface for that content on practically any computer that you open it with, given an HTML5 compatible-enough browser.
 
-You'll need the [Adobe AIR Runtime](https://get.adobe.com/air/), to run the AIR projects, or use the native installers that have their own copy of AIR.
+## Releases
 
-## To Just Get The Binaries (What you're probably here for...)
+[The latest stable release](https://github.com/pingnak/videowebscript/releases) is in the github release system.
 
-### Generate Web Interfaces To Play MP4/M4V
-
-[Video Web Player Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.air?raw=true)
-
-[Video Web Player Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.dmg?raw=true)
-
-[Video Web Player Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/videowebscript/VideoWebScript.exe?raw=true)
-
-### Generate Web Interfaces To Play MP3
-
-[Jukebox Web Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.air?raw=true)
-
-[Jukebox Web Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.dmg?raw=true)
-
-[Jukebox Web Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/jukeboxscript/JukeboxScript.exe?raw=true)
-
-### Generate Web Interfaces To View Photos
-
-[Contact Sheet Generator AIR Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.air?raw=true)
-
-[Contact Sheet Generator Native OS X Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.dmg?raw=true)
-
-[Contact Sheet Generator Native Windows Installer](https://github.com/pingnak/videowebscript/blob/master/AIR/contactscript/ContactSheet.exe?raw=true)
+Otherwise, each of the [AIR projects](https://github.com/pingnak/videowebscript/tree/master/AIR) has 'latest builds', and the [BASH script](https://github.com/pingnak/videowebscript/tree/master/BASH) version should always be usable.
 
 ## Skinning
 
 Now you can skin/change the HTML templates for all of the tools, from a couple of files (or just customize the CSS).  Without recompiling.
 
 See: https://github.com/pingnak/videowebscript/wiki/Skinning-or-Theming
+
+## The Wiki Documents
+
+Go to the [Wiki Pages](https://github.com/pingnak/videowebscript/wiki), to get more details about how to use and customize this.
 
 ##License
 
