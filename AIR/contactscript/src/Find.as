@@ -171,6 +171,15 @@ package
         }
         
         /**
+         * Sort on file name, doing some english-y things
+        **/
+        public static function SortOnName(f1:File,f2:File) : int
+        {
+            return collator.compare( Find.File_nameext(f1), Find.File_nameext(f2) );
+        }
+        
+        
+        /**
          * Strip .ext from path, return native path
         **/
         public static function GetPathWithoutExt(file:File) : String

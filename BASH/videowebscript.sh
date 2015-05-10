@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 #
 # Script to generate a single web file of all videos
@@ -94,16 +94,29 @@ needed_root=
 complete_file_list=
 
 # Escape reserved characters in URI
-function uri_escape {
-    echo $1 | sed -e 's/ /%20/g' -e 's/\!/%21/g' -e 's/\#/%23/g' -e 's/\$/%24/g' -e 's/\&/%26/g' -e "s/\'/%27/g" -e 's/(/%28/g' -e 's/)/%29/g' -e 's/\*/%2A/g' -e 's/\+/%2B/g' -e 's/\,/%2C/g' -e 's/\:/%3A/g' -e 's/\;/%3B/g' -e 's/\=/%3D/g' -e 's/\?/%3F/g' -e 's/\@/%40/g' -e 's/\[/%5B/g' -e 's/\]/%5D/g'
+uri_escape() {
+    echo $1 | sed -e 's/ /%20/g' -e 's/\!/%21/g' -e 's/\#/%23/g' -e 's/\$/%24/g' -e 's/\&/%26/g' -e 's/(/%28/g' -e 's/)/%29/g' -e 's/\*/%2A/g' -e 's/\+/%2B/g' -e 's/\,/%2C/g' -e 's/\:/%3A/g' -e 's/\;/%3B/g' -e 's/\=/%3D/g' -e 's/\?/%3F/g' -e 's/\@/%40/g' -e 's/\[/%5B/g' -e 's/\]/%5D/g'
+# My XML attributes are double-quoted...
+# -e "s/\'/%27/g"
 }
 # Escape quotes in text
-function quote_escape {
+quote_escape() {
     # The ampersand '&' is a real pain... escape '@', too, since I use that as a delimiter for sed
     echo $1 | sed -e 's@&@\\\&amp;@g' -e "s@'@\\\\\&apos;@g" -e 's@"@\\\\\&quot;@g' -e 's@<@\\\\\&lt;@g' -e 's@>@\\\\\&gt;@g' -e 's/@/\\\\\&U+00A9;/g'
 }
 
-function export_folder {
+# BusyBox pushd/popd equivalents from Mijzelf
+#pushd() {
+#   pwd >>/tmp/$$.pushed
+#   cd "$1"
+#}
+#popd() {
+#   local last=$( tail -n 1 /tmp/$$.pushed )
+#   sed -i '$ d' /tmp/$$.pushed
+#   cd "$last"
+#}
+
+export_folder() {
 
     # Just the path
     folder_curr="$1"
@@ -194,7 +207,7 @@ echo Generating file list from "$CONTENT_ROOT"
 pushd "$CONTENT_ROOT"
 
 complete_file_list=$(find . -type f -name '*.mp4' -o -name '*.ogg' -o -name '*.webm')
-complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort --unique --ignore-nonprinting --ignore-case)
+complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort -u -i -f)
 
 echo > ~/toc1.txt
 echo > ~/toc2.txt

@@ -37,7 +37,7 @@ Contact Sheet Snapshot - Photographs of animals at The Living Desert, in Palm De
 
 Now you can skin/change the HTML templates for all of the tools, from a couple of files.  Without recompiling.  
 
-Just edit a CSS file, point the tool at it, and run, if you don't like my topaz coloring, or icons.
+Just edit a CSS file, point the tool at it, and run, if you don't like my topaz coloring, or icons, or just want to make the icons 'match' your own browser's control scheme.
 
 Edit the other files to add your own personal touches, like your own personalized title, or completely alter the user interface.
 

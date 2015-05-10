@@ -170,6 +170,16 @@ package
             return collator.compare( GetPathWithoutExt(p1), GetPathWithoutExt(p2) );
         }
         
+        
+        /**
+         * Sort on file name, doing some english-y things
+        **/
+        public static function SortOnName(f1:File,f2:File) : int
+        {
+            return collator.compare( Find.File_name(f1), Find.File_name(f2) );
+        }
+        
+        
         /**
          * Strip .ext from path, return native path
         **/

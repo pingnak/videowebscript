@@ -439,8 +439,8 @@ CONFIG::FLASH_AUTHORING
                         return null == ext.match( rxMP3 );
                     }
                     total_files_at_this_depth = Find.Filter( total_files_at_this_depth, just_music );
-
-                    if( total_files_at_this_depth.length > 0 )
+trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );                    
+                    if( 0 < total_files_at_this_depth.length )
                     {
                         // Get a list of folders in this folder, files in this folder
                         var curr_files : Array = Find.GetChildren( found, root );
@@ -576,8 +576,8 @@ CONFIG::FLASH_AUTHORING
                 function BorkedFile(sz:String) : String
                 {
                     sz = Find.FixDecodeURI(sz);
-                    sz = escape(sz);
-                    return sz;
+                    sz = Find.FixEncodeURI(sz);
+                    return sz.toLowerCase();
                 }
                 
                 function MakePlaylists():void
@@ -590,8 +590,7 @@ CONFIG::FLASH_AUTHORING
                         var ext : String = Find.File_extension(file);
                         return null == ext.match( rxMP3 );
                     }
-                    aPlaylists = Find.GetFiles(finding.results);
-                    aPlaylists = Find.Filter( aPlaylists, filter_playable );
+                    aPlaylists = Find.Filter( finding.results, filter_playable );
 
                     // Make a quicker index for potential play list members
                     var i : int;
@@ -601,8 +600,6 @@ CONFIG::FLASH_AUTHORING
                     {
                         curr = aPlaylists[i];
                         currname = Find.File_name(curr);
-                        Find.FixDecodeURI(currname);
-                        currname = currname.toLowerCase();
                         currname = BorkedFile(currname);
                         if( null != database[currname] )
                         {
@@ -612,12 +609,11 @@ CONFIG::FLASH_AUTHORING
                         else
                         {
                             database[currname] = curr;
-                            trace("Added '"+currname+"' to database from",curr.nativePath);
+                            //trace("Added '"+currname+"' to database from",curr.nativePath);
                         }
                     }
 
                     // Get play list files, to iterate and parse
-                    aPlaylists = Find.GetFiles(finding.results);
                     function filter_playlists(file:File):Boolean
                     {
                         // Play list files with recognizeable file extensions
@@ -626,11 +622,13 @@ CONFIG::FLASH_AUTHORING
                     }
                     
                     // Build a list of potential play lists
-                    playlist_iteration = 1;
-                    aPlaylists = Find.Filter( aPlaylists, filter_playlists );
-
-                    if( aPlaylists.length > 1 )
+                    aPlaylists = Find.Filter( finding.results, filter_playlists );
+                    aPlaylists.shift();
+                    aPlaylists.sort(Find.SortOnName);
+    
+                    if( 0 != aPlaylists.length )
                     {
+                        playlist_iteration = 0;
                         setTimeout( ThreadPassPlaylist );
                     }
                     else
@@ -677,13 +675,11 @@ CONFIG::FLASH_AUTHORING
                             if( lastDot > lastSlash )
                             {
                                 var path : String = line.substr(lastSlash+1,-1+lastDot-lastSlash);
-                                path = Find.FixDecodeURI(path);
-                                path = path.toLowerCase();
                                 path = BorkedFile(path);
                                 foundFile = database[path];
                                 if( null != foundFile )
                                 {
-                                    trace("Found: ", path);
+                                    //trace("Found: ", path);
                                     found_paths.push(foundFile);
                                     return true;
                                 }
@@ -762,12 +758,8 @@ CONFIG::FLASH_AUTHORING
                     if( "" != index_files )
                     {
                         var index_files : String = "";
-                        const collator : Collator = new Collator(LocaleID.DEFAULT);
-                        function byname(f1:File,f2:File) : int
-                        {
-                            return collator.compare( Find.File_nameext(f1), Find.File_nameext(f2) );
-                        }
-                        found_paths.sort(byname);
+                        found_paths.sort(Find.SortOnName);
+         
                         // Remove duplicates
                         for( i = found_paths.length-1; i >= 1; --i )
                         {
@@ -836,7 +828,7 @@ CONFIG::FLASH_AUTHORING
                         }
                         if( 0 != play_list_db.length )
                         {
-                            play_list_db.sortOn(name);
+                            //play_list_db.sortOn(name);
                             folder_list += "Play Lists:";
                             for( iteration = 0; iteration < play_list_db.length; ++iteration )
                             {
