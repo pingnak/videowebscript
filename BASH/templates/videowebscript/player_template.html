@@ -16,7 +16,6 @@ into the html output with the script.
 
 /* Video player modes for windowed/full-screen */
 .video_box_windowed, .video_box_full, .video_box_alt {
-    vertical-align: middle;
     text-align: center;
     position: relative;
     margin-left: auto;
@@ -35,15 +34,23 @@ into the html output with the script.
     width:auto;
     height:100%;
 }
-/* Video player modex for windowed and full-screen */
-.videoplayer_windowed, .videoplayer_full {
+/* Video player mode for windowed  */
+.videoplayer_windowed {
     z-index:0;
     width:100%;
     height:auto;
 }
+/* Full-screen video player, wide aspect */
+.videoplayer_full {
+    z-index:0;
+    width:100%;
+    height:auto;
+}
+/* Full-screen video player, square-ish aspect */
 .videoplayer_alt {
-    width:auto;
+    z-index:0;
     height:100%;
+    width:auto;
 }
 /* Skinned control panel mode for windowed and full-screen */
 .video_controls, .video_controls_bottom {
@@ -134,6 +141,20 @@ img.index_thumbnail {
     padding-right:8px;
 }
 
+/* 
+    Firefox (37.0.2) uniquely won't center player vertically in full screen mode
+    If I adjust to center it, it breaks other browsers.  Yay, web standards.
+*/
+@-moz-document url-prefix() {
+    .videoplayer_full,  {
+        /* This is all about Firefox, not wanting to center the full-screen video like everyone else */
+        left:50%; 
+        top:50%; 
+        transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
+        position:absolute;
+    }
+}
+
 </style>
 
 <title>TITLE_TEXT</title>
@@ -141,8 +162,8 @@ img.index_thumbnail {
 </head>
 
 <body onload="PlayerInit();">
-<div id='video_box' class='video_box_windowed' style="display:none;">
-<video id="videoplayer" class='videoplayer_windowed' controls > <!-- Show controls now, or 'Silk' never will -->
+<div id='video_box' class='video_box_windowed' >
+<video id="videoplayer" class='videoplayer_windowed' style="display:none;" controls > <!-- Show controls now, or 'Silk' never will -->
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
@@ -173,7 +194,7 @@ img.index_thumbnail {
     </div>
 </div>
 </div>
-<div id="playlist">
+<div id="play_list">
 <br/>
 <div class="title"><div class="folder_icon"></div>TITLE_TEXT</div>
 
@@ -186,7 +207,7 @@ img.index_thumbnail {
 
 <!--INDEX_FILE
 <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href="" onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" ><img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
+    <a href='' onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" ><img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
 </div>
 -->
 
@@ -194,7 +215,7 @@ img.index_thumbnail {
 
 <!--INDEX_FILE_NOTHUMB
 <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href="" onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" >MEDIA_TITLE</a>
+    <a href='' onclick="javascript: PlayMedia(this.parentNode.getAttribute('path')); return false;" >MEDIA_TITLE</a>
 </div>
 -->
 
@@ -221,6 +242,7 @@ var now_playing = null;
 var video_box;
 var video;
 var video_controls;
+var play_list;
 var bPause;
 var bPlay;
 var bSeq;
@@ -458,7 +480,6 @@ function MouseTimeout()
     else
     {
         video_controls.style.visibility = '';
-        video_controls.style.display="table";
     }
     mouseTimeout = -1;
 }
@@ -469,10 +490,10 @@ function MouseMoved()
     if( VideoIsFullScreen() )
     {
         video_controls.style.visibility = '';
+        video_box.style.cursor = '';
         if( -1 != mouseTimeout )
             clearTimeout(mouseTimeout);
         mouseTimeout = setTimeout( MouseTimeout, 3000 );
-        video_box.style.cursor = '';
     }
     return true;
 }
@@ -483,10 +504,11 @@ function MouseMoved()
 function PlayerInit()
 {
     video_box = document.getElementById("video_box");
-    video_box.style.display = 'none';
-
     video = document.getElementById("videoplayer");
+    video.style.display = 'none';
     video_controls = document.getElementById("video_controls");
+    
+    play_list = document.getElementById("play_list");
 
     bPause= document.getElementById("bPause");
     bPlay = document.getElementById("bPlay");
@@ -507,7 +529,7 @@ function PlayerInit()
     {
         /* If full-screen is unavailable to code, stick to native controls */
         video.setAttribute("controls",true);
-        video_controls.style.display = 'none';
+        video_controls.style.visibility = 'hidden';
     }
     else
     {
@@ -530,6 +552,11 @@ function PlayerInit()
     }
 
     MakePlaylist();
+    if( 0 == playlist.length )
+    {
+        video_box.style.display = 'none';
+    }
+    
     OnResizeNow();
 
     var params = window.location.href.split('?');
@@ -555,31 +582,38 @@ function OnResizeNow()
 {
     browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
-    if( !bUseNativeControls )
+    if( bUseNativeControls )
+    {
+        video.setAttribute("controls",true);
+    }
+    else
     {   // Sort out full versus windowed playbacl
         if( video.hasAttribute("controls") )
             video.removeAttribute("controls");
         if( VideoIsFullScreen() )
         {
-            bWindow.style.display="";
+            bWindow.style.display='';
             bFull.style.display="none";
             video_box.className = 'video_box_full';
-            video_controls.className = 'video_controls_bottom';
             videoplayer.className = 'videoplayer_full';
+            video_controls.className = 'video_controls_bottom';
             // Once we re-render, check video aspect, and adjust
             setTimeout(CheckAspect,30);
+            // This shouldn't be necessary, except on Firefox, with the 'You Clicked a Full Screen Icon and went into full screen mode' idiot prompt disabled.
+            play_list.style.display="none";
         }
         else
         {
             bWindow.style.display="none";
-            bFull.style.display="";
+            bFull.style.display='';
             video_box.className = "video_box_windowed";
             videoplayer.className = 'videoplayer_windowed';
             video_controls.className = 'video_controls';
-            video_controls.style.display="table";
             if( -1 != mouseTimeout )
                 clearTimeout(mouseTimeout);
+            video_controls.style.visibility = '';
             video_box.style.cursor = '';
+            play_list.style.display= '';
         }
     }
     
@@ -600,7 +634,7 @@ function PlayMedia(video_path)
     if( 'undefined' == typeof(now_playing) )
     {
         progress_text_title.innerHTML = '';
-        video_box.style.display = 'none';
+        video.style.display = 'none';
         video_box.removeEventListener( 'mousemove', MouseMoved );
         return;
     }
@@ -615,10 +649,10 @@ function PlayMedia(video_path)
 /** Setting attributes kills the video... so let the stack unwind and start it second */
 function PlayMedia2(video_path)
 {
-    video_box.style.display = '';
+    video.style.display = '';
 
-    var video_type='video/'+now_playing.split('.').pop();
-    video.setAttribute("type",video_type);
+    //var video_type='video/'+now_playing.split('.').pop();
+    //video.setAttribute("type",video_type);
     video.setAttribute("src",now_playing);
     video.load();
     video.play();
