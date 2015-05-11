@@ -39,19 +39,37 @@ into the html output with the script.
     z-index:0;
     width:100%;
     height:auto;
+    position: relative;
 }
 /* Full-screen video player, wide aspect */
-.videoplayer_full {
+.videoplayer_full, .videoplayer_full_borked {
     z-index:0;
     width:100%;
     height:auto;
+    position: relative;
 }
+/* This is all about Firefox, not wanting to center the full-screen video like everyone else */
+.videoplayer_full_borked  {
+    left:50%; 
+    top:50%; 
+    transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
+    position:absolute;
+}
+
 /* Full-screen video player, square-ish aspect */
-.videoplayer_alt {
+.videoplayer_alt, .videoplayer_alt_borked {
     z-index:0;
     height:100%;
     width:auto;
 }
+.videoplayer_alt_borked  {
+    left:50%; 
+    top:50%; 
+    transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
+    position:absolute;
+}
+
+
 /* Skinned control panel mode for windowed and full-screen */
 .video_controls, .video_controls_bottom {
     display: table;
@@ -128,6 +146,7 @@ into the html output with the script.
 #progress_clickme {
     z-index:6;
     width:100%;
+    border: 1px solid #303030;
 }
 #playlist {
     padding-left:10pt;
@@ -140,21 +159,6 @@ img.index_thumbnail {
     padding-bottom:8px;
     padding-right:8px;
 }
-
-/* 
-    Firefox (37.0.2) uniquely won't center player vertically in full screen mode
-    If I adjust to center it, it breaks other browsers.  Yay, web standards.
-*/
-@-moz-document url-prefix() {
-    .videoplayer_full,  {
-        /* This is all about Firefox, not wanting to center the full-screen video like everyone else */
-        left:50%; 
-        top:50%; 
-        transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
-        position:absolute;
-    }
-}
-
 </style>
 
 <title>TITLE_TEXT</title>
@@ -364,6 +368,14 @@ function CheckAspect()
             video_box.className = 'video_box_full';
             videoplayer.className = 'videoplayer_full';
         }
+        // Detect if video is not centering (FIREFOX)
+        var r = video.getBoundingClientRect();
+        if( 0 == r.top && browserHeight != r.height 
+         || 0 == r.left && browserWidth != r.width )
+        {
+            videoplayer.className = videoplayer.className + "_borked";
+        }
+
     }
 }
 
@@ -761,7 +773,9 @@ function PlayNextWrap()
             return PlayListRandom();
         }
     }
-    return PlayMedia(playlist[i].getAttribute('path'));
+    PlayMedia(playlist[i].getAttribute('path'));
+    MouseMoved();
+    return false;
 }
 /** What will play previous */
 function WhatPrev()
