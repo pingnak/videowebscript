@@ -181,6 +181,7 @@ img.index_thumbnail {
         <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return PlayPrev(); "><div class="prev_icon"/></button>
         <button id="bPlay"  class="button_format" type="button" tabindex='-1' title="Playing" onclick="javascript: return TogglePause(); "><div class="play_icon"/></button>
         <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return TogglePause(); "><div class="pause_icon"/></button>
+        &nbsp;
     </div>
     <div id="progress_bar">
         <div id="progress_playing"></div>
@@ -190,6 +191,7 @@ img.index_thumbnail {
         <div id="progress_clickme"></div>
     </div>
     <div id="video_controls_right">
+        &nbsp;
         <button id="bFull"   class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return ToggleFullScreen();"><div class="full_icon"/></button>
         <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return ToggleFullScreen();"><div class="window_icon"/></button>
         <button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return PlayListRandom();"><div class="serial_icon"/></button>
@@ -383,7 +385,7 @@ function CheckAspect()
 function hhmmss(t)
 {
     if( isNaN(t) )
-        return "00:00:00";     /* " My syntax highlighter chokes over colons in strings */
+        return '00\:00\:00';
         
     var ss = Math.floor(t % 60);
     var mm = Math.floor((t / 60) % 60);

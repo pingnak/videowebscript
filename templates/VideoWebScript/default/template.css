@@ -90,8 +90,8 @@ button:focus {outline:0;}
 .icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, .window_icon, .play_icon, .pause_icon, .folder_icon {
     display: inline-block;
     background-size:cover;
-    margin-left:2pt;
-    margin-right:2pt;
+    margin-left:1pt;
+    margin-right:1pt;
     height:32px;
     width:32px;
 }
