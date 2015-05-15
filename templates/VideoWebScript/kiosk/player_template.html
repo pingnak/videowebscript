@@ -469,9 +469,6 @@ vid.PlayMedia2 = function()
     // Show title
     vid.progress_text_title.innerHTML = vid.TitleFromPath(vid.now_playing);
 
-    // Show video
-    window.scrollTo(0,0);
-
     vid.video_box.addEventListener( 'mousemove', vid.MouseMoved );
     vid.MouseMoved();
     vid.UpdateTime();
@@ -637,8 +634,9 @@ into the html output with the script.
 .video_box {
     position: relative;
     background: transparent;
-    margin: 0;
-    padding:0;
+    overflow: hidden;
+    margin: 0 !important;
+    padding:0 !important;
     width:100%;
     height:100%;
 }
@@ -654,8 +652,8 @@ into the html output with the script.
 }
 .videoplayer, .videoplayer_alt {
     position:absolute;
-    margin: 0;
-    padding:0;
+    margin: 0 !important;
+    padding:0 !important;
     z-index:0;
     left:50%; 
     top:50%; 
