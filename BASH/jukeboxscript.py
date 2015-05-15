@@ -131,7 +131,7 @@ for root, dirs, files in os.walk(root_dir):
                 # Emit elements for video player
                 pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped);
                 pathcurr = pathcurr.replace( 'FILE_STYLE', '');
-                pathcurr = pathcurr.replace( 'MUSIC_TITLE', filename_title_escaped);
+                pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped);
                 playlist = playlist + pathcurr;
 
                 # Emit elements for index navigation player

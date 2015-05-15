@@ -13,9 +13,8 @@ import re
 import random
 import distutils.spawn
 from subprocess import call
-import urllib
-from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
+import urllib
 
 root_dir = os.path.normpath(sys.argv[1])
 need_jpeg= [];
@@ -41,7 +40,7 @@ THUMBNAILER='ffmpegthumbnailer'
 # Thumbnail image width (height determined by video size)
 THUMB_SIZE=240
 
-# Check if the thumbnailer exists
+# Check if the specifiec thumbnailer exists.  Enables thumbnail generation.
 HAVE_THUMBNAILER = distutils.spawn.find_executable(THUMBNAILER) is not None
 
 # File to suck css out of (exported to be findable in backquotes)
@@ -106,11 +105,13 @@ for root, dirs, files in os.walk(root_dir):
     if 0 != totalFiles:
         playlist=""
 
+        # Bake some details about this folder
         folder_path, folder_name = os.path.split(root);
         folder_relative = os.path.relpath(root,root_dir);
         folder_curr = os.path.relpath(root,root_dir);
         folder_curr_escaped = urllib.quote(os.path.join(folder_curr,WEBIFY_PLAYER_INDEX))
         folder_name_escaped = escape(folder_name)
+
         print folder_relative
         sys.stdout.flush();
 
@@ -129,16 +130,21 @@ for root, dirs, files in os.walk(root_dir):
         index_toc = index_toc + output;
 
         for relPath in files:
+
+            # Skip files that aren't playable
             fileName, fileExtension = os.path.splitext(relPath)
             fullPath = os.path.join(root, fileName) + fileExtension
-            # There should be a jpeg file in folder; if not, add to a list to make it
             dummy,extCurr = os.path.splitext(relPath)
             if None is not re.search( extCurr.lower(), FILE_TYPES ):
+                
+                # Bake some details about this file
                 media_path = os.path.relpath(fullPath,root);
                 media_path_escaped=urllib.quote(media_path)
                 filename_title_escaped=escape(fileName)
                 pathcurr=str(INDEX_FILE);
+                
                 if HAVE_THUMBNAILER:
+                    # We should have a jpg file, named the same as the playable file
                     jpegName = fileName + '.jpg'
                     jpegPath = os.path.join(root, jpegName);
                     filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root))
@@ -146,6 +152,7 @@ for root, dirs, files in os.walk(root_dir):
                         need_jpeg.append( (fullPath,jpegPath) )
                     pathcurr=re.sub('MEDIA_IMAGE',filename_jpeg_escaped,pathcurr);
                 else:
+                    # We don't have a thumbnailer.
                     pathcurr=str(INDEX_FILE_NOTHUMB);
 
                 # Emit elements for video player
@@ -170,7 +177,7 @@ for root, dirs, files in os.walk(root_dir):
         with open(os.path.join(root,WEBIFY_PLAYER_INDEX), "w") as text_file:
             text_file.write(output)
 
-# Manufacture an index.html for entire run
+# Manufacture index.html for entire run of folders
 print "Building index..."
 sys.stdout.flush();
 output = str(INDEX_TEMPLATE);
@@ -180,9 +187,7 @@ output = output.replace( '<!--INDEXES_HERE-->', index_toc);
 with open(os.path.join(root_dir,WEBIFY_INDEX), "w") as text_file:
     text_file.write(output)
 
-#
 # Build thumbnails from files that need them.
-#
 if HAVE_THUMBNAILER:
     print "Making thumbnails..."
     sys.stdout.flush();

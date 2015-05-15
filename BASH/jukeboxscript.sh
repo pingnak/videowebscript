@@ -149,7 +149,7 @@ export_folder() {
         echo $INDEX_FILE | \
             sed -e "s@MEDIA_PATH@$media_path_escaped@g" \
                 -e "s@FILE_STYLE@@g" \
-                -e "s@MUSIC_TITLE@$filename_title_escaped@g" >> ~/tmp.txt
+                -e "s@MEDIA_TITLE@$filename_title_escaped@g" >> ~/tmp.txt
     
         # Record file for index/TOC
         echo $INDEX_TOC_FILE | \
