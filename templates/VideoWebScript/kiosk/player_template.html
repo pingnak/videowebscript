@@ -30,8 +30,6 @@ vid.PlayerInit = function()
     /* If no full screen, or some kinda 'mobile' browser that ignores all the rules, use the native controls */
     vid.video_box =            document.getElementById("video_box");
     vid.video =                document.getElementById("videoplayer");
-    vid.play_list =            document.getElementById("play_list");
-
     vid.video_controls  =      document.getElementById("video_controls");
     vid.video_controls_left=   document.getElementById("video_controls_left");
     vid.bPrev =                document.getElementById("bPrev");
@@ -54,6 +52,9 @@ vid.PlayerInit = function()
     vid.bList =                document.getElementById("bList");
     vid.bWatch =               document.getElementById("bWatch");
 
+    vid.play_list =            document.getElementById("play_list");
+    vid.bBack =                document.getElementById("bBack");
+    
     if( vid.bUseNativeControls )
     {
         /* If full-screen is unavailable to code, stick to native controls */
@@ -106,12 +107,16 @@ vid.ListMode = function()
     vid.bWatchMode = false;
     vid.bWatch.style.display = 'none';
     vid.bList.style.display = '';
+
+    vid.bBack.style.display = (!vid.IsFullScreen() || 0 == window.history.length) ? 'none' : '';
     
     vid.video.style.visibility = 'hidden';
     vid.video_controls_left.style.visibility = 'hidden';
     vid.progress_bar.style.visibility = 'hidden';
 
     vid.play_list.style.display = '';
+
+    vid.UpdateFullScreen();
 
     vid.video.pause();
     vid.MouseMoved();
@@ -132,8 +137,11 @@ vid.WatchMode = function()
 
     vid.play_list.style.display = 'none';
 
+    vid.UpdateFullScreen();
+    
     if( vid.video.paused )
         vid.video.play();
+        
     vid.MouseMoved();
 }
 
@@ -163,7 +171,7 @@ vid.ShowPaused = function()
 /** Press full-screen button */
 vid.ToggleFullScreen = function()
 {
-    if( vid.VideoIsFullScreen() )
+    if( vid.IsFullScreen() )
         vid.ExitFullscreen();
     else
         vid.EnterFullscreen();
@@ -171,10 +179,39 @@ vid.ToggleFullScreen = function()
 }
 
 /** See if video is not full-screen */
-vid.VideoIsFullScreen = function()
+vid.IsFullScreen = function()
+{
+    var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+    return (vid.video_box == fullscreenElement) || window.fullScreen  || (window.innerWidth == screen.width && window.innerHeight == screen.height);
+}
+vid.FullScreenWasMe = function()
 {
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     return vid.video_box == fullscreenElement;
+}
+
+/** Update full-screen status */
+vid.UpdateFullScreen = function()
+{
+    // Sort out full versus windowed playbacl
+    if( vid.IsFullScreen() )
+    {
+        if( vid.FullScreenWasMe() )
+        {
+            vid.bWindow.style.display='';
+            vid.bFull.style.display="none";
+        }
+        else
+        {
+            vid.bFull.style.display="none";
+            vid.bWindow.style.display='none';
+        }
+    }
+    else
+    {
+        vid.bWindow.style.display='none';
+        vid.bFull.style.display="";
+    }
 }
 
 /** Enter full screen mode */
@@ -361,11 +398,13 @@ vid.OnResize = function()
         clearTimeout( vid.resizeTimeout );
     vid.resizeTimeout = setTimeout( vid.OnResizeNow, 30 );
 }
+
 vid.OnResizeNow = function()
 {
     vid.resizeTimeout = -1;
     vid.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     vid.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+    
     if( vid.bUseNativeControls )
     {
         vid.video.setAttribute("controls",true);
@@ -376,16 +415,7 @@ vid.OnResizeNow = function()
         vid.video.removeAttribute("controls");
         
     // Sort out full versus windowed playbacl
-    if( vid.VideoIsFullScreen() )
-    {
-        vid.bWindow.style.display='';
-        vid.bFull.style.display="none";
-    }
-    else
-    {
-        vid.bWindow.style.display='none';
-        vid.bFull.style.display="";
-    }
+    vid.UpdateFullScreen();
     vid.MouseMoved();
 
     // If window is shorter than video, when scaled, fit to height instead of width
@@ -739,6 +769,10 @@ img.index_thumbnail {
 
 <div id="play_list">
 <br/>
+<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Last Page" onclick="javascript: window.history.back(); return false; ">
+<div class="back_icon"></div>
+</button>
+<br/>
 <div class="title"><div class="folder_icon"></div>TITLE_TEXT</div>
 
 <!-- 
@@ -780,10 +814,10 @@ img.index_thumbnail {
 
 <div id="video_controls" class='video_controls'>
     <div id="video_controls_left">
-        <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"/></button>
-        <button id="bPlay"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"/></button>
-        <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return vid.TogglePause(); "><div class="pause_icon"/></button>
-        <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: vid.PlayNext(); return false;"><div class="next_icon" /></button>
+        <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
+        <button id="bPlay"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"></div></button>
+        <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return vid.TogglePause(); "><div class="pause_icon"></div></button>
+        <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: vid.PlayNext(); return false;"><div class="next_icon"></div></button>
         &nbsp;
     </div>
     <div id="progress_bar">
@@ -795,12 +829,12 @@ img.index_thumbnail {
     </div>
     <div id="video_controls_right">
         &nbsp;
-        <button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"/></button>
-        <button id="bRand"   class="button_format" type="button" tabindex='-1' style="display:none;" title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"/></button>
-        <button id="bList"   class="button_format" type="button" tabindex='-1' title="Browsing Videos" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"/></button>
-        <button id="bWatch"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"/></button>
-        <button id="bFull"   class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"/></button>
-        <button id="bWindow" class="button_format" type="button" tabindex='-1' style="display:none;" title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"/></button>
+        <button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
+        <button id="bRand"   class="button_format" type="button" tabindex='-1' style="display:none;" title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+        <button id="bList"   class="button_format" type="button" tabindex='-1' title="Browsing Videos" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"></div></button>
+        <button id="bWatch"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"></div></button>
+        <button id="bFull"   class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
+        <button id="bWindow" class="button_format" type="button" tabindex='-1' style="display:none;" title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
     </div>
 </div>
 </div>
