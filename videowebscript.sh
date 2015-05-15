@@ -15,7 +15,7 @@ WEBIFY_INDEX="index.html"
 
 # Get root of script, where we assume the template folder will be
 SCRIPT_ROOT=$(dirname "$0")
-SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/videowebscript"
+SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/VideoWebScript/kiosk"
 
 # What our thumbnailer is called.  Dike out if you don't want thumbnails.
 THUMBNAILER=ffmpegthumbnailer

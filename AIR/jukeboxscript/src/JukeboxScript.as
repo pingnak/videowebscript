@@ -524,7 +524,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                             // Emit index+code to play file
                             seded = index_file;
                             seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
-                            seded = seded.replace(/MUSIC_TITLE/g,Find.EscapeQuotes(curr_file_title));
+                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
     
@@ -778,7 +778,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
 
                             var seded : String = index_file;
                             seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                            seded = seded.replace(/MUSIC_TITLE/g,Find.EscapeQuotes(curr_index_title));
+                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_index_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
                         }

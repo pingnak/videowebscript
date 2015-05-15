@@ -15,7 +15,7 @@ WEBIFY_INDEX="index.html"
 
 # Get root of script, where we assume the template folder will be
 SCRIPT_ROOT=$(dirname "$0")
-SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/jukeboxscript"
+SCRIPT_TEMPLATES="$SCRIPT_ROOT/templates/JukeboxScript/default"
 
 # File to suck css out of (exported to be findable in backquotes)
 CSS_TEMPLATE_FILE="$SCRIPT_TEMPLATES/template.css"

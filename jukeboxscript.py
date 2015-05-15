@@ -32,8 +32,11 @@ FILE_TYPES="\.(mp3|ogg)"
 # Where is this script
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(sys.argv[0]))
 
+# The folder with the templates to generate from, relative to this script
+TEMPLATE_PATH="templates/JukeboxScript/default"
+
 # Where to look for the script templates
-SCRIPT_TEMPLATES = os.path.join(SCRIPT_ROOT, "templates/jukeboxscript")
+SCRIPT_TEMPLATES = os.path.join(SCRIPT_ROOT, TEMPLATE_PATH)
 
 # File to suck css out of (exported to be findable in backquotes)
 CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "template.css")

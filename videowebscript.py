@@ -28,11 +28,14 @@ WEBIFY_INDEX="index.html"
 # List of matchable files
 FILE_TYPES="\.(mp4|m4v|m4p|m4r|3gp|3g2)"
 
+# The folder with the templates to generate from, relative to this script
+TEMPLATE_PATH="templates/VideoWebScript/kiosk"
+
 # Where is this script
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(sys.argv[0]))
 
 # Where to look for the script templates
-SCRIPT_TEMPLATES = os.path.join(SCRIPT_ROOT, "templates/videowebscript")
+SCRIPT_TEMPLATES = os.path.join(SCRIPT_ROOT, TEMPLATE_PATH)
 
 # What our thumbnailer is called.  Dike out if you don't want thumbnails.
 THUMBNAILER='ffmpegthumbnailer'
