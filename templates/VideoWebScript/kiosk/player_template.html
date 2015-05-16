@@ -71,20 +71,21 @@ vid.PlayerInit = function()
         vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
     
         vid.video.addEventListener( 'click', vid.TogglePause );
-        vid.video.addEventListener( 'playing',             vid.ShowPaused );
-        vid.video.addEventListener( 'pause',               vid.ShowPaused );
-        vid.video.addEventListener( 'timeupdate',          vid.UpdateTime );
-        vid.video.addEventListener( 'loadeddata',          vid.UpdateMeta );
+        vid.video.addEventListener( 'playing',          vid.ShowPaused );
+        vid.video.addEventListener( 'pause',            vid.ShowPaused );
+        vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
+        vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
     }
-    vid.video.addEventListener( 'error', vid.ListMode );
-    window.addEventListener( 'resize', vid.OnResize );
-    window.addEventListener( 'fullscreenchange',       vid.OnResize );
-    window.addEventListener( 'webkitfullscreenchange', vid.OnResize );
-    window.addEventListener( 'mozfullscreenchange',    vid.OnResize );
-    window.addEventListener( 'MSFullscreenChange',     vid.OnResize );
-    vid.video.addEventListener( 'playing',             vid.OnResize );
-    vid.video.addEventListener( 'pause',               vid.OnResize );
-    vid.video.addEventListener( 'loadeddata',          vid.OnResize );
+    vid.video.addEventListener( 'error', vid.Error );
+    vid.video.addEventListener( 'ended',                vid.PlayNextWrap );
+    window.addEventListener( 'resize',                  vid.OnResize );
+    window.addEventListener( 'fullscreenchange',        vid.OnResize );
+    window.addEventListener( 'webkitfullscreenchange',  vid.OnResize );
+    window.addEventListener( 'mozfullscreenchange',     vid.OnResize );
+    window.addEventListener( 'MSFullscreenChange',      vid.OnResize );
+    vid.video.addEventListener( 'playing',              vid.OnResize );
+    vid.video.addEventListener( 'pause',                vid.OnResize );
+    vid.video.addEventListener( 'loadeddata',           vid.OnResize );
 
     vid.MakePlaylist();
     vid.bRand.style.display = 'none';
@@ -101,6 +102,12 @@ vid.PlayerInit = function()
     vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
     vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
     video_box.style.display = '';
+}
+
+vid.Error = function(e)
+{
+    console.log(e);
+    vid.ListMode();
 }
 
 /**
@@ -479,7 +486,6 @@ vid.PlayMedia2 = function()
     vid.video.setAttribute("src",vid.now_playing);
     vid.video.load();
     vid.video.play();
-    vid.video.addEventListener( "ended", vid.PlayNextWrap );
     
     // Show title
     vid.progress_text_title.innerHTML = vid.TitleFromPath(vid.now_playing);
