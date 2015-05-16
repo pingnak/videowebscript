@@ -1,6 +1,5 @@
 <html>
 <head>
-<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta charset="UTF-8">
 
 <title>TITLE_TEXT</title>
@@ -59,7 +58,9 @@ vid.PlayerInit = function()
     {
         /* If full-screen is unavailable to code, stick to native controls */
         vid.video.setAttribute("controls",true);
-        vid.video_controls.style.visibility = 'hidden';
+        vid.video_controls.className = "video_controls_top";
+        vid.video_controls_left.style.display = 'none';
+        vid.progress_bar.style.display = 'none';
     }
     else
     {
@@ -69,18 +70,21 @@ vid.PlayerInit = function()
         vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
         vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
     
+        vid.video.addEventListener( 'click', vid.TogglePause );
         vid.video.addEventListener( 'playing',             vid.ShowPaused );
         vid.video.addEventListener( 'pause',               vid.ShowPaused );
         vid.video.addEventListener( 'timeupdate',          vid.UpdateTime );
-        vid.video.addEventListener( 'loadedmetadata',      vid.UpdateMeta );
-        vid.video.addEventListener( 'error',               vid.ListMode );
-
-        window.addEventListener( 'resize',                          vid.OnResize );
-        window.addEventListener( 'fullscreenchange',                vid.OnResize );
-        window.addEventListener( 'webkitfullscreenchange',          vid.OnResize );
-        window.addEventListener( 'mozfullscreenchange',             vid.OnResize );
-        window.addEventListener( 'MSFullscreenChange',              vid.OnResize );
+        vid.video.addEventListener( 'loadeddata',          vid.UpdateMeta );
     }
+    vid.video.addEventListener( 'error', vid.ListMode );
+    window.addEventListener( 'resize', vid.OnResize );
+    window.addEventListener( 'fullscreenchange',       vid.OnResize );
+    window.addEventListener( 'webkitfullscreenchange', vid.OnResize );
+    window.addEventListener( 'mozfullscreenchange',    vid.OnResize );
+    window.addEventListener( 'MSFullscreenChange',     vid.OnResize );
+    vid.video.addEventListener( 'playing',             vid.OnResize );
+    vid.video.addEventListener( 'pause',               vid.OnResize );
+    vid.video.addEventListener( 'loadeddata',          vid.OnResize );
 
     vid.MakePlaylist();
     vid.bRand.style.display = 'none';
@@ -109,7 +113,7 @@ vid.ListMode = function()
     vid.bList.style.display = '';
 
     vid.bBack.style.display = (!vid.IsFullScreen() || 0 == window.history.length) ? 'none' : '';
-    
+
     vid.video.style.visibility = 'hidden';
     vid.video_controls_left.style.visibility = 'hidden';
     vid.progress_bar.style.visibility = 'hidden';
@@ -140,7 +144,10 @@ vid.WatchMode = function()
     vid.UpdateFullScreen();
     
     if( vid.video.paused )
+    {
+        vid.OnResizeNow();
         vid.video.play();
+    }
         
     vid.MouseMoved();
 }
@@ -148,6 +155,8 @@ vid.WatchMode = function()
 /** Press pause/play button */
 vid.TogglePause = function()
 {
+    vid.MouseMoved();
+    vid.OnResizeNow();
     if( 0 == vid.video.readyState )
         vid.PlayMedia();
     else if( vid.video.paused )
@@ -160,11 +169,9 @@ vid.TogglePause = function()
 /** When video is paused, change to show playing icon */
 vid.ShowPaused = function()
 {
-    if( vid.bUseNativeControls )
-        return;
-        
     vid.bPlay.style.display = vid.video.paused ? 'none' : '';
     vid.bPause.style.display  = vid.video.paused ? '' : 'none';
+    vid.OnResizeNow();
     return false;
 }
 
@@ -194,23 +201,29 @@ vid.FullScreenWasMe = function()
 vid.UpdateFullScreen = function()
 {
     // Sort out full versus windowed playbacl
+    if( !vid.bFullscreenEnabled || vid.bUseNativeControls )
+    {
+        vid.bFull.style.display='none';
+        vid.bWindow.style.display='none';
+        return;
+    }
     if( vid.IsFullScreen() )
     {
         if( vid.FullScreenWasMe() )
         {
             vid.bWindow.style.display='';
-            vid.bFull.style.display="none";
+            vid.bFull.style.display='none';
         }
         else
-        {
-            vid.bFull.style.display="none";
+        {   // Something else put us into full screen - I can't un-full-screen from that
+            vid.bFull.style.display='none';
             vid.bWindow.style.display='none';
         }
     }
     else
     {
         vid.bWindow.style.display='none';
-        vid.bFull.style.display="";
+        vid.bFull.style.display='';
     }
 }
 
@@ -327,6 +340,7 @@ vid.getProgressFromMouse = function(e)
 /** Seek to clicked time */
 vid.ProgressClick = function(e)
 {
+    vid.MouseMoved();
     var fraction = vid.getProgressFromMouse(e);
     var time= vid.video.duration * fraction;
     vid.video.currentTime = time;
@@ -358,7 +372,7 @@ vid.ProgressTrackMouse = function(e)
 vid.UpdateMeta = function()
 {
     vid.UpdateTime();
-    vid.OnResize();
+    vid.OnResizeNow();
 }
 
 /**
@@ -396,32 +410,19 @@ vid.OnResize = function()
     // Because some browsers don't have this figured out yet, even though they call me
     if( -1 != vid.resizeTimeout )
         clearTimeout( vid.resizeTimeout );
-    vid.resizeTimeout = setTimeout( vid.OnResizeNow, 30 );
+    vid.resizeTimeout = setTimeout( vid.OnResizeNow, 100 );
 }
-
 vid.OnResizeNow = function()
 {
     vid.resizeTimeout = -1;
     vid.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     vid.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
-    
-    if( vid.bUseNativeControls )
-    {
-        vid.video.setAttribute("controls",true);
-        return;
-    }
-    
-    if( vid.video.hasAttribute("controls") )
-        vid.video.removeAttribute("controls");
-        
-    // Sort out full versus windowed playbacl
-    vid.UpdateFullScreen();
-    vid.MouseMoved();
 
     // If window is shorter than video, when scaled, fit to height instead of width
-    var videoAspect = vid.video.clientWidth / vid.video.clientHeight;
+    var videoAspect = vid.video.videoWidth / vid.video.videoHeight;
     var windowAspect = window.innerWidth / window.innerHeight;
-    if( videoAspect < windowAspect  )
+    var screenAspect = screen.width / screen.height;
+    if( videoAspect < windowAspect || videoAspect < screenAspect ) // Second test because Silk doesn't work right
     {
         vid.video.className = 'videoplayer_alt';
     }
@@ -429,6 +430,20 @@ vid.OnResizeNow = function()
     {
         vid.video.className = 'videoplayer';
     }
+    
+    if( vid.bUseNativeControls )
+    {
+        vid.video.setAttribute("controls",true);
+    }
+    else
+    {
+        if( vid.video.hasAttribute("controls") )
+            vid.video.removeAttribute("controls");
+    }
+
+    // Sort out full versus windowed playbacl
+    vid.UpdateFullScreen();
+    vid.MouseMoved();
     return false;
 }
 
@@ -491,6 +506,7 @@ vid.MakePlaylist = function()
 /** Shuffle a play list */
 vid.PlayListSerial = function()
 {
+    vid.MouseMoved();
     vid.MakePlaylist();
     vid.bRand.style.display = 'none';
     vid.bSeq.style.display  = '';
@@ -500,6 +516,7 @@ vid.PlayListSerial = function()
 /** Shuffle a play list (assumes it was already generated) */
 vid.PlayListRandom = function()
 {
+    vid.MouseMoved();
     vid.ArrayShuffle(vid.playlist);
     vid.ArrayShuffle(vid.playlist);
     vid.ArrayShuffle(vid.playlist);
@@ -541,18 +558,21 @@ vid.IndexPlaying = function()
 /** Play the previous one */
 vid.PlayPrev = function()
 {
+    vid.MouseMoved();
     vid.PlayMedia(vid.WhatPrev());
     return false;
 }
 /** Play the next one */
 vid.PlayNext = function()
 {
+    vid.MouseMoved();
     vid.PlayMedia(vid.WhatNext());
     return false;
 }
 /** At end of media, play the next one; re-shuffle as appropriate */
 vid.PlayNextWrap = function()
 {
+    vid.MouseMoved();
     var i = vid.IndexPlaying() + 1;
     if( i >= vid.playlist.length )
     {
@@ -563,7 +583,6 @@ vid.PlayNextWrap = function()
         }
     }
     vid.PlayMedia(vid.playlist[i].getAttribute('path'));
-    vid.MouseMoved();
     return false;
 }
 /** What will play previous */
@@ -615,6 +634,8 @@ vid.TitleFromPath = function(path)
     return path;
 }
 
+// Wake up when the balance of the page is loaded.
+document.addEventListener('DOMContentLoaded', vid.PlayerInit, false);
 
 </script>
 
@@ -640,6 +661,24 @@ into the html output with the script.
     width:100%;
     height:100%;
 }
+#play_list {
+    position: fixed;
+    padding-left: 10pt;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    width:100%;
+    height:100%;
+}
+.videoplayer, .videoplayer_alt {
+    position:absolute;
+    margin: 0 !important;
+    padding:0 !important;
+    outline: 0;
+    z-index:0;
+    left:50%; 
+    top:50%; 
+    transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
+}
 /* Full-screen video player, wide aspect */
 .videoplayer {
     width:100%;
@@ -650,31 +689,29 @@ into the html output with the script.
     height:100%;
     width:auto;
 }
-.videoplayer, .videoplayer_alt {
-    position:absolute;
-    margin: 0 !important;
-    padding:0 !important;
-    z-index:0;
-    left:50%; 
-    top:50%; 
-    transform:translate(-50%,-50%); -webkit-transform:translate(-50%,-50%); 
-}
 
 /* Skinned control panel mode for windowed and full-screen */
-.video_controls {
+.video_controls_bottom {
     display: table;
-    padding: 0;
-    margin: 0;
+    bottom: 0px;
+    left: 0px;
+    width: 100%;
+}
+.video_controls_top {
+    display: block;
+    top: 0px;
+    right:0px;
+}
+.video_controls_bottom, .video_controls_top {
     z-index:1;
+    position: fixed;
+    height: 32px;
     line-height: 32px;
     vertical-align: middle;
     background: transparent;
-
-    position: fixed;
-    width: 100%;
-    height: 32px;
-    left: 0px;
-    bottom: 0px;
+    margin: 0;
+    padding:0;
+    
 }
 
 /* Skinned control panel icons in left and right boxes */
@@ -682,13 +719,17 @@ into the html output with the script.
     display: table-cell;
     text-decoration: none;
     white-space:nowrap;
-    overflow: hidden;
     height: 32px;
-    width: 100px;
+    width: 1px;
+    overflow: hidden;
+}
+#video_controls_left {
+    left: 0px;
 }
 #video_controls_right {
-    right: 0;
+    right:0px;
 }
+
 /* Progress bar elements between left and right boxes */
 #progress_bar {
     z-index:1;
@@ -696,50 +737,47 @@ into the html output with the script.
     position: relative;
     height: 32px;
     width: auto;
+    margin: 0 !important;
+    padding:0 !important;
 }
 #progress_playing, #progress_text, #progress_text_total, #progress_text_title, #progress_clickme {
     color: #c0c0c0;
     position: absolute;
     white-space:nowrap;
     overflow: hidden;
-    left: 0;
-    top: 0;
     height: 32px;
-    border: none;
+    line-height: 32px;
+    margin: 0 !important;
+    padding:0 !important;
+    top:0px;
+}
+#progress_text {
+    text-align: left;
+    z-index:3;
+    left: 1%;
+    width: 98%;
+}
+#progress_text_title {
+    text-align: center;
+    z-index:5;
+    left: 0%;
+    width: 100%;
+}
+#progress_text_total {
+    text-align: right;
+    z-index:4;
+    left: 1%;
+    width: 98%;
+}
+#progress_clickme {
+    z-index:6;
+    border: 1px solid #303030;
+    width: 100%;
 }
 #progress_playing {
     z-index:2;
     opacity: 0.25;
     background-color: #ff0000;
-}
-#progress_text, #progress_text_total, #progress_text_title {
-    vertical-align: middle;
-    left: 1%;
-    width: 98%;
-    height:32px;
-    line-height: 32px;
-}
-#progress_text {
-    text-align: left;
-    z-index:3;
-}
-#progress_text_total {
-    text-align: right;
-    z-index:4;
-}
-#progress_text_title {
-    text-align: center;
-    z-index:5;
-}
-#progress_clickme {
-    z-index:6;
-    width:100%;
-    border: 1px solid #303030;
-}
-#playlist {
-    padding-left:10pt;
-    overflow-x: hidden;
-    overflow-y: scroll;
 }
 .index_thumbnail {
 }
@@ -753,9 +791,9 @@ img.index_thumbnail {
 
 </head>
 
-<body onload="vid.PlayerInit();">
-<div id='video_box' class='video_box' style="display:none;" >
-<video id="videoplayer" class='videoplayer' controls > <!-- Show controls for now, or 'Silk' never will -->
+<body>
+<div id='video_box' class='video_box' >
+<video id="videoplayer" class='videoplayer' >
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
@@ -810,13 +848,10 @@ img.index_thumbnail {
 
 </div>
 
-<div id="video_controls" class='video_controls'>
+<div id="video_controls" class='video_controls_bottom'>
     <div id="video_controls_left">
-        <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
-        <button id="bPlay"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"></div></button>
+        <button id="bPlay"  class="button_format" type="button" tabindex='-1' title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"></div></button>
         <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return vid.TogglePause(); "><div class="pause_icon"></div></button>
-        <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: vid.PlayNext(); return false;"><div class="next_icon"></div></button>
-        &nbsp;
     </div>
     <div id="progress_bar">
         <div id="progress_playing"></div>
@@ -827,12 +862,15 @@ img.index_thumbnail {
     </div>
     <div id="video_controls_right">
         &nbsp;
-        <button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
-        <button id="bRand"   class="button_format" type="button" tabindex='-1' style="display:none;" title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+        <button id="bPrev"  class="button_format" type="button" tabindex='-1'  title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
+        <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
+        <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+        <button id="bNext"  class="button_format" type="button" tabindex='-1'  title="Next Video" onclick="javascript: vid.PlayNext(); return false;"><div class="next_icon"></div></button>
+        &nbsp;
         <button id="bList"   class="button_format" type="button" tabindex='-1' title="Browsing Videos" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"></div></button>
-        <button id="bWatch"  class="button_format" type="button" tabindex='-1' style="display:none;" title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"></div></button>
+        <button id="bWatch"  class="button_format" type="button" tabindex='-1' title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"></div></button>
         <button id="bFull"   class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
-        <button id="bWindow" class="button_format" type="button" tabindex='-1' style="display:none;" title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
+        <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
     </div>
 </div>
 </div>

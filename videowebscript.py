@@ -26,7 +26,7 @@ WEBIFY_PLAYER_INDEX="VideoPlayer.html"
 WEBIFY_INDEX="index.html"
 
 # List of matchable files
-FILE_TYPES="\.(mp4|m4v|m4p|m4r|3gp|3g2)"
+FILE_TYPES=['.mp4','.m4v','.m4p','.m4r','.3gp','.3g2']
 
 # The folder with the templates to generate from, relative to this script
 TEMPLATE_PATH="templates/VideoWebScript/kiosk"
@@ -95,14 +95,13 @@ print( "Crawling folders in %s...\n" % (root_dir) )
 index_toc_small=""
 index_toc=""
 
-for root, dirs, files in os.walk(root_dir):
-    #dirs.sort();
+for root, dirs, files in sorted(os.walk(root_dir)):
     files.sort();
 
     totalFiles = 0
     for relPath in files:
         dummy,extCurr = os.path.splitext(relPath)
-        if None is not re.search( extCurr.lower(), FILE_TYPES ): 
+        if extCurr.lower() in FILE_TYPES:
             totalFiles = totalFiles + 1
 
     if 0 != totalFiles:
@@ -138,7 +137,7 @@ for root, dirs, files in os.walk(root_dir):
             fileName, fileExtension = os.path.splitext(relPath)
             fullPath = os.path.join(root, fileName) + fileExtension
             dummy,extCurr = os.path.splitext(relPath)
-            if None is not re.search( extCurr.lower(), FILE_TYPES ):
+            if extCurr.lower() in FILE_TYPES:
                 
                 # Bake some details about this file
                 media_path = os.path.relpath(fullPath,root);

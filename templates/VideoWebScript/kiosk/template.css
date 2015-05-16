@@ -33,8 +33,11 @@ button:focus {outline:0;}
 }
 /* Folder index text */
 .folder_entry {
-    font-size:36px;
     white-space:nowrap;
+    font-size:36px;
+    height: 32px;
+    line-height: 36px;
+    vertical-align:middle;
 }
 /* Small folder in box */
 .folder_small {
@@ -49,7 +52,6 @@ button:focus {outline:0;}
 }
 
 /*  See templates/artwork/wireframe/scratch.txt and optimize.sh */
-
 .prev_icon {
     /* ./wireframe0001.png */
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMA31+fD+8ff78/b89Pry+PSon48gAAAT9JREFUWMPtlkmihCAMRAOG0bbN/U/7FxDsL4OSNbVE8qQCJAAsLS3d9NmJiPzneaaNujGKhpK+D+HoiMjWw3uOJzWO14aIKFbjkYpGJkL+j6u+eCI6rVXNj8X8wT9pAwKAGwDQXauUAHTO8rGJAMGn8D105owBdkvhRgMIAOjy6h2CBKBVCvf59EwC2LwKPDIFQDb/c/RmAGz+RJAAPjfzk4BvZX4KUMzXU18B2PyGIAEU883i8gKQrp3qFIYXgNjYvClA6/hMJjH09vD1NlZXaBpwv8TzgFsZkQD+FTIZ4KeUWiHgKuYlFdMljdsJp0JQlbmh+SAEXKnYrBBQUmEcygAAlk+3lzZXCGrQXA8iOlJ7j9BVNF2Avlr36I2DZw8AnuM9DJVS0VglZoPq6ZEFQdHerFWn6ZThpaWlZ/0B/QYsvVTF3ZkAAAAASUVORK5CYII=) no-repeat;
@@ -98,15 +100,14 @@ button:focus {outline:0;}
     /* ./wireframe0014.png */
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAXVBMVEUAAAD///8As7UAu7v///////////8AsrYAs7QAs7UAsrQAtbUAs7P///8As7X///////8As7X///////8AsrT///8AsrUAsrX///////8AtLT///////8As7X///8fHS7IAAAAHXRSTlMA768PP79/P79/7x8vb8+vL2/PH4+f308P319PX0HDJacAAAETSURBVFjD7ZbbEkMwEIYjchCiKD033v8x20mlZlSCDTNt+S7c7Tds8ttFaOOfIFmtoQQo2NcNAVBQv5lFwLHqJ45Ch8A8EdopK3iUIIYJ2k84WQ27cKkmBr7HeGsMQb7eMJUp1bASKMjMKey/I0xJEdnBwiYgxAiwclINhsldryKLgFIjEM76WA43UXIHySKnwEz9HXoVc6L55TDmTEPOwPqDaeLB9584T5jCq+jhlAwIGGsEydSh0A1TYUsBH/kGHPgGbQ+k6CVc8pdGfe8BSl83Mf3pRU8DLk9NGKBNuMwbpudltCEdgnYuFI41TckRa95x6lzqzsbj1Mn4MZ2xfThXC4Xp4ruhlNlrR8rOaGN9PAAllFYs17A7SwAAAABJRU5ErkJggg==) no-repeat;
 }
-.icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, .window_icon, .play_icon, .pause_icon, .folder_icon, .list_icon, .player_icon, .back_icon {
+.icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, .window_icon, .play_icon, .pause_icon, .back_icon, .folder_icon, .list_icon, .player_icon {
     display: inline-block;
     background-size:cover;
-    margin-left:1pt;
-    margin-right:1pt;
-    height:32px;
-    width:32px;
+    margin-left:1px;
+    margin-right:1px;
+    height:32pt;
+    width:32pt;
 }
-
 .button_format {
     vertical-align:middle;
     background: transparent;

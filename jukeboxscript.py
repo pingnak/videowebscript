@@ -27,7 +27,7 @@ WEBIFY_PLAYER_INDEX="Jukebox.html"
 WEBIFY_INDEX="index.html"
 
 # List of matchable files
-FILE_TYPES="\.(mp3|ogg)"
+FILE_TYPES=['.mp3','.ogg']
 
 # Where is this script
 SCRIPT_ROOT = os.path.dirname(os.path.realpath(sys.argv[0]))
@@ -85,14 +85,13 @@ index_toc=""
 
 
 
-for root, dirs, files in os.walk(root_dir):
-    #dirs.sort();
+for root, dirs, files in sorted(os.walk(root_dir)):
     files.sort();
 
     totalFiles = 0
     for relPath in files:
         dummy,extCurr = os.path.splitext(relPath)
-        if None is not re.search( extCurr.lower(), FILE_TYPES ): 
+        if extCurr.lower() in FILE_TYPES:
             totalFiles = totalFiles + 1
 
     if 0 != totalFiles:
@@ -125,7 +124,7 @@ for root, dirs, files in os.walk(root_dir):
             fullPath = os.path.join(root, fileName) + fileExtension
             # There should be a jpeg file in folder; if not, add to a list to make it
             dummy,extCurr = os.path.splitext(relPath)
-            if None is not re.search( extCurr.lower(), FILE_TYPES ):
+            if extCurr.lower() in FILE_TYPES:
                 media_path = os.path.relpath(fullPath,root);
                 media_path_escaped=urllib.quote(media_path)
                 filename_title_escaped=escape(fileName)
