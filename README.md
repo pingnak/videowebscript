@@ -24,7 +24,7 @@ Go to the [Wiki Pages](https://github.com/pingnak/videowebscript/wiki), to get m
 
 ##Screen Shots
 
-![Video Page Snapshot; Content from 'Physics for Future Presidents', with Richard A. Muller](https://cloud.githubusercontent.com/assets/6754243/7543798/5214d796-f57c-11e4-98c9-1495db16b0be.png)
+![untitled2](https://cloud.githubusercontent.com/assets/6754243/7664509/65f2298e-fb40-11e4-8c2b-51a971fea035.jpg)
 Video Page Snapshot; Content from 'Physics for Future Presidents', with Richard A. Muller
 
 ![Jukebox Page Snapshot](https://cloud.githubusercontent.com/assets/6754243/7543869/e85ec2c0-f57c-11e4-96f9-706c0805d161.png)
