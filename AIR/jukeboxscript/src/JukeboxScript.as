@@ -68,9 +68,9 @@ CONFIG::MXMLC_BUILD
         **/
         public static const rxMP3 : RegExp = /\.(mp3|ogg|m4a)$/i;
         // Straight text formats of play lists
-        public static const rxTXT : RegExp = /\.(m3u|m3u8|m4u|bio|txt)$/i;
+        public static const rxTXT : RegExp = /\.(m3u|m3u8|m4u|bio|pls|txt)$/i;
         // XML formats of play lists
-        public static const rxXML : RegExp = /\.(xspf|xml|wpl|smil|plist|kpl)$/i;
+        public static const rxXML : RegExp = /\.(asx|xml|wpl|smil|kpl|plist|wpl|xspf)$/i;
         
         
         /** Path to do the job in */

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# shebang for unix-like shells... Windows users type 'python jukeboxscript.py'
+# shebang for unix-like shells... or type 'python jukeboxscript.py'
 
 #
 # The python version.
@@ -17,9 +17,10 @@ from subprocess import call
 import urllib
 from xml.sax.saxutils import quoteattr
 from xml.sax.saxutils import escape
+from xml.sax.saxutils import unescape
 
+# Get absolute path to operate on
 root_dir = os.path.normpath(sys.argv[1])
-need_jpeg= [];
 
 # What to call the media player files
 WEBIFY_PLAYER_INDEX="Jukebox.html"
@@ -82,15 +83,20 @@ LEFT_PADDING = 4
 # Offset for folder depths in TOC file
 FOLDER_DEPTH = 24
 
+# List of various play list formats I could maybe find content in.
+PLAY_LISTS=['.asx','.aimppl','.bio','.fpl','.kpl','.m3u','.m3u8','.pla','.plc','.pls','.plist','.smil','.txt','.vlc','.wpl','.xml','.xpl','.xspf','.zpl']
 
-print( "\nCrawling folders in %s...\n" % (root_dir) )
+print( "\nCrawling folders in %s..." % (root_dir) )
 
 #
 # Iterate folders & files
 #
-all_paths_with_media=[]
-total_media_count = 0
+all_play_lists=[]
+all_media_folders=[]
+all_media_files={}
 index_toc_small=[]
+playlist_toc_small=[]
+need_jpeg= [];
 index_toc=""
 
 for root, dirs, files in sorted(os.walk(root_dir)):
@@ -110,68 +116,64 @@ for root, dirs, files in sorted(os.walk(root_dir)):
 
     # How many media files in this folder?
     totalFiles = 0
-    for relPath in files:
-        dummy,extCurr = os.path.splitext(relPath)
-        if extCurr.lower() in FILE_TYPES:
-            totalFiles = totalFiles + 1
 
     # Record folder for left box index/TOC
     small_output = str(INDEX_SMALL)
     small_output = small_output.replace( 'FOLDER_TITLE', folder_name_escaped)
     small_output_style = 'padding-left:' + str(folder_depth) + 'px;'
 
-    # A folder with content to play
+    playlist=""
+    index_toc_pass=""
+
+    print "    " + folder_relative
+    sys.stdout.flush()
+
+    for relPath in files:
+
+        # Skip files that aren't playable
+        fileName, fileExtension = os.path.splitext(relPath)
+        fullPath = os.path.join(root, fileName) + fileExtension
+        if fileExtension.lower() in FILE_TYPES:
+
+            # Keep track for trivia
+            all_media_files[fileName] = fullPath;
+            
+            # Bake some details about this file
+            media_path = os.path.relpath(fullPath,root)
+            media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
+            filename_title_escaped=escape(fileName)
+            
+            # Emit elements for media player
+            pathcurr=str(INDEX_FILE)
+            pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
+            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
+            pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+            playlist = playlist + pathcurr
+
+            # Emit elements for index navigation player
+            pathcurr = str(INDEX_TOC_FILE)
+            pathcurr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX).replace('\\', '/')
+            pathcurr_escaped = urllib.quote(pathcurr_escaped)+'?'+media_path_escaped
+            pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
+            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
+            pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+            index_toc_pass = index_toc_pass + pathcurr
+            
+            totalFiles = totalFiles + 1
+            
+        elif fileExtension.lower() in PLAY_LISTS:
+            # We can't search for play list contents, until we have all files
+            all_play_lists.append( fullPath )
+        #else: Ignored file...
+
     if 0 != totalFiles:
-
-        # Record live link folder for left box index/TOC
-        all_paths_with_media.append(root)
-        small_output = small_output.replace( 'FOLDER_PATH',  folder_curr_escaped)
-        small_output = small_output.replace( 'FOLDER_STYLE', small_output_style )
-        index_toc_small.append( (root,small_output) );
-
-        playlist=""
-
-        print folder_relative
-        sys.stdout.flush()
-
         # Record folder for big folder+file TOC
         output = str(INDEX_TOC_FOLDER)
         output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
         output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
         output = output.replace( 'FOLDER_STYLE', '')
-        index_toc = index_toc + output
+        index_toc = index_toc + output + index_toc_pass
 
-        for relPath in files:
-
-            # Skip files that aren't playable
-            fileName, fileExtension = os.path.splitext(relPath)
-            fullPath = os.path.join(root, fileName) + fileExtension
-            dummy,extCurr = os.path.splitext(relPath)
-            if extCurr.lower() in FILE_TYPES:
-                # Keep track for trivia
-                total_media_count = total_media_count + 1;
-                
-                # Bake some details about this file
-                media_path = os.path.relpath(fullPath,root)
-                media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
-                filename_title_escaped=escape(fileName)
-                
-                # Emit elements for media player
-                pathcurr=str(INDEX_FILE)
-                pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
-                pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-                pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-                playlist = playlist + pathcurr
-
-                # Emit elements for index navigation player
-                pathcurr = str(INDEX_TOC_FILE)
-                pathcurr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX).replace('\\', '/')
-                pathcurr_escaped = urllib.quote(pathcurr_escaped)+'?'+media_path_escaped
-                pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
-                pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-                pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-                index_toc = index_toc + pathcurr
-                
         # Manufacture a VideoPlayer.html for folder
         folder_path, folder_name=os.path.split(root)
         output = str(PLAYER_TEMPLATE)
@@ -180,37 +182,121 @@ for root, dirs, files in sorted(os.walk(root_dir)):
         output = output.replace( '<!--INDEXES_HERE-->', playlist)
         with open(os.path.join(root,WEBIFY_PLAYER_INDEX), "w") as text_file:
             text_file.write(output)
-            
+
+        all_media_folders.append(root)
+        small_output = small_output.replace( 'FOLDER_PATH',  folder_curr_escaped)
+        small_output = small_output.replace( 'FOLDER_STYLE', small_output_style )
+        index_toc_small.append( (root,small_output) );
+
     else:
         # Record dead link folder for left box index/TOC
         small_output = small_output.replace( 'FOLDER_PATH', '')
         small_output = small_output.replace( 'FOLDER_STYLE', small_output_style + ' pointer-events: none; opacity: 0.75;' )
         index_toc_small.append( (root,small_output) );
 
+# Manufacture index.html for entire run of folders... if there were any with media in them
+if 0 != len(all_media_folders):
+    
+    # Import and generate play list content, evil, brute-force style
+    # The strength is that it works for almost anything.
+    # The weakness is that identical file names in different paths are 'the same'
+    # This will be a bit slow, but will import virtually anything you throw at it that's based on text (m3u/xml-based/etc.)
+    # The results of 'find', 'ls' or or 'dir /s /b' or 'dir /b' will all work fine with this 
+    if 0 != len(all_play_lists):
+        print "\nSearching Play List Files..."
+        sys.stdout.flush()
+        for playlist_file in all_play_lists:
+            # We want the text all lower-case, with forward-slashes, for matching
+            with open (playlist_file, "r") as myfile:
+                playlist_curr=myfile.read()
+                
+            # Eat XML &entities;
+            playlist_curr = unescape(playlist_curr)
 
-# Manufacture index.html for entire run of folders, if there were any
-if 0 != len(all_paths_with_media):
+            # Lower-case, no backslashes in paths
+            playlist_curr = playlist_curr.lower().replace('\\', '/')
+            
+            # At this point, our image of the play list is utterly ruined, except as something to search 
+
+            print "    "+playlist_file;
+            sys.stdout.flush()
+
+            files = []
+
+            # Treat play list file as raw text, and look for literal matches of file names that we have.
+            for filename, path in all_media_files.iteritems():
+                # Stick the '/' and '.' on (but not extension), to set the 'end' of the file, in our dirty searches
+                if -1 != playlist_curr.find( '/'+filename.lower()+'.' ):
+                    files.append( (filename, path) )
+
+            # We found files in the play list
+            if 0 != len(files):
+                uniquefiles = set(sorted(files))
+    
+                playlist = ""
+    
+                # Make play list items from the found files
+                for fileName, fullPath in uniquefiles:
+    
+                    media_path = os.path.relpath(fullPath,root_dir)
+                    media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
+                    filename_title_escaped=escape(fileName)
+                    pathcurr=str(INDEX_FILE)
+                    pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
+                    pathcurr = pathcurr.replace( 'FILE_STYLE', '')
+                    pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+                    playlist = playlist + pathcurr
+                    
+                # Make the player
+                fileName, fileExtension = os.path.splitext(playlist_file)
+                folder_path, fileName = os.path.split(fileName)
+                file_name_escaped = escape(fileName)
+                output = str(PLAYER_TEMPLATE)
+                output = output.replace( 'TITLE_TEXT', file_name_escaped)
+                output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
+                output = output.replace( '<!--INDEXES_HERE-->', playlist)
+                file_path=os.path.join(root_dir,fileName)+'.html'
+                with open(file_path, "w") as text_file:
+                    text_file.write(output)
+                file_path_escaped = os.path.relpath(file_path,root_dir)
+                file_path_escaped = urllib.quote(file_path_escaped.replace('\\', '/')) # Fix any Windows backslashes
+                small_output = str(INDEX_SMALL)
+                small_output = small_output.replace( 'FOLDER_TITLE', file_name_escaped)
+                small_output_style = 'padding-left:' + str(LEFT_PADDING+FOLDER_DEPTH) + 'px;'
+                small_output = small_output.replace( 'FOLDER_PATH', file_path_escaped)
+                small_output = small_output.replace( 'FOLDER_STYLE', small_output_style )
+                playlist_toc_small.append( (fileName,small_output) );
+
     print "\nBuilding index..."
     sys.stdout.flush()
-    
-    # Build index file
     output = str(INDEX_TEMPLATE)
     output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
     output = output.replace( '<!--INDEXES_HERE-->', index_toc)
-    
+
     # Add the small index list; Only emit index paths that lead to media 
     small_indexes=''
+    
+    if 0 != len(playlist_toc_small):
+        small_indexes = small_indexes + "Play Lists:"
+                        
+    for indexPath, item in sorted(playlist_toc_small):
+        small_indexes = small_indexes + item + '\n'
+
+    if 0 != len(playlist_toc_small):
+        small_indexes = small_indexes + "<br/><br/>Folders:"
+
     for indexPath, item in sorted(index_toc_small):
-        for apath in all_paths_with_media:
+        for apath in all_media_folders:
             if 0 == apath.find(indexPath):
                 small_indexes = small_indexes + item + '\n'
                 break;
     output = output.replace( '<!--FOLDERS_HERE-->', small_indexes)
-    
+
     # Write index file
     with open(os.path.join(root_dir,WEBIFY_INDEX), "w") as text_file:
         text_file.write(output)
             
-    print "\nMade %d folders with %d files.\n" %(len(all_paths_with_media),total_media_count)
+    print "\nMade %d folders with %d unique files.\n" %(len(all_media_folders),len(all_media_files))
 else:
     print "\nNo media found.  Nothing written.\n"
+
