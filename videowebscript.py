@@ -103,10 +103,9 @@ print( "\nCrawling folders in %s..." % (root_dir) )
 all_paths_with_media=[]
 total_media_count = 0
 index_toc_small=[]
-index_toc=""
+index_toc=[]
 
-for root, dirs, files in sorted(os.walk(root_dir)):
-    files.sort()
+for root, dirs, files in os.walk(root_dir):
 
     # Bake some details about this folder
     folder_path, folder_name = os.path.split(root)
@@ -142,6 +141,7 @@ for root, dirs, files in sorted(os.walk(root_dir)):
         index_toc_small.append( (root,small_output) );
 
         playlist=""
+        index_list=""
 
         print '    '+folder_relative
         sys.stdout.flush()
@@ -151,8 +151,9 @@ for root, dirs, files in sorted(os.walk(root_dir)):
         output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
         output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
         output = output.replace( 'FOLDER_STYLE', '')
-        index_toc = index_toc + output
+        index_list = index_list + output
 
+        files.sort()
         for relPath in files:
 
             # Skip files that aren't playable
@@ -194,8 +195,11 @@ for root, dirs, files in sorted(os.walk(root_dir)):
                 pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
                 pathcurr = pathcurr.replace( 'FILE_STYLE', '')
                 pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-                index_toc = index_toc + pathcurr
+                index_list = index_list + pathcurr
                 
+        # Add accumulated indexes to list, to defer sort
+        index_toc.append( (root, index_list) );
+        
         # Manufacture a VideoPlayer.html for folder
         folder_path, folder_name=os.path.split(root)
         output = str(PLAYER_TEMPLATE)
@@ -220,7 +224,12 @@ if 0 != len(all_paths_with_media):
     # Build index file
     output = str(INDEX_TEMPLATE)
     output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
-    output = output.replace( '<!--INDEXES_HERE-->', index_toc)
+
+    # Copy table of contents in, sorted.
+    big_indexes=''
+    for indexPath, item in sorted(index_toc):
+        big_indexes = big_indexes + item + '\n'
+    output = output.replace( '<!--INDEXES_HERE-->', big_indexes)
     
     # Add the small index list; Only emit index paths that lead to media 
     small_indexes=''
