@@ -67,6 +67,23 @@ else
     fi
 fi
 
+# BusyBox pushd/popd equivalents from Mijzelf
+mypushd() {
+   pwd >>/tmp/$$.pushed
+   cd "$1"
+}
+mypopd() {
+   local last=$( tail -n 1 /tmp/$$.pushed )
+   sed -i '$ d' /tmp/$$.pushed
+   cd "$last"
+}
+PUSHD=pushd
+POPD=popd
+pushd / >/dev/null 2>&1 && popd >/dev/null || { 
+    PUSHD="mypushd" 
+    POPD="mypopd" 
+}
+
 set -o errexit	# Stop running the script if an error occurs
 set -o nounset	# Stop running the script if a variable isn't set
 #set -o verbose	# Echo every command
@@ -96,22 +113,6 @@ quote_escape() {
     echo $1 | sed -e 's@&@\\\&amp;@g' -e "s@'@\\\\\&apos;@g" -e 's@"@\\\\\&quot;@g' -e 's@<@\\\\\&lt;@g' -e 's@>@\\\\\&gt;@g' -e 's/@/\\\\\&U+00A9;/g'
 }
 
-# BusyBox pushd/popd equivalents from Mijzelf
-mypushd() {
-   pwd >>/tmp/$$.pushed
-   cd "$1"
-}
-mypopd() {
-   local last=$( tail -n 1 /tmp/$$.pushed )
-   sed -i '$ d' /tmp/$$.pushed
-   cd "$last"
-}
-PUSHD=pushd
-POPD=popd
-pushd / >/dev/null 2>&1 && popd >/dev/null || { 
-    PUSHD="mypushd" 
-    POPD="mypopd" 
-}
 
 export_folder() {
 
