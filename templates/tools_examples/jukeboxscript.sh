@@ -97,15 +97,21 @@ quote_escape() {
 }
 
 # BusyBox pushd/popd equivalents from Mijzelf
-#pushd() {
-#   pwd >>/tmp/$$.pushed
-#   cd "$1"
-#}
-#popd() {
-#   local last=$( tail -n 1 /tmp/$$.pushed )
-#   sed -i '$ d' /tmp/$$.pushed
-#   cd "$last"
-#}
+mypushd() {
+   pwd >>/tmp/$$.pushed
+   cd "$1"
+}
+mypopd() {
+   local last=$( tail -n 1 /tmp/$$.pushed )
+   sed -i '$ d' /tmp/$$.pushed
+   cd "$last"
+}
+PUSHD=pushd
+POPD=popd
+pushd / >/dev/null 2>&1 && popd >/dev/null || { 
+    PUSHD="mypushd" 
+    POPD="mypopd" 
+}
 
 export_folder() {
 
@@ -174,7 +180,7 @@ echo
 echo On a LAN with a lot of files, initial find may take a little time...
 echo 
 echo Generating file list from "$CONTENT_ROOT"
-pushd "$CONTENT_ROOT"
+$PUSHD "$CONTENT_ROOT"
 
 complete_file_list=$(find . -type f -name '*.mp3' -o -name '*.ogg' )
 complete_folder_list=$(echo "$complete_file_list" | while read i ; do dirname "$i" ; done | sort -u -i -f )
@@ -183,9 +189,9 @@ echo > ~/toc1.txt
 echo > ~/toc2.txt
 echo "$complete_folder_list" | while read folder_relative ;
 do
-    pushd "$folder_relative"
+    $PUSHD "$folder_relative"
     export_folder "$folder_relative"
-    popd > /dev/null
+    $POPD > /dev/null
 done
 
 # Generate the index file
@@ -198,4 +204,4 @@ rm ~/toc1.txt
 rm ~/toc2.txt
 rm ~/css.txt
 
-popd > /dev/null
+$POPD > /dev/null
