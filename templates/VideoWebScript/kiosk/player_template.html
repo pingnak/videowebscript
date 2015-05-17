@@ -119,8 +119,6 @@ vid.ListMode = function()
     vid.bWatch.style.display = 'none';
     vid.bList.style.display = '';
 
-    vid.bBack.style.display = (!vid.IsFullScreen() || 0 == window.history.length) ? 'none' : '';
-
     vid.video.style.visibility = 'hidden';
     vid.video_controls_left.style.visibility = 'hidden';
     vid.progress_bar.style.visibility = 'hidden';
@@ -208,6 +206,7 @@ vid.FullScreenWasMe = function()
 vid.UpdateFullScreen = function()
 {
     // Sort out full versus windowed playbacl
+    vid.bBack.style.display = (!vid.IsFullScreen() || 0 == window.history.length) ? 'none' : '';
     if( !vid.bFullscreenEnabled || vid.bUseNativeControls )
     {
         vid.bFull.style.display='none';
@@ -232,6 +231,7 @@ vid.UpdateFullScreen = function()
         vid.bWindow.style.display='none';
         vid.bFull.style.display='';
     }
+
 }
 
 /** Enter full screen mode */
@@ -699,20 +699,20 @@ into the html output with the script.
 /* Skinned control panel mode for windowed and full-screen */
 .video_controls_bottom {
     display: table;
-    bottom: 0px;
+    bottom: 16pt;
     left: 0px;
     width: 100%;
 }
 .video_controls_top {
     display: block;
-    top: 0px;
+    top: 8pt;
     right:0px;
 }
 .video_controls_bottom, .video_controls_top {
     z-index:1;
     position: fixed;
-    height: 32px;
-    line-height: 32px;
+    height: 32pt;
+    line-height: 32pt;
     vertical-align: middle;
     background: transparent;
     margin: 0;
@@ -725,7 +725,7 @@ into the html output with the script.
     display: table-cell;
     text-decoration: none;
     white-space:nowrap;
-    height: 32px;
+    height: 32pt;
     width: 1px;
     overflow: hidden;
 }
@@ -741,7 +741,7 @@ into the html output with the script.
     z-index:1;
     display: table-cell;
     position: relative;
-    height: 32px;
+    height: 32pt;
     width: auto;
     margin: 0 !important;
     padding:0 !important;
@@ -751,8 +751,8 @@ into the html output with the script.
     position: absolute;
     white-space:nowrap;
     overflow: hidden;
-    height: 32px;
-    line-height: 32px;
+    height: 32pt;
+    line-height: 32pt;
     margin: 0 !important;
     padding:0 !important;
     top:0px;
@@ -811,9 +811,7 @@ img.index_thumbnail {
 
 <div id="play_list">
 <br/>
-<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Last Page" onclick="javascript: window.history.back(); return false; ">
-<div class="back_icon"></div>
-</button>
+<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Last Page" onclick="javascript: window.history.back(); return false; "><div class="back_icon"></div></button>
 <br/>
 <div class="title"><div class="folder_icon"></div>TITLE_TEXT</div>
 

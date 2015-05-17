@@ -92,10 +92,10 @@ INDEX_TOC_FILE = INDEX_TOC_FILE_MATCH.group(1)
 LEFT_PADDING = 4
 
 # Offset for folder depths in TOC file
-FOLDER_DEPTH = 24
+FOLDER_DEPTH = 16
 
 
-print( "\nCrawling folders in %s...\n" % (root_dir) )
+print( "\nCrawling folders in %s..." % (root_dir) )
 
 #
 # Iterate folders & files
@@ -143,7 +143,7 @@ for root, dirs, files in sorted(os.walk(root_dir)):
 
         playlist=""
 
-        print folder_relative
+        print '    '+folder_relative
         sys.stdout.flush()
 
         # Record folder for big folder+file TOC

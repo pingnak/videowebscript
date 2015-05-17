@@ -81,7 +81,7 @@ INDEX_TOC_FILE = INDEX_TOC_FILE_MATCH.group(1)
 LEFT_PADDING = 4
 
 # Offset for folder depths in TOC file
-FOLDER_DEPTH = 24
+FOLDER_DEPTH = 16
 
 # List of various play list formats I could maybe find content in.
 PLAY_LISTS=['.asx','.aimppl','.bio','.fpl','.kpl','.m3u','.m3u8','.pla','.plc','.pls','.plist','.smil','.txt','.vlc','.wpl','.xml','.xpl','.xspf','.zpl']
