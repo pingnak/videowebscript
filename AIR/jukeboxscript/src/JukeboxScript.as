@@ -46,7 +46,7 @@ CONFIG::MXMLC_BUILD
         public static const MAIN_TOC        : String = "index.html";
 
         /** Start of movie player and available content */
-        public static const PLAYER_TEMPLATE : String = "player_template.html";
+        public static const PLAYER_TEMPLATE : String = "audio_template.html";
         
         /** Table of contents file */
         public static const INDEX_TEMPLATE  : String = "index_template.html";
@@ -54,11 +54,8 @@ CONFIG::MXMLC_BUILD
         /** A css file with theming details */
         public static const CSS_TEMPLATE  : String = "template.css";
         
-        /** Where to look for script template content */
-        public static const SCRIPT_TEMPLATES: String ="default"
-        
         /** Offset for folder depths in TOC file */
-        public static const FOLDER_DEPTH : int = 32;
+        public static const FOLDER_DEPTH : int = 16;
 
         /** File/folder left padding*/        
         public static const LEFT_PADDING : int = 0;
@@ -227,7 +224,7 @@ CONFIG::FLASH_AUTHORING
                 return;
             }
 
-            var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            var root : File = File.applicationDirectory;
             css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
             player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
             index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
@@ -454,6 +451,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
 
                         // Build jukebox file
                         
+                        var index_folders : String = "";
                         var index_files : String = "";
                         var dbnew : Object;
     
@@ -495,7 +493,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                                     seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
                                     seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'');
-                                    index_files += seded;
+                                    index_folders += seded;
 
                                     // Generate indexes for TOC
                                     seded = index_small;
@@ -506,11 +504,6 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                                     folder_list_db.push( dbnew );
                                 }
                             }
-                        }
-                        
-                        if( 0 != curr_files.length )
-                        {
-                            index_files += "<br/>\n";
                         }
                         
                         // Iterate files and generate code 
@@ -547,7 +540,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                             var index_content : String = player_template;
                             index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
                             index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                            index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
+                            index_content = index_content.replace("<!--INDEXES_HERE-->",index_folders+"<br/>\n"+index_files);
                             index_content = PackOutput(index_content);
     
                             // Now write out index file in one pass
@@ -937,7 +930,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
             
             CheckSet( ui.bnTempate, false );
             ChangeTemplateEnable();
-            root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            root_path_template = File.desktopDirectory;
             onTemplateChanged();
             
             return CommitSharedData();
@@ -996,7 +989,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
             root_path_template = new File(share_data.url_template);
             if( !root_path_template.isDirectory )
             {
-                root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                root_path_template = File.desktopDirectory;
                 CheckSet( ui.bnTempate, false );
             }
             ChangeTemplateEnable();

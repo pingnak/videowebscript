@@ -1,0 +1,51 @@
+body, div {
+    margin: 0;
+    padding: 0;
+}
+body {
+    font-family: "Arial", Helvetica, sans-serif;
+    background-color: #000000; 
+    color:#c0c0c0; 
+    width: 100%;
+    height: 100%;
+}
+/* Bright links that only underline when tracked */
+a:link      { color:#ffff00; text-decoration: none; }
+a:visited   { color:#ffff00; text-decoration: none; }
+a:hover     { color:#ffff00; text-decoration: underline; }
+a:active    { color:#ffff20; text-decoration: none; }
+.title {
+    width:100%;
+    color:#e0e0e0;
+    font-size:50px;
+    white-space:nowrap;
+    text-align:center;
+}
+.index_entry {
+    margin-top:4pt;
+    margin-bottom:4pt;
+    margin-left:16pt;
+    font-size:32pt;
+    white-space:nowrap;
+}
+.folder_entry {
+    color:#c0c000;
+    white-space:nowrap;
+    font-size:40pt;
+    height: 40pt;
+    line-height: 40pt;
+    vertical-align:middle;
+}
+.folder_icon {
+    display: inline-block;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMA359vz+8Pvz9/H1+Pry9PfS0VBgAAAQhJREFUWMPt1ruWwyAMBFBhnsKv+f+vTWETO9mzcdBssYWno+AeW4BA5M6dfxEf8BqnqQtY8Z7QBygQ8ikRmHuB8jaGMoAEAGO5ygegRnyR6XdAxm8AfADE56tcANdpnxEnG1CPP1lMQDmAagWyiCxAFAYYgUwBA6Ai2rlzT0AACgUASAxQACcM4LeDbwe2GhKA29bPDKT9RJmBAgQKUGCggBnwFLDX0AzU1pWswLptZzugrTNbAA9MGRjNgAIagaXdAoMBGJ6dvbRi9AHuOc0IHFewHVhZoJJAFBLILKAsUFggkYBrg2Vvbb3AfH5tWABlgcICQgLh54urLwML+APIlvk5yZ2/ywOLHCpijoJcdAAAAABJRU5ErkJggg==) no-repeat;
+    background-size:cover;
+    height:32pt;
+    width:32pt;
+    vertical-align:middle;
+}
+.info_text {
+    clear: both;
+    color: #808080;
+    font-size: 10px;
+}

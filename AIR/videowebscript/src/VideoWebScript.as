@@ -44,11 +44,8 @@ CONFIG::MXMLC_BUILD
         /** What to call the 'TOC' file that has all of the index.htmls in it */
         public static const MAIN_TOC        : String = "index.html";
 
-        /** Where to look for script template content */
-        public static const SCRIPT_TEMPLATES: String ="kiosk"
-
         /** Start of movie player and available content */
-        public static const PLAYER_TEMPLATE : String = "player_template.html";
+        public static const PLAYER_TEMPLATE : String = "video_template.html";
 
         /** A movie file link with player logic */
         public static const INDEX_TEMPLATE  : String = "index_template.html";
@@ -60,7 +57,7 @@ CONFIG::MXMLC_BUILD
         public static const THUMB_SIZE_DEFAULT : int = 240;
 
         /** Offset for folder depths in TOC file */
-        public static const FOLDER_DEPTH : int = 32;
+        public static const FOLDER_DEPTH : int = 16;
 
         /** File/folder left padding*/
         public static const LEFT_PADDING : int = 0;
@@ -282,7 +279,7 @@ CONFIG::FLASH_AUTHORING
             }
             
             // If we are using external template files...
-            var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            var root : File = File.applicationDirectory;
             css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
             player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
             index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
@@ -303,18 +300,36 @@ CONFIG::FLASH_AUTHORING
                 if( !player_template_file.exists )
                 {
                     player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
-                    trace("Could not find player template file.  Using default.");
+                    trace("Could not find player template file.  Using default.",player_template_file.nativePath);
                 }
                 if( !index_template_file.exists )
                 {
                     index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
-                    trace("Could not find index template file.  Using default.");
+                    trace("Could not find index template file.  Using default.",index_template_file.nativePath);
                 }
                 if( !css_template_file.exists )
                 {
                     css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
-                    trace("Could not find CSS template file.  Using default.");
+                    trace("Could not find CSS template file.  Using default.",css_template_file.nativePath);
                 }
+            }
+            if( !player_template_file.exists )
+            {
+                trace("Could not find default player template file.",player_template_file.nativePath);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                return;
+            }
+            if( !index_template_file.exists )
+            {
+                trace("Could not find default index template file.",index_template_file.nativePath);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                return;
+            }
+            if( !css_template_file.exists )
+            {
+                trace("Could not find default css template file.",css_template_file.nativePath);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                return;
             }
 
             // Configuration looks kosher.  Go ahead and save it.            
@@ -551,6 +566,7 @@ CONFIG::FLASH_AUTHORING
                         seded = seded.replace(/THUMB_SIZE/g,thumb_size.toString());
                         seded = seded.replace(/TITLE_TEXT/g,curr_title);
                         var index_content : String = seded;
+                        var index_folders : String = "";
                         var index_files : String = "";
                         var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
 
@@ -591,7 +607,7 @@ CONFIG::FLASH_AUTHORING
                                     seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
                                     seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'');
-                                    index_files += seded;
+                                    index_folders += seded;
 
                                     // Generate indexes for TOC
                                     seded = index_small;
@@ -601,11 +617,6 @@ CONFIG::FLASH_AUTHORING
                                     folder_list_db.push( {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth} );
                                 }
                             }
-                        }
-
-                        if( 0 != curr_files.length )
-                        {
-                            index_files += "<br/>\n";
                         }
 
                         // Iterate files and generate code + thumbnails
@@ -648,7 +659,7 @@ CONFIG::FLASH_AUTHORING
                         }
 
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
+                        index_content = index_content.replace("<!--INDEXES_HERE-->",index_folders+"<br/>\n"+index_files);
 
                         // Pack output file a bit
                         index_content = PackOutput(index_content);
@@ -743,7 +754,7 @@ CONFIG::FLASH_AUTHORING
 
             CheckSet( ui.bnTempate, false );
             ChangeTemplateEnable();
-            root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            root_path_template = File.desktopDirectory;
             onTemplateChanged();
             
             thumb_size = THUMB_SIZE_DEFAULT;
@@ -808,7 +819,7 @@ CONFIG::FLASH_AUTHORING
             root_path_template = new File(share_data.url_template);
             if( !root_path_template.isDirectory )
             {
-                root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                root_path_template = File.desktopDirectory;
                 CheckSet( ui.bnTempate, false );
             }
             onTemplateChanged();

@@ -1,0 +1,317 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta name="viewport" content="width=device-width, height=device-height">
+<meta charset="UTF-8">
+<title>TITLE_TEXT</title>
+
+<script type="text/javascript">
+//<![CDATA[
+/** Namespace for audio control code */
+var aud = {};
+
+aud.bShuffle = false;
+aud.now_playing = null;
+aud.playlist = null;
+
+aud.PlayerInit = function()
+{
+    aud.audio_box = document.getElementById("PlayerBox");
+    aud.audio = document.getElementById("audioplayer");
+    aud.PlayList = document.getElementById("PlayList");;
+    aud.bRand = document.getElementById("bRand");
+    aud.bSeq = document.getElementById("bSeq");
+    aud.bNext = document.getElementById("bNext");
+    aud.bPrev = document.getElementById("bPrev");
+
+    aud.MakePlaylist(); 
+    aud.bRand.style.display ='none';
+    aud.bSeq.style.display ='';
+    
+    if( 0 == aud.playlist.length )
+    {
+        aud.audio_box.style.display = 'none';
+        aud.PlayList.style.top = '0px';
+    }
+    aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Re-shuffle
+
+    var params = window.location.href.split('?');
+    if( 2 == params.length )
+    {   // If we have '?title.mp3' that's the video in this folder, to play
+        aud.PlayMedia(decodeURI(params[1]));
+    }
+
+    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
+    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+}
+
+aud.PlayListRandom = function()
+{
+    aud.ArrayShuffle(aud.playlist);
+    aud.ArrayShuffle(aud.playlist);
+    aud.ArrayShuffle(aud.playlist);
+    aud.bShuffle = true; 
+    aud.bRand.style.display = '';
+    aud.bSeq.style.display  = 'none';
+    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
+    return false;
+}
+aud.PlayListSerial = function()
+{
+    aud.MakePlaylist(); 
+    aud.bRand.style.display ='none';
+    aud.bSeq.style.display ='';
+    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
+    return false;
+}
+
+/* 
+ * Load the audio when the page finishes loading 
+ * http://www.w3.org/2010/05/audio/mediaevents.html
+ */
+aud.PlayMedia = function(audio_path,noscroll)
+{
+    noscroll = noscroll || false;
+    if(typeof(audio_path)==='undefined') 
+        audio_path = aud.playlist[0].getAttribute('path');
+    aud.now_playing = audio_path;
+    aud.audio.setAttribute("src", aud.now_playing);
+    aud.audio.load();
+    aud.audio.play();
+    
+    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
+    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+    
+    aud.HighlightPlaying(noscroll);
+}
+
+/** Show which item is playing in the play list */
+aud.HighlightPlaying = function(noscroll)
+{
+    // Scroll play list to currently playing
+    for( i = 0; i < aud.playlist.length; ++i )
+    {
+        aud.playlist[i].className = 'index_entry';
+    }
+    var item = aud.playlist[aud.IndexPlaying()];
+    if( !!item )
+    {
+        item.className = 'index_entry_highlight';
+        if( !noscroll && item.scrollIntoView ) 
+            item.scrollIntoView();
+    }
+}
+
+
+/* Make a play list from title links */
+aud.MakePlaylist = function()
+{
+    var collection = document.getElementsByClassName("index_entry");
+    var array = new Array();
+    var i;
+    for( i = 0; i < collection.length; ++i )
+    {
+        array.push(collection[i]);
+    }
+    aud.bShuffle = false; 
+    return aud.playlist = array;
+}
+/**
+ * Shuffle an array
+ * @param array Array to shuffle in-place
+ * @return Array passed in
+**/
+aud.ArrayShuffle = function(array)
+{
+    var ri;
+    var tmp;
+    var i = array.length;
+    while( i-- )
+    {
+        ri = Math.floor(Math.random() * array.length);
+        tmp = array[i];
+        array[i] = array[ri];
+        array[ri] = tmp;
+    }
+    return array;
+}
+/** Get index of currently playing media */
+aud.IndexPlaying = function()
+{
+    var i = aud.playlist.length;
+    while( 0 <= --i )
+    {
+        if( aud.playlist[i].getAttribute('path') == aud.now_playing )
+            return i;
+    }
+    return -1;
+}
+/** Play the previous one */
+aud.PlayPrev = function()
+{
+    aud.PlayMedia(aud.WhatPrev());
+    return false;
+}
+/** Play the next one */
+aud.PlayNext = function()
+{
+    aud.PlayMedia(aud.WhatNext());
+    return false;
+}
+/** At end of media, play the next one; re-shuffle as appropriate */
+aud.PlayNextWrap = function()
+{
+    var i = aud.IndexPlaying() + 1;
+    if( i >= aud.playlist.length )
+    {
+        i = 0;
+        if( aud.bShuffle )
+        {
+            return aud.PlayListRandom();
+        }
+    }
+    aud.PlayMedia(aud.playlist[i].getAttribute('path'));
+}
+/** What will play previous */
+aud.WhatPrev = function()
+{
+    var i = aud.IndexPlaying() - 1;
+    if( i < 0 )
+    {
+        i = aud.playlist.length-1;
+    }
+    var path = aud.playlist[i].getAttribute('path');
+    return path;
+}
+/** What will play next */
+aud.WhatNext = function()
+{
+    var i = aud.IndexPlaying() + 1;
+    if( i >= aud.playlist.length )
+    {
+        i = 0;
+    }
+    var path = aud.playlist[i].getAttribute('path');
+    return path;
+}
+/** Turn video URI into title text */
+aud.TitleFromPath = function(path)
+{
+    path = path.substring(path.lastIndexOf('/')+1);
+    path = path.substring(0,path.lastIndexOf('.'));
+    
+    // URI decoders don't do the whole job, apparently.
+    var parts = path.split('%');
+    if( 1 == parts.length )
+        return path;
+    var ss;
+    path = parts.shift();
+    while( 0 < parts.length )
+    {
+        ss = parts.shift();
+        if( ss.match( /^[0-9A-F][0-9A-F].*/i ) )
+        {
+            path += String.fromCharCode( parseInt(ss.slice(0,2), 16) ) + ss.slice(2);
+        }
+        else
+        {
+            path += '%'+ss;
+        }
+    }
+    return path;
+}
+
+// Wake up when the balance of the page is loaded.
+document.addEventListener('DOMContentLoaded', aud.PlayerInit, false);
+
+//]]>
+</script>
+
+<style type="text/css">
+
+/* 
+This is similar to what the following would accomplish, except I just bake it
+into the html output with the script.
+<link rel="stylesheet" type="text/css" href="template.css"> 
+*/
+
+/*INSERT_CSS_HERE*/
+
+/* The remaining CSS is bound to how this page works */
+#PlayerBox {
+    position: absolute;
+    text-align:center;
+    width: 100%;
+    height: 34pt;
+    background-color:#101010;
+    overflow: hidden;
+}
+#audioplayer {
+    vertical-align:middle !important;
+}
+#PlayList {
+    position: absolute;
+    width: 100%;
+    overflow-x: hidden !important;
+    top: 34pt;
+    bottom: 0px;
+}
+
+</style>
+</head>
+
+<body>
+<div id='PlayerBox'>
+<audio id="audioplayer" controls >
+    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
+    <a href="http://www.apple.com/safari/">Safari</a><br/>
+    <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
+    <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
+    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
+    <a href="http://www.w3schools.com/html/html5_audio.asp">More info about compatibility...</a><br/>
+</audio>
+<button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
+<button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
+<button id="bRand"   class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
+<button id="bNext"   class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
+</div>
+
+<div id="PlayList">
+<br/>
+<div class="title"><div class="folder_icon"></div>TITLE_TEXT</div>
+
+<!-- 
+    These definitions are sought out in this file, and used to replace the 
+    'INDEXES_HERE' with files and folders 
+-->
+
+<!-- An audio file -->
+
+<!--INDEX_FILE
+<div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' >
+    <a href="" onclick="javascript: aud.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
+</div>
+-->
+
+<!-- A folder -->
+
+<!--INDEX_INDEX
+<br/><a class="folder_entry" style='FOLDER_STYLE' href="FOLDER_PATH" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+-->
+
+<!--INDEXES_HERE-->
+
+<div class="info_text">
+<br/>
+<br/>
+<a href="https://github.com/pingnak/videowebscript">Generated by JukeboxScript</a>
+<br/>
+<br/>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,11 +1,12 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, height=device-height">
 
 <title>TITLE_TEXT</title>
 
 <script type="text/javascript">
-
+//<![CDATA[
 /**
  * The global player object.
  * A namespace for all of these otherwise global things, to keep them all together
@@ -20,7 +21,7 @@ vid.bShuffle = false;
 vid.bWatchMode = false;
 vid.mouseTimeout = -1;
 vid.resizeTimeout = -1;
-
+vid.MOUSE_TIMEOUT = 3000;
 /**
  * Set things up, when the page loads
 **/
@@ -70,13 +71,21 @@ vid.PlayerInit = function()
         vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
         vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
     
-        vid.video.addEventListener( 'click', vid.TogglePause );
+        vid.video.addEventListener( 'click',            vid.TogglePause );
         vid.video.addEventListener( 'playing',          vid.ShowPaused );
         vid.video.addEventListener( 'pause',            vid.ShowPaused );
         vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
         vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
+        
     }
-    vid.video.addEventListener( 'error', vid.Error );
+    // Show controls when hidden
+    vid.video_box.addEventListener( 'mousemove',        vid.MouseMoved );
+    
+    // Tap to pause/play (and show controls)
+    vid.video.addEventListener( 'click',                vid.TogglePause );
+    
+    //vid.video.addEventListener( 'canplay',              vid.WatchMode );
+    vid.video.addEventListener( 'error',                vid.Error );
     vid.video.addEventListener( 'ended',                vid.PlayNextWrap );
     window.addEventListener( 'resize',                  vid.OnResize );
     window.addEventListener( 'fullscreenchange',        vid.OnResize );
@@ -406,8 +415,8 @@ vid.MouseMoved = function()
     vid.video_box.style.cursor = '';
     if( -1 != vid.mouseTimeout )
         clearTimeout(vid.mouseTimeout);
-    if( vid.bWatchMode )
-        vid.mouseTimeout = setTimeout( vid.MouseTimeout, 3000 );
+    if( vid.bWatchMode && !vid.video.paused )
+        vid.mouseTimeout = setTimeout( vid.MouseTimeout, vid.MOUSE_TIMEOUT );
     return true;
 }
 
@@ -459,9 +468,10 @@ vid.OnResizeNow = function()
  * Play a video
  * http://www.w3.org/2010/05/video/mediaevents.html
  */
-vid.PlayMedia = function(video_path)
+vid.PlayMedia = function(video_path,noscroll)
 {
-    // Setting attributes blows up 
+    // Setting attributes blows up
+    noscroll = noscroll || false;
     if(typeof(video_path)==='undefined')
     {
         if( null != vid.now_playing )
@@ -469,14 +479,16 @@ vid.PlayMedia = function(video_path)
         else
             video_path = vid.playlist[0].getAttribute('path');
     }
-        
+
     vid.now_playing = video_path;
+
     setTimeout( vid.PlayMedia2, 10);
     vid.OnResizeNow();
     vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
     vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
     vid.ShowPaused();
-    vid.WatchMode();
+
+    vid.HighlightPlaying(noscroll);
     return false;
 }
 
@@ -490,9 +502,28 @@ vid.PlayMedia2 = function()
     // Show title
     vid.progress_text_title.innerHTML = vid.TitleFromPath(vid.now_playing);
 
-    vid.video_box.addEventListener( 'mousemove', vid.MouseMoved );
     vid.MouseMoved();
     vid.UpdateTime();
+    vid.WatchMode();
+}
+
+/** Show which item is playing in the play list */
+vid.HighlightPlaying = function(noscroll)
+{
+    // Scroll play list to currently playing
+    var i = vid.playlist.length;
+    while( 0 < i-- )
+    {
+        vid.playlist[i].className = 'index_entry';
+    }
+    var item = vid.playlist[vid.IndexPlaying()];
+    if( !!item )
+    {
+        item.className = 'index_entry_highlight';
+        if( !noscroll && item.scrollIntoView ) 
+            item.scrollIntoView();
+    }
+    
 }
 
 /** Make a play list from title links */
@@ -643,6 +674,7 @@ vid.TitleFromPath = function(path)
 // Wake up when the balance of the page is loaded.
 document.addEventListener('DOMContentLoaded', vid.PlayerInit, false);
 
+//]]>
 </script>
 
 <style type="text/css">
@@ -717,7 +749,6 @@ into the html output with the script.
     background: transparent;
     margin: 0;
     padding:0;
-    
 }
 
 /* Skinned control panel icons in left and right boxes */
@@ -813,7 +844,7 @@ img.index_thumbnail {
 <br/>
 <button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Last Page" onclick="javascript: window.history.back(); return false; "><div class="back_icon"></div></button>
 <br/>
-<div class="title"><div class="folder_icon"></div>TITLE_TEXT</div>
+<div class="title">TITLE_TEXT</div>
 
 <!-- 
     These definitions are sought out in this file, and used to replace the 
@@ -824,7 +855,7 @@ img.index_thumbnail {
 
 <!--INDEX_FILE
 <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path')); return false;" ><img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
+    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" ><img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
 </div>
 -->
 
@@ -832,7 +863,7 @@ img.index_thumbnail {
 
 <!--INDEX_FILE_NOTHUMB
 <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path')); return false;" >MEDIA_TITLE</a>
+    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
 </div>
 -->
 

@@ -51,9 +51,6 @@ CONFIG::MXMLC_BUILD
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
         public static const MAIN_TOC        : String = "index.html";
-        
-        /** Where to look for script template content */
-        public static const SCRIPT_TEMPLATES: String ="default"
 
         /** Start of movie player and available content */
         public static const PLAYER_TEMPLATE : String = "viewer_template.html";
@@ -68,7 +65,7 @@ CONFIG::MXMLC_BUILD
         public static const THUMB_SIZE      : int = 240;
 
         /** Offset for folder depths in TOC file */
-        public static const FOLDER_DEPTH : int = 32;
+        public static const FOLDER_DEPTH : int = 16;
         
         /** Regular expressions that we accept as 'JPEG content'*/
         public static const REGEX_JPEG       : String = ".(jpg|jpeg|png|gif)";
@@ -256,7 +253,7 @@ CONFIG::FLASH_AUTHORING
                 return;
             }
 
-            var root : File = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            var root : File = File.applicationDirectory;
             css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
             player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
             index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
@@ -989,7 +986,7 @@ CONFIG::FLASH_AUTHORING
 
             CheckSet( ui.bnTempate, false );
             ChangeTemplateEnable();
-            root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+            root_path_template = File.desktopDirectory;
             onTemplateChanged();
             
             thumb_size = THUMB_SIZE;
@@ -1046,7 +1043,7 @@ CONFIG::FLASH_AUTHORING
             root_path_template = new File(share_data.url_template);
             if( !root_path_template.isDirectory )
             {
-                root_path_template = Find.File_AddPath( File.applicationDirectory, SCRIPT_TEMPLATES );
+                root_path_template = File.desktopDirectory;
                 CheckSet( ui.bnTempate, false );
             }
             ChangeTemplateEnable();

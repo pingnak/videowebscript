@@ -26,7 +26,6 @@ function CopyFiles {
 		
 		# OS X: Don't crawl this drive over and over while I copy to it.
 		touch "$1/.metadata_never_index" ; chmod -w "$1/.metadata_never_index"
-		
 	fi
 }
 

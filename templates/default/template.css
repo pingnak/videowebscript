@@ -26,17 +26,28 @@ button:focus {outline:0;}
     white-space:nowrap;
 }
 /* Player index text */
-.index_entry {
-    margin-left:32px;
-    font-size:32px;
+.index_entry, .index_entry_highlight {
+    overflow-x: hidden !important;
+    margin-top:4pt;
+    margin-bottom:4pt;
+    margin-left:16pt;
+    font-size:32pt;
     white-space:nowrap;
+}
+.index_entry_highlight a:link, .index_entry_highlight a:visited {
+    color: #00ffff;
+    font-weight: bold;
 }
 /* Folder index text */
 .folder_entry {
+    overflow-x: hidden !important;
     white-space:nowrap;
-    font-size:36px;
-    height: 32px;
-    line-height: 36px;
+    margin-top:4pt;
+    margin-bottom:4pt;
+    margin-left:8pt;
+    font-size:36pt;
+    height: 36pt;
+    line-height: 36pt;
     vertical-align:middle;
 }
 /* Small folder in box */
@@ -100,6 +111,7 @@ button:focus {outline:0;}
     /* ./wireframe0014.png */
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAXVBMVEUAAAD///8As7UAu7v///////////8AsrYAs7QAs7UAsrQAtbUAs7P///8As7X///////8As7X///////8AsrT///8AsrUAsrX///////8AtLT///////8As7X///8fHS7IAAAAHXRSTlMA768PP79/P79/7x8vb8+vL2/PH4+f308P319PX0HDJacAAAETSURBVFjD7ZbbEkMwEIYjchCiKD033v8x20mlZlSCDTNt+S7c7Tds8ttFaOOfIFmtoQQo2NcNAVBQv5lFwLHqJ45Ch8A8EdopK3iUIIYJ2k84WQ27cKkmBr7HeGsMQb7eMJUp1bASKMjMKey/I0xJEdnBwiYgxAiwclINhsldryKLgFIjEM76WA43UXIHySKnwEz9HXoVc6L55TDmTEPOwPqDaeLB9584T5jCq+jhlAwIGGsEydSh0A1TYUsBH/kGHPgGbQ+k6CVc8pdGfe8BSl83Mf3pRU8DLk9NGKBNuMwbpudltCEdgnYuFI41TckRa95x6lzqzsbj1Mn4MZ2xfThXC4Xp4ruhlNlrR8rOaGN9PAAllFYs17A7SwAAAABJRU5ErkJggg==) no-repeat;
 }
+
 .icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, .window_icon, .play_icon, .pause_icon, .back_icon, .folder_icon, .list_icon, .player_icon {
     display: inline-block;
     background-size:cover;
@@ -108,9 +120,10 @@ button:focus {outline:0;}
     height:32pt;
     width:32pt;
 }
+
 .button_format {
-    vertical-align:middle;
     background: transparent;
-    border: none !important;
     font-size:0;
+    border: none !important;
+    vertical-align:middle;
 }

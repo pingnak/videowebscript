@@ -2,6 +2,7 @@
 <head>
 <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, height=device-height">
 <style type="text/css">
 
 /* 
@@ -40,6 +41,7 @@ into the html output with the script.
     width:100%;
     height:auto;
     position: relative;
+    outline:0;
 }
 /* Full-screen video player, wide aspect */
 .videoplayer_full, .videoplayer_full_borked {
@@ -47,6 +49,7 @@ into the html output with the script.
     width:100%;
     height:auto;
     position: relative;
+    outline:0;
 }
 /* This is all about Firefox, not wanting to center the full-screen video like everyone else */
 .videoplayer_full_borked  {
@@ -61,6 +64,7 @@ into the html output with the script.
     z-index:0;
     height:100%;
     width:auto;
+    outline:0;
 }
 .videoplayer_alt_borked  {
     left:50%; 
@@ -150,6 +154,7 @@ into the html output with the script.
 }
 #playlist {
     padding-left:10pt;
+    overflow-x:hidden; /* Mobile browsers make super-wide page without this */
 }
 .index_thumbnail {
 }
@@ -165,7 +170,7 @@ img.index_thumbnail {
 
 </head>
 
-<body onload="PlayerInit();">
+<body>
 <div id='video_box' class='video_box_windowed' >
 <video id="videoplayer" class='videoplayer_windowed' style="display:none;" controls > <!-- Show controls now, or 'Silk' never will -->
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
@@ -242,6 +247,7 @@ img.index_thumbnail {
 </div>
 
 <script type="text/javascript">
+//<![CDATA[
 var bShuffle = false;
 var playlist;
 var now_playing = null;
@@ -564,6 +570,7 @@ function PlayerInit()
         window.addEventListener( 'mozfullscreenchange', OnResize );
         window.addEventListener( 'MSFullscreenChange', OnResize );
     }
+    video.addEventListener( 'click', TogglePause );
 
     MakePlaylist();
     if( 0 == playlist.length )
@@ -827,6 +834,9 @@ function TitleFromPath(path)
     }
     return path;
 }
+// Wake up when the balance of the page is loaded.
+document.addEventListener('DOMContentLoaded', PlayerInit, false);
+//]]>
 </script>
 
 </body>

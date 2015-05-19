@@ -17,8 +17,34 @@ from subprocess import call
 from xml.sax.saxutils import escape
 import urllib
 
+def PrintHelp():
+    print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
+    print "Make web pages to play HTML5 compatible video formats.\n"
+    print "/media/path:\tPath to media to make web UI for.\n"
+    print "template:\tWhich template to use.\n"
+    print "/path2/template:Template in some other folder\n"
+    sys.exit(1)
+
+if 1 >= len(sys.argv):
+    PrintHelp()
+
 root_dir = os.path.normpath(sys.argv[1])
-need_jpeg= []
+
+# Where is this script
+SCRIPT_ROOT = os.path.join( os.path.dirname(os.path.realpath(sys.argv[0])), 'templates' );
+
+# Fallback location to get template files
+SCRIPT_TEMPLATES = SCRIPT_TEMPLATES_DEFAULT = os.path.join(SCRIPT_ROOT, 'default')
+
+if 3 <= len(sys.argv):
+    SCRIPT_TEMPLATES = os.path.join( SCRIPT_ROOT, sys.argv[2] )
+    
+    if not os.path.isdir(SCRIPT_TEMPLATES) :
+        SCRIPT_TEMPLATES = sys.argv[2]
+    
+    if not os.path.isdir(SCRIPT_TEMPLATES) :
+        print SCRIPT_TEMPLATES + " does not exist."
+        PrintHelp()
 
 # What to call the video player files
 WEBIFY_PLAYER_INDEX="VideoPlayer.html"
@@ -28,15 +54,6 @@ WEBIFY_INDEX="index.html"
 
 # List of matchable files
 FILE_TYPES=['.mp4','.m4v','.m4p','.m4r','.3gp','.3g2']
-
-# The folder with the templates to generate from, relative to this script
-TEMPLATE_PATH="templates/VideoWebScript/kiosk"
-
-# Where is this script
-SCRIPT_ROOT = os.path.dirname(os.path.realpath(sys.argv[0]))
-
-# Where to look for the script templates
-SCRIPT_TEMPLATES = os.path.join(SCRIPT_ROOT, TEMPLATE_PATH)
 
 # What our thumbnailer is called.  Dike out if you don't want thumbnails.
 THUMBNAILER='ffmpegthumbnailer'
@@ -49,13 +66,17 @@ HAVE_THUMBNAILER = distutils.spawn.find_executable(THUMBNAILER) is not None
 
 # File to suck css out of (exported to be findable in backquotes)
 CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "template.css")
+if not os.path.isfile(CSS_TEMPLATE_FILE):
+    CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "template.css")
 
 # Cache CSS template
 with open (CSS_TEMPLATE_FILE, "r") as myfile:
     CSS_TEMPLATE=myfile.read()
 
 # Which template to use 
-PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "player_template.html")
+PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "video_template.html")
+if not os.path.isfile(PLAYER_TEMPLATE_FILE):
+    PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "video_template.html")
 
 # Cache player template
 with open (PLAYER_TEMPLATE_FILE, "r") as myfile:
@@ -71,6 +92,8 @@ INDEX_FILE_NOTHUMB=INDEX_FILE_NOTHUMB_MATCH.group(1)
 
 # Which template to use 
 INDEX_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "index_template.html")
+if not os.path.isfile(INDEX_TEMPLATE_FILE):
+    INDEX_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "index_template.html")
 
 # Cache index template
 with open (INDEX_TEMPLATE_FILE, "r") as myfile:
@@ -104,6 +127,7 @@ all_paths_with_media=[]
 total_media_count = 0
 index_toc_small=[]
 index_toc=[]
+need_jpeg= []
 
 for root, dirs, files in os.walk(root_dir):
 
