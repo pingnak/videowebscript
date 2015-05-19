@@ -181,8 +181,8 @@ for root, dirs, files in os.walk(root_dir):
 
             # Skip files that aren't playable
             fileName, fileExtension = os.path.splitext(relPath)
-            fullPath = os.path.join(root, fileName) + fileExtension
-            dummy,extCurr = os.path.splitext(relPath)
+            fullPath = os.path.join(root, relPath)
+            fullPathNoExt,extCurr = os.path.splitext(fullPath)
             if extCurr.lower() in FILE_TYPES:
                 # Keep track for trivia
                 total_media_count = total_media_count + 1;
@@ -196,7 +196,7 @@ for root, dirs, files in os.walk(root_dir):
                 if HAVE_THUMBNAILER:
                     # We should have a jpg file, named the same as the playable file
                     jpegName = fileName + '.jpg'
-                    jpegPath = os.path.join(root, jpegName)
+                    jpegPath = fullPathNoExt + '.jpg'
                     filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root))
                     if jpegName not in files:
                         need_jpeg.append( (fullPath,jpegPath) )

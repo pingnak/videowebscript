@@ -126,6 +126,9 @@ vid.Error = function(e)
 vid.ListMode = function()
 {
     vid.bWatchMode = false;
+
+    vid.video.pause();
+
     vid.bWatch.style.display = 'none';
     vid.bList.style.display = '';
 
@@ -137,9 +140,8 @@ vid.ListMode = function()
     vid.play_list.style.display = '';
 
     vid.UpdateFullScreen();
-
-    vid.video.pause();
     vid.MouseMoved();
+    vid.HighlightPlaying();
 }
 
 /**
@@ -491,6 +493,7 @@ vid.PlayMedia = function(video_path,noscroll)
     }
 
     vid.now_playing = video_path;
+    vid.HighlightPlaying(noscroll);
 
     setTimeout( vid.PlayMedia2, 10);
     vid.OnResizeNow();
@@ -498,7 +501,6 @@ vid.PlayMedia = function(video_path,noscroll)
     vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
     vid.ShowPaused();
 
-    vid.HighlightPlaying(noscroll);
     return false;
 }
 
@@ -531,7 +533,9 @@ vid.HighlightPlaying = function(noscroll)
     {
         item.className = 'index_entry_highlight';
         if( !noscroll && item.scrollIntoView ) 
+        {
             item.scrollIntoView();
+        }
     }
     
 }

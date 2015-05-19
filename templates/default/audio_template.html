@@ -98,8 +98,10 @@ aud.HighlightPlaying = function(noscroll)
     if( !!item )
     {
         item.className = 'index_entry_highlight';
-        if( !noscroll && item.scrollIntoView ) 
+        if( !noscroll && item.scrollIntoView )
+        {
             item.scrollIntoView();
+        }
     }
 }
 
