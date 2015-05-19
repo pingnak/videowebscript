@@ -156,12 +156,11 @@ for root, dirs, files in os.walk(root_dir):
     print "    " + folder_relative
     sys.stdout.flush()
 
-    files.sort();
-    for relPath in files:
+    for relPath in sorted(files):
 
         # Skip files that aren't playable
+        fullPath = os.path.join(root, relPath)
         fileName, fileExtension = os.path.splitext(relPath)
-        fullPath = os.path.join(root, fileName) + fileExtension
         if fileExtension.lower() in FILE_TYPES:
 
             # Keep track for trivia
@@ -193,8 +192,7 @@ for root, dirs, files in os.walk(root_dir):
         elif fileExtension.lower() in PLAY_LISTS:
             # We can't search for play list contents, until we have all files
             all_play_lists.append( fullPath )
-        #else: Ignored file...
-
+    
     if 0 != totalFiles:
         # Record folder for big folder+file TOC
         output = str(INDEX_TOC_FOLDER)
@@ -260,20 +258,21 @@ if 0 != len(all_media_folders):
 
             # We found files in the play list
             if 0 != len(files):
-                uniquefiles = set(sorted(files))
+                uniquefiles = set(files)
+                sorted_uniquefiles = sorted(uniquefiles)
     
                 playlist = ""
     
                 # Make play list items from the found files
-                for fileName, fullPath in uniquefiles:
+                for fileName, fullPath in sorted_uniquefiles:
     
                     media_path = os.path.relpath(fullPath,root_dir)
                     media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
                     filename_title_escaped=escape(fileName)
                     pathcurr=str(INDEX_FILE)
+                    pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
                     pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
                     pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-                    pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
                     playlist = playlist + pathcurr
                     
                 # Make the player

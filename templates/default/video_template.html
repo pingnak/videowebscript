@@ -22,6 +22,8 @@ vid.bWatchMode = false;
 vid.mouseTimeout = -1;
 vid.resizeTimeout = -1;
 vid.MOUSE_TIMEOUT = 3000;
+vid.lastScreenY = -1; 
+vid.lastScreenX = -1;
 /**
  * Set things up, when the page loads
 **/
@@ -70,17 +72,16 @@ vid.PlayerInit = function()
         vid.progress_clickme.addEventListener( 'click',    vid.ProgressClick );
         vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
         vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
-    
-        vid.video.addEventListener( 'click',            vid.TogglePause );
+
         vid.video.addEventListener( 'playing',          vid.ShowPaused );
         vid.video.addEventListener( 'pause',            vid.ShowPaused );
         vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
         vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
-        
     }
-    // Show controls when hidden
-    vid.video_box.addEventListener( 'mousemove',        vid.MouseMoved );
-    
+
+    // Mouse moved or screen touched
+    vid.video.addEventListener( 'mousemove',            vid.MouseMovedFilter );    
+
     // Tap to pause/play (and show controls)
     vid.video.addEventListener( 'click',                vid.TogglePause );
     
@@ -128,7 +129,8 @@ vid.ListMode = function()
     vid.bWatch.style.display = 'none';
     vid.bList.style.display = '';
 
-    vid.video.style.visibility = 'hidden';
+    //vid.video.style.visibility = 'hidden';
+    vid.video.style.display = 'none';
     vid.video_controls_left.style.visibility = 'hidden';
     vid.progress_bar.style.visibility = 'hidden';
 
@@ -149,7 +151,8 @@ vid.WatchMode = function()
     vid.bWatch.style.display = '';
     vid.bList.style.display = 'none';
 
-    vid.video.style.visibility = '';
+    //vid.video.style.visibility = '';
+    vid.video.style.display = '';
     vid.video_controls_left.style.visibility = '';
     vid.progress_bar.style.visibility = '';
 
@@ -408,7 +411,15 @@ vid.MouseTimeout = function()
     }
 }
 
-/** Mouse moved - show it.  Called by lots of stuff to reset mouse+control visibility */
+/** Only call MouseMoved if the mouse... moved. */
+vid.MouseMovedFilter = function(e)
+{
+    if( Math.abs(e.screenX - vid.lastScreenX)+Math.abs(e.screenY - vid.lastScreenY) )
+        vid.MouseMoved();
+    vid.lastScreenX = e.screenX;
+    vid.lastScreenY = e.screenY;
+}
+/** Show the mouse and controls */
 vid.MouseMoved = function()
 {
     vid.video_controls.style.visibility = '';
@@ -431,22 +442,7 @@ vid.OnResize = function()
 vid.OnResizeNow = function()
 {
     vid.resizeTimeout = -1;
-    vid.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    vid.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
 
-    // If window is shorter than video, when scaled, fit to height instead of width
-    var videoAspect = vid.video.videoWidth / vid.video.videoHeight;
-    var windowAspect = window.innerWidth / window.innerHeight;
-    var screenAspect = screen.width / screen.height;
-    if( videoAspect < windowAspect || videoAspect < screenAspect ) // Second test because Silk doesn't work right
-    {
-        vid.video.className = 'videoplayer_alt';
-    }
-    else 
-    {
-        vid.video.className = 'videoplayer';
-    }
-    
     if( vid.bUseNativeControls )
     {
         vid.video.setAttribute("controls",true);
@@ -457,6 +453,20 @@ vid.OnResizeNow = function()
             vid.video.removeAttribute("controls");
     }
 
+    
+    // If window is shorter than video, when scaled, fit to height instead of width
+    var videoAspect = vid.video.videoWidth / vid.video.videoHeight;
+    var windowAspect = window.innerWidth / window.innerHeight;
+    var screenAspect = screen.width / screen.height;
+    if( videoAspect < windowAspect ) // Second test because Silk doesn't work right
+    {
+        vid.video.className = 'videoplayer_alt';
+    }
+    else 
+    {
+        vid.video.className = 'videoplayer';
+    }
+    
     // Sort out full versus windowed playbacl
     vid.UpdateFullScreen();
     vid.MouseMoved();
@@ -511,8 +521,8 @@ vid.PlayMedia2 = function()
 vid.HighlightPlaying = function(noscroll)
 {
     // Scroll play list to currently playing
-    var i = vid.playlist.length;
-    while( 0 < i-- )
+    var i;
+    for( i = 0; i < vid.playlist.length; ++i )
     {
         vid.playlist[i].className = 'index_entry';
     }
@@ -691,8 +701,7 @@ into the html output with the script.
 
 /* Video player modes for windowed/full-screen */
 .video_box {
-    position: relative;
-    background: transparent;
+    position: fixed;
     overflow: hidden;
     margin: 0 !important;
     padding:0 !important;
@@ -708,7 +717,8 @@ into the html output with the script.
     height:100%;
 }
 .videoplayer, .videoplayer_alt {
-    position:absolute;
+    position: fixed;
+    overflow: hidden;
     margin: 0 !important;
     padding:0 !important;
     outline: 0;
@@ -730,12 +740,14 @@ into the html output with the script.
 
 /* Skinned control panel mode for windowed and full-screen */
 .video_controls_bottom {
+    position: fixed;
     display: table;
     bottom: 16pt;
     left: 0px;
     width: 100%;
 }
 .video_controls_top {
+    position: fixed;
     display: block;
     top: 8pt;
     right:0px;

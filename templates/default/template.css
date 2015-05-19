@@ -22,7 +22,7 @@ button:focus {outline:0;}
     color: #00ffff;
     clear: both;
     width:100%;
-    font-size:40px;
+    font-size:40pt;
     white-space:nowrap;
 }
 /* Player index text */
@@ -31,7 +31,7 @@ button:focus {outline:0;}
     margin-top:4pt;
     margin-bottom:4pt;
     margin-left:16pt;
-    font-size:32pt;
+    font-size:30pt;
     white-space:nowrap;
 }
 .index_entry_highlight a:link, .index_entry_highlight a:visited {
@@ -45,14 +45,14 @@ button:focus {outline:0;}
     margin-top:4pt;
     margin-bottom:4pt;
     margin-left:8pt;
-    font-size:36pt;
-    height: 36pt;
-    line-height: 36pt;
+    height: 35pt;
+    font-size:35pt;
+    line-height: 35pt;
     vertical-align:middle;
 }
 /* Small folder in box */
 .folder_small {
-    font-size:20px;
+    font-size:25px;
     white-space:nowrap;
 }
 

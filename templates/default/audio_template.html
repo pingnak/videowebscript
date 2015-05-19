@@ -242,9 +242,9 @@ into the html output with the script.
 #PlayerBox {
     overflow: auto;
     text-align:center;
-    position: absolute;
+    position: fixed;
     width: 100%;
-    height: 32pt;
+    height: 50pt;
     background-color:#101010;
     z-index:2;
 }
@@ -253,9 +253,9 @@ into the html output with the script.
 }
 #PlayList {
     overflow-x: hidden !important;
-    position: absolute;
+    position: fixed;
     width: 100%;
-    top: 34pt;
+    top: 52pt;
     bottom: 0;
     z-index:1;
 }
@@ -265,8 +265,9 @@ into the html output with the script.
 
 <body>
 <div id='PlayerBox'>
+<br/> <!-- For Kindle/Silk, that can't center audio player controls -->
 <audio id="audioplayer" controls >
-    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't have it, or it is disabled.<br/><br/>
     <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
     <a href="http://www.apple.com/safari/">Safari</a><br/>
     <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>

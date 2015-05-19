@@ -177,8 +177,7 @@ for root, dirs, files in os.walk(root_dir):
         output = output.replace( 'FOLDER_STYLE', '')
         index_list = index_list + output
 
-        files.sort()
-        for relPath in files:
+        for relPath in sorted(files):
 
             # Skip files that aren't playable
             fileName, fileExtension = os.path.splitext(relPath)
