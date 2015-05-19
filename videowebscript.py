@@ -127,7 +127,8 @@ all_paths_with_media=[]
 total_media_count = 0
 index_toc_small=[]
 index_toc=[]
-need_jpeg= []
+need_jpeg=[]
+have_jpeg={}
 
 for root, dirs, files in os.walk(root_dir):
 
@@ -143,83 +144,83 @@ for root, dirs, files in os.walk(root_dir):
         folder_depth = folder_depth + 1;
     folder_depth = LEFT_PADDING + (folder_depth*FOLDER_DEPTH)
 
-    # How many media files in this folder?
-    totalFiles = 0
-    for relPath in files:
-        dummy,extCurr = os.path.splitext(relPath)
-        if extCurr.lower() in FILE_TYPES:
-            totalFiles = totalFiles + 1
+    # A folder with content to play
 
+    # Record live link folder for left box index/TOC
+    all_paths_with_media.append(root)
+
+    playlist=""
+    index_list=""
+
+    print '    '+folder_relative
+    sys.stdout.flush()
+
+    # Record folder for big folder+file TOC
+    output = str(INDEX_TOC_FOLDER)
+    output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
+    output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
+    output = output.replace( 'FOLDER_STYLE', '')
+    index_list = index_list + output
+
+    totalFiles = 0;
+    for relPath in sorted(files):
+
+        # Skip files that aren't playable
+        fileName, fileExtension = os.path.splitext(relPath)
+        fullPath = os.path.join(root, relPath)
+        fullPathNoExt,extCurr = os.path.splitext(fullPath)
+        extCurr = extCurr.lower();
+        if extCurr in FILE_TYPES:
+            
+            totalFiles = totalFiles + 1;
+            
+            # Keep track for trivia
+            total_media_count = total_media_count + 1;
+            
+            # Bake some details about this file
+            media_path = os.path.relpath(fullPath,root)
+            media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
+            filename_title_escaped=escape(fileName)
+            
+            if HAVE_THUMBNAILER:
+                # We should have a jpg file, named the same as the playable file
+                jpegName = fileName + '.jpg'
+                jpegPath = fullPathNoExt + '.jpg'
+                filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root))
+                need_jpeg.append( (fullPath,jpegPath) )
+                pathcurr=str(INDEX_FILE)
+                pathcurr=re.sub('MEDIA_IMAGE',filename_jpeg_escaped,pathcurr)
+            else:
+                # We don't have a thumbnailer.
+                pathcurr=str(INDEX_FILE_NOTHUMB)
+
+            # Emit elements for video player
+            pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
+            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
+            pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+            playlist = playlist + pathcurr
+
+            # Emit elements for index navigation player
+            pathcurr = str(INDEX_TOC_FILE)
+            pathcurr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX).replace('\\', '/')
+            pathcurr_escaped = urllib.quote(pathcurr_escaped)+'?'+media_path_escaped
+            pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
+            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
+            pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+            index_list = index_list + pathcurr
+        if '.jpg' == extCurr:
+            # Record existence of a jpeg file we found
+            have_jpeg[fullPath] = True
+            
     # Record folder for left box index/TOC
     small_output = str(INDEX_SMALL)
     small_output = small_output.replace( 'FOLDER_TITLE', folder_name_escaped)
     small_output_style = 'padding-left:' + str(folder_depth) + 'px;'
-
-    # A folder with content to play
     if 0 != totalFiles:
-
-        # Record live link folder for left box index/TOC
-        all_paths_with_media.append(root)
         small_output = small_output.replace( 'FOLDER_PATH',  folder_curr_escaped)
         small_output = small_output.replace( 'FOLDER_STYLE', small_output_style )
         index_toc_small.append( (root,small_output) );
 
-        playlist=""
-        index_list=""
-
-        print '    '+folder_relative
-        sys.stdout.flush()
-
-        # Record folder for big folder+file TOC
-        output = str(INDEX_TOC_FOLDER)
-        output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
-        output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
-        output = output.replace( 'FOLDER_STYLE', '')
-        index_list = index_list + output
-
-        for relPath in sorted(files):
-
-            # Skip files that aren't playable
-            fileName, fileExtension = os.path.splitext(relPath)
-            fullPath = os.path.join(root, relPath)
-            fullPathNoExt,extCurr = os.path.splitext(fullPath)
-            if extCurr.lower() in FILE_TYPES:
-                # Keep track for trivia
-                total_media_count = total_media_count + 1;
-                
-                # Bake some details about this file
-                media_path = os.path.relpath(fullPath,root)
-                media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
-                filename_title_escaped=escape(fileName)
-                pathcurr=str(INDEX_FILE)
-                
-                if HAVE_THUMBNAILER:
-                    # We should have a jpg file, named the same as the playable file
-                    jpegName = fileName + '.jpg'
-                    jpegPath = fullPathNoExt + '.jpg'
-                    filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root))
-                    if jpegName not in files:
-                        need_jpeg.append( (fullPath,jpegPath) )
-                    pathcurr=re.sub('MEDIA_IMAGE',filename_jpeg_escaped,pathcurr)
-                else:
-                    # We don't have a thumbnailer.
-                    pathcurr=str(INDEX_FILE_NOTHUMB)
-
-                # Emit elements for video player
-                pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
-                pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-                pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-                playlist = playlist + pathcurr
-
-                # Emit elements for index navigation player
-                pathcurr = str(INDEX_TOC_FILE)
-                pathcurr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX).replace('\\', '/')
-                pathcurr_escaped = urllib.quote(pathcurr_escaped)+'?'+media_path_escaped
-                pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
-                pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-                pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-                index_list = index_list + pathcurr
-                
         # Add accumulated indexes to list, to defer sort
         index_toc.append( (root, index_list) );
         
@@ -231,7 +232,7 @@ for root, dirs, files in os.walk(root_dir):
         output = output.replace( '<!--INDEXES_HERE-->', playlist)
         with open(os.path.join(root,WEBIFY_PLAYER_INDEX), "w") as text_file:
             text_file.write(output)
-            
+
     else:
         # Record dead link folder for left box index/TOC
         small_output = small_output.replace( 'FOLDER_PATH', '')
@@ -268,12 +269,14 @@ if 0 != len(all_paths_with_media):
         text_file.write(output)
 
     # Build thumbnails from files that need them.
+    # Deferred to the end, because it usually isn't needed
     if HAVE_THUMBNAILER:
         print "\nMaking thumbnails..."
         sys.stdout.flush()
         for needs in need_jpeg:
-            print("Making jpeg from: " + needs[0])
-            call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs[0], '-o', needs[1] ])
+            if needs[1] not in have_jpeg:
+                print "Making " + needs[1]
+                call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs[0], '-o', needs[1] ])
             
     print "\nMade %d folders with %d files.\n" %(len(all_paths_with_media),total_media_count)
 else:
