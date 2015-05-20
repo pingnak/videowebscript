@@ -29,7 +29,7 @@ def PrintHelp():
 if 1 >= len(sys.argv):
     PrintHelp();
 
-root_dir = os.path.normpath(sys.argv[1])
+root_dir = os.path.abspath(sys.argv[1])
 
 # Where is this script
 SCRIPT_ROOT = os.path.join( os.path.dirname(os.path.realpath(sys.argv[0])), 'templates' );
@@ -47,9 +47,6 @@ if 3 <= len(sys.argv):
     if not os.path.isdir(SCRIPT_TEMPLATES) :
         print SCRIPT_TEMPLATES + " does not exist."
         PrintHelp()
-
-# Get absolute path to operate on
-root_dir = os.path.normpath(sys.argv[1])
 
 # What to call the media player files
 WEBIFY_PLAYER_INDEX="Jukebox.html"
@@ -131,15 +128,18 @@ index_toc=[]
 for root, dirs, files in os.walk(root_dir):
 
     # Bake some details about this folder
+    root = os.path.abspath(root);
     folder_path, folder_name = os.path.split(root)
     folder_relative = os.path.relpath(root,root_dir)
     folder_curr = os.path.relpath(root,root_dir)
     folder_curr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX)
     folder_curr_escaped = urllib.quote(folder_curr_escaped.replace('\\', '/')) # Fix any Windows backslashes
     folder_name_escaped = escape(folder_name)
-    folder_depth = len(os.path.relpath(root, root_dir).split(os.sep))-1
-    if '.' != folder_curr:
-        folder_depth = folder_depth + 1;
+    if '.' == folder_relative:
+        folder_depth = 0;
+    else:
+        folder_depth = 1;
+    folder_depth = folder_depth+len(os.path.relpath(root, root_dir).split(os.sep))-1
     folder_depth = LEFT_PADDING + (folder_depth*FOLDER_DEPTH)
 
     # How many media files in this folder?
@@ -297,7 +297,10 @@ if 0 != len(all_media_folders):
 
     print "\nBuilding index..."
     sys.stdout.flush()
+    folder_path, folder_name = os.path.split(root_dir)
+    folder_name_escaped = escape(folder_name)
     output = str(INDEX_TEMPLATE)
+    output = output.replace( 'TITLE_TEXT', folder_name_escaped )
     output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
     
     # Copy table of contents in, sorted.
