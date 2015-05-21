@@ -17,6 +17,7 @@ from subprocess import call
 from xml.sax.saxutils import escape
 from xml.sax.saxutils import unescape
 import urllib
+import string
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -25,6 +26,40 @@ def PrintHelp():
     print "template:\tWhich template to use.\n"
     print "/path2/template:Template in some other folder\n"
     sys.exit(1)
+
+# I'd like to use 'natsort', but installing dependencies on ALL operating systems is a problem.
+regex_strip_punctuation = re.compile('[%s]' % re.escape(string.punctuation))
+def decompose(comptext):
+    # Tuples converted to string
+    comptext = ''.join(comptext)
+    # Eat (ignore) punctuation characters
+    comptext = regex_strip_punctuation.sub('', comptext)
+    # Break up by numbers, include numbers
+    comptext = re.split( '([0-9]+)', comptext.lower() )
+    # Pad numbers with leading zeroes, re-assemble
+    ret=''
+    for ss in comptext:
+        if 0 != len(ss) and ss[0].isdigit():
+            ret = ret + "%010.10g"%float(ss);
+        else:
+            ret = ret + ss;
+    return ret
+
+def compare_natural(item1, item2):
+    s1=decompose(item1)
+    s2=decompose(item2)
+    if s1 < s2:
+        return -1;
+    if s1 > s2:
+        return 1;
+    return 0;
+
+def compare_natural_filename(item1, item2):
+    path,item1=os.path.split(item1)
+    item1, ext = os.path.splitext(item1)
+    path,item2=os.path.split(item2)
+    item2, ext = os.path.splitext(item2)
+    return compare_natural(item1, item2)
 
 if 1 >= len(sys.argv):
     PrintHelp();
@@ -158,7 +193,7 @@ for root, dirs, files in os.walk(root_dir):
     print "    " + folder_relative
     sys.stdout.flush()
 
-    for relPath in sorted(files):
+    for relPath in sorted(files,compare_natural_filename):
 
         # Skip files that aren't playable
         fullPath = os.path.join(root, relPath)
@@ -261,7 +296,7 @@ if 0 != len(all_media_folders):
             # We found files in the play list
             if 0 != len(files):
                 uniquefiles = set(files)
-                sorted_uniquefiles = sorted(uniquefiles)
+                sorted_uniquefiles = sorted(uniquefiles,compare_natural)
     
                 playlist = ""
     
@@ -307,7 +342,7 @@ if 0 != len(all_media_folders):
     
     # Copy table of contents in, sorted.
     big_indexes=''
-    for indexPath, item in sorted(index_toc):
+    for indexPath, item in sorted(index_toc,compare_natural):
         big_indexes = big_indexes + item + '\n'
     output = output.replace( '<!--INDEXES_HERE-->', big_indexes)
 
@@ -317,13 +352,13 @@ if 0 != len(all_media_folders):
     if 0 != len(playlist_toc_small):
         small_indexes = small_indexes + "Play Lists:"
                         
-    for indexPath, item in sorted(playlist_toc_small):
+    for indexPath, item in sorted(playlist_toc_small,compare_natural):
         small_indexes = small_indexes + item + '\n'
 
     if 0 != len(playlist_toc_small):
         small_indexes = small_indexes + "<br/><br/>Folders:"
 
-    for indexPath, item in sorted(index_toc_small):
+    for indexPath, item in sorted(index_toc_small,compare_natural):
         for apath in all_media_folders:
             if 0 == apath.find(indexPath):
                 small_indexes = small_indexes + item + '\n'
