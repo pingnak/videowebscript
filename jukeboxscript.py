@@ -14,9 +14,9 @@ import re
 import random
 import distutils.spawn
 from subprocess import call
-import urllib
 from xml.sax.saxutils import escape
 from xml.sax.saxutils import unescape
+import urllib
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -126,6 +126,8 @@ need_jpeg= [];
 index_toc=[]
 
 for root, dirs, files in os.walk(root_dir):
+    files = [f for f in files if not f[0] == '.']
+    dirs[:] = [d for d in dirs if not d[0] == '.']
 
     # Bake some details about this folder
     root = os.path.abspath(root);
@@ -233,7 +235,10 @@ if 0 != len(all_media_folders):
         print "\nSearching Play List Files..."
         sys.stdout.flush()
         for playlist_file in all_play_lists:
-            # We want the text all lower-case, with forward-slashes, for matching
+            print "    "+playlist_file;
+            sys.stdout.flush()
+
+            # We want the text all lower-case, with forward-slashes, for matching, no encoding/escaping
             with open (playlist_file, "r") as myfile:
                 playlist_curr=myfile.read()
                 
@@ -244,9 +249,6 @@ if 0 != len(all_media_folders):
             playlist_curr = playlist_curr.lower().replace('\\', '/')
             
             # At this point, our image of the play list is utterly ruined, except as something to search 
-
-            print "    "+playlist_file;
-            sys.stdout.flush()
 
             files = []
 

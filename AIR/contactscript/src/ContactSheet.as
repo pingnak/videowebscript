@@ -943,7 +943,7 @@ CONFIG::FLASH_AUTHORING
                     var curr_index_title : String = Find.File_nameext( curr_folder );
                     curr_index_title = Find.FixDecodeURI(curr_index_title);
                     var curr_index_relative : String = Find.File_relative( curr_index, root );
-
+                    
                     // Emit index for child folder
                     var seded : String = index_index;
                     seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));

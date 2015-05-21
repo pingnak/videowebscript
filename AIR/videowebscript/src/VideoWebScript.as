@@ -691,9 +691,12 @@ CONFIG::FLASH_AUTHORING
                             folder_list += dbCurr.item;
                         }
 
+                        var curr_title : String = Find.File_name( folders[0] );
+                        var curr_title_escaped : String = Find.EscapeQuotes(curr_title);
+                        
                         var index_content : String = index_template;
                         index_content = index_content.replace(/THUMB_SIZE/g,thumb_size.toString());
-                        //index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
+                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title_escaped);
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
                         index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
                         index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);

@@ -211,7 +211,7 @@ vid.IsFullScreen = function()
 vid.FullScreenWasMe = function()
 {
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-    return vid.video_box == fullscreenElement;
+    return document.documentElement == fullscreenElement;
 }
 
 /** Update full-screen status */
@@ -249,21 +249,21 @@ vid.UpdateFullScreen = function()
 /** Enter full screen mode */
 vid.EnterFullscreen = function()
 {
-    if(vid.video_box.requestFullscreen) 
+    if(document.documentElement.requestFullscreen) 
     {
-        vid.video_box.requestFullscreen();
+        document.documentElement.requestFullscreen();
     }
-    else if(vid.video_box.webkitRequestFullscreen) 
+    else if(document.documentElement.webkitRequestFullscreen) 
     {
-        vid.video_box.webkitRequestFullscreen();
+        document.documentElement.webkitRequestFullscreen();
     }
-    else if(vid.video_box.mozRequestFullScreen) 
+    else if(document.documentElement.mozRequestFullScreen) 
     {
-        vid.video_box.mozRequestFullScreen();
+        document.documentElement.mozRequestFullScreen();
     } 
-    else if(vid.video_box.msRequestFullscreen) 
+    else if(document.documentElement.msRequestFullscreen) 
     {
-        vid.video_box.msRequestFullscreen();
+        document.documentElement.msRequestFullscreen();
     }
 }
 
@@ -838,6 +838,7 @@ img.index_thumbnail {
     padding-bottom:8px;
     padding-right:8px;
 }
+
 </style>
 
 </head>

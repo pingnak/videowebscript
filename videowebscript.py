@@ -130,7 +130,8 @@ need_jpeg=[]
 have_jpeg={}
 
 for root, dirs, files in os.walk(root_dir):
-
+    files = [f for f in files if not f[0] == '.']
+    dirs[:] = [d for d in dirs if not d[0] == '.']
     # Bake some details about this folder
     root = os.path.abspath(root);
     folder_path, folder_name = os.path.split(root)
