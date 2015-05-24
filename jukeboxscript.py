@@ -32,17 +32,15 @@ regex_strip_punctuation = re.compile('[%s]' % re.escape(string.punctuation))
 def decompose(comptext):
     # Tuples converted to string
     comptext = ''.join(comptext)
-    # Eat (ignore) punctuation characters
-    comptext = regex_strip_punctuation.sub('', comptext)
     # Break up by numbers, include numbers
     comptext = re.split( '([0-9]+)', comptext.lower() )
     # Pad numbers with leading zeroes, re-assemble
     ret=''
     for ss in comptext:
         if 0 != len(ss) and ss[0].isdigit():
-            ret = ret + "%010.10g"%float(ss);
+            ret = ret + "%010ld"%long(ss);
         else:
-            ret = ret + ss;
+            ret = ret + regex_strip_punctuation.sub('', ss)
     return ret
 
 def compare_natural(item1, item2):
