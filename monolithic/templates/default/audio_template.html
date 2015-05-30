@@ -20,56 +20,42 @@ var aud = {};
 
 aud.bShuffle = false;
 aud.now_playing = null;
-aud.playlist = null;
+aud.playlist = [];
+aud.playlistElement = null;
 
 aud.PlayerInit = function()
 {
+    aud.Folders = document.getElementById("Folders");
+    aud.PlayList = document.getElementById("PlayList");;
+
     aud.audio_box = document.getElementById("PlayerBox");
     aud.audio = document.getElementById("audioplayer");
-    aud.PlayList = document.getElementById("PlayList");;
     aud.bRand = document.getElementById("bRand");
     aud.bSeq = document.getElementById("bSeq");
     aud.bNext = document.getElementById("bNext");
     aud.bPrev = document.getElementById("bPrev");
-
-    aud.MakePlaylist(); 
-    aud.bRand.style.display ='none';
-    aud.bSeq.style.display ='';
     
     if( 0 == aud.playlist.length )
     {
         aud.audio_box.style.display = 'none';
-        aud.PlayList.style.top = '0px';
     }
-    aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Re-shuffle
-
-    var params = window.location.href.split('?');
-    if( 2 == params.length )
-    {   // If we have '?title.mp3' that's the video in this folder, to play
-        aud.PlayMedia(decodeURI(params[1]));
-    }
-
-    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
-    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+    aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
 }
 
+/** Play in shuffled order */
 aud.PlayListRandom = function()
 {
-    aud.ArrayShuffle(aud.playlist);
-    aud.ArrayShuffle(aud.playlist);
-    aud.ArrayShuffle(aud.playlist);
     aud.bShuffle = true; 
-    aud.bRand.style.display = '';
-    aud.bSeq.style.display  = 'none';
-    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
+    aud.MakePlaylist(); 
+    //aud.PlayMedia(aud.playlist[0].getAttribute('path'));
     return false;
 }
+
+/** Play sequentially */
 aud.PlayListSerial = function()
 {
+    aud.bShuffle = false;
     aud.MakePlaylist(); 
-    aud.bRand.style.display ='none';
-    aud.bSeq.style.display ='';
-    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
     return false;
 }
 
@@ -83,49 +69,98 @@ aud.PlayMedia = function(audio_path,noscroll)
     if(typeof(audio_path)==='undefined') 
         audio_path = aud.playlist[0].getAttribute('path');
     aud.now_playing = audio_path;
-    aud.audio.setAttribute("src", aud.now_playing);
+    aud.audio.src = aud.now_playing;
     aud.audio.load();
     aud.audio.play();
     
     aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
     aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
     
+    aud.PlayList.className = 'playlist_class';
+    aud.audio_box.style.display ='block';
     aud.HighlightPlaying(noscroll);
+    return false;
 }
-
 /** Show which item is playing in the play list */
 aud.HighlightPlaying = function(noscroll)
 {
-    // Scroll play list to currently playing
+    var item;
     for( i = 0; i < aud.playlist.length; ++i )
     {
-        aud.playlist[i].className = 'index_entry';
+        item = aud.playlist[i];
+        delete item.style;
+        item.className = 'index_entry';
     }
-    var item = aud.playlist[aud.IndexPlaying()];
+    item = aud.playlist[aud.IndexPlaying()];
     if( !!item )
     {
         item.className = 'index_entry_highlight';
         if( !noscroll && item.scrollIntoView )
-        {
             item.scrollIntoView();
-        }
+    }
+    else
+    {
+        if( !noscroll )
+            aud.PlayList.scrollTop = 0;
     }
 }
-
 
 /* Make a play list from title links */
-aud.MakePlaylist = function()
+aud.MakePlaylist = function(playlistElement)
 {
-    var collection = document.getElementsByClassName("index_entry");
-    var array = new Array();
+    if( aud.bShuffle )
+    {
+        aud.bRand.style.display = '';
+        aud.bSeq.style.display  = 'none';
+    }
+    else
+    {
+        aud.bRand.style.display = 'none';
+        aud.bSeq.style.display  = '';
+    }
+    playlistElement = playlistElement || aud.playlistElement;
+    if( null == playlistElement )
+    {
+        aud.playlistElement = null;
+        aud.bNext.setAttribute( 'title', "" );
+        aud.bPrev.setAttribute( 'title', "" );
+        return aud.playlist = [];
+    }
+    aud.playlistElement = playlistElement;
+
     var i;
+    var curr;
+    aud.playlist = [];
+    var collection = playlistElement.children;
     for( i = 0; i < collection.length; ++i )
     {
-        array.push(collection[i]);
+        curr = collection[i];
+        if( 'index_entry' == curr.className )
+        {
+            aud.playlist.push(curr);
+        }
+        else if( 'index_entry_highlight' == curr.className )
+        {
+            curr.className = 'index_entry';
+            aud.playlist.push(curr);
+        }
     }
-    aud.bShuffle = false; 
-    return aud.playlist = array;
+
+    if( aud.bShuffle ) 
+    {
+        aud.ArrayShuffle(aud.playlist);
+        aud.ArrayShuffle(aud.playlist);
+        aud.ArrayShuffle(aud.playlist);
+    }
+
+    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
+    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+
+    aud.HighlightPlaying(true);
+
+    return collection;
 }
+
 /**
  * Shuffle an array
  * @param array Array to shuffle in-place
@@ -159,7 +194,15 @@ aud.IndexPlaying = function()
 /** Play the previous one */
 aud.PlayPrev = function()
 {
-    aud.PlayMedia(aud.WhatPrev());
+    if( !aud.audio.paused && aud.audio.currentTime > 3 )
+    {
+        aud.audio.currentTime = 0;
+        aud.audio.play();
+    }
+    else
+    {
+        aud.PlayMedia(aud.WhatPrev());
+    }
     return false;
 }
 /** Play the next one */
@@ -231,6 +274,47 @@ aud.TitleFromPath = function(path)
     return path;
 }
 
+// Show folder contents
+aud.BrowseFolder = function(id)
+{
+    aud.Folders.style.display ='none';
+    aud.audio_box.style.display ='none';
+    aud.PlayList.style.display ='block';
+
+    var collapse = aud.PlayList.children;
+    var i;
+    var element;
+    aud.playlistElement = null;
+    for( i = 0; i < collapse.length; ++i )
+    {
+        element = collapse[i];
+        if( id == element.id )
+        {
+            aud.playlistElement = element;
+            element.style.display = 'block';
+            aud.MakePlaylist(element); 
+        }
+        else
+        {
+            element.style.display = 'none';
+        }
+    }
+    return false;
+}
+
+// Show folder list
+aud.BrowseFolders = function()
+{
+    aud.audio.pause();
+    aud.audio.src = null;
+    aud.now_playing = null;
+    aud.Folders.style.display ='block';
+    aud.audio_box.style.display ='none';
+    aud.PlayList.className = 'playlist_class_hidden';
+    aud.PlayList.style.display ='none';
+    return false;
+}
+
 // Wake up when the balance of the page is loaded.
 document.addEventListener('DOMContentLoaded', aud.PlayerInit, false);
 
@@ -248,25 +332,58 @@ into the html output with the script.
 /*INSERT_CSS_HERE*/
 
 /* The remaining CSS is bound to how this page works */
+#Folders {
+    overflow-x: hidden !important;
+    display:block;
+    width: 100%;
+}
+/* Audio player and controls 'fixed' position because Amazon Silk is fuxed. */
 #PlayerBox {
-    overflow: auto;
+    display: none;
+    overflow: none;
     text-align:center;
     position: fixed;
     width: 100%;
-    height: 90pt;
+    height: 72pt;
     background-color:#101010;
-    z-index:2;
 }
 #audioplayer {
     vertical-align:middle !important;
+    position: fixed;
+    top:3pt;
+    left:0pt;
+    width: 100%;
+    height:32pt;
 }
-#PlayList {
-    overflow-x: hidden !important;
+#bBack {
+    position: fixed;
+    top:36pt;
+    left:0pt;
+}
+#audiocontrols {
+    position: fixed;
+    text-align: center;
+    line-height:32pt;
+    width: 100%;
+    top:   36pt;
+    left:  0pt;
+}
+.playlist_class, .playlist_class_hidden {
+    display: none;
     position: fixed;
     width: 100%;
-    top: 91pt;
-    bottom: 0;
-    z-index:1;
+    bottom: 0pt;
+    overflow: auto;
+}
+.playlist_class_hidden {
+    top: 0%;
+}
+.playlist_class {
+    top: 72pt;
+}
+
+.folder_page {
+    display: none;
 }
 
 </style>
@@ -274,57 +391,47 @@ into the html output with the script.
 
 <body>
 <div id='PlayerBox'>
-<br/> <!-- For Kindle/Silk, that can't center audio player controls -->
-<audio id="audioplayer" controls >
-    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't have it, or it is disabled.<br/><br/>
-    <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
-    <a href="http://www.apple.com/safari/">Safari</a><br/>
-    <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
-    <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
-    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
-    <a href="http://www.w3schools.com/html/html5_audio.asp">More info about compatibility...</a><br/>
-</audio>
-&nbsp;
-<button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
-<button id="bSeq"    class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
-<button id="bRand"   class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
-<button id="bNext"   class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
+<audio id="audioplayer" controls></audio>
+<div id="audiocontrols">
+<button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
+<button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
+<button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
+<button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
+</div>
+<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="back_icon"></div></button>
 </div>
 
-<div id="PlayList">
-<br/>
-<div class="title">TITLE_TEXT</div>
-
-<!-- 
-    These definitions are sought out in this file, and used to replace the 
-    'INDEXES_HERE' with files and folders 
+<!--INDEX_FOLDER
+    <div class="folder_entry" style='FOLDER_STYLE'>
+        <a href="#" onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+    </div>
 -->
-
-<!-- An audio file -->
-
-<!--INDEX_FILE
-<div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href="" onclick="javascript: aud.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
+<!--INDEX_FILES_BEGIN
+<div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
+    <div class='title'><a title="Back To Folder List" href="#" onclick="return aud.BrowseFolders();">FOLDER_NAME</a></div>
+-->
+<!--INDEX_ITEM
+    <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' >
+        <a href="#" onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
+    </div>
+-->
+<!--INDEX_FILES_END
 </div>
 -->
 
-<!-- A folder -->
-
-<!--INDEX_INDEX
-<br/><a class="folder_entry" style='FOLDER_STYLE' href="FOLDER_PATH" ><div class="folder_icon"></div>FOLDER_TITLE</a>
--->
-
-<!--INDEXES_HERE-->
-
+<div id='Folders'>
+<!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
 <br/>
 <br/>
 <a href="https://github.com/pingnak/videowebscript">Generated by JukeboxScript</a>
 <br/>
 <br/>
-<br/>
+</div>
 </div>
 
+<div id='PlayList' class='playlist_class_hidden' >
+<!--INDEX_FILES_HERE-->
 </div>
 
 </body>
