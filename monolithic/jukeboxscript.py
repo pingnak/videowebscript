@@ -1,8 +1,9 @@
 #!/usr/bin/env python
-# shebang for unix-like shells... or type 'python jukeboxscript.py'
+# shebang for unix-like shells... Windows users type 'python videowebscript.py'
 
 #
 # The python version.
+#
 # This will work basically the same as the shell version, only less sketchy
 # across platforms.  You may need to install python, but once it's there, it 
 # should be pretty consistent.
@@ -12,10 +13,10 @@ import os
 import sys
 import re
 import random
-from xml.sax.saxutils import escape
-from xml.sax.saxutils import unescape
 import urllib
 import string
+from xml.sax.saxutils import escape
+from xml.sax.saxutils import unescape
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -28,14 +29,15 @@ def PrintHelp():
 # I'd like to use 'natsort', but installing dependencies is a problem.
 regex_strip_punctuation = re.compile('[%s]' % re.escape(string.punctuation))
 def decompose(comptext):
-    # Tuples converted to string
+    "Break input down into a string, for comparison."
+    ret=''
+    # Just deal with the first element of tuple, if it's not just a string
     if isinstance(comptext, tuple):
         comptext = comptext[0]
     comptext = ''.join(comptext)
-    # Break up by numbers, include numbers
+    # Break up by numbers, include numbers in list
     comptext = re.split( '([0-9]+)', comptext.lower() )
-    # Pad numbers with leading zeroes, re-assemble
-    ret=''
+    # Pad numbers with leading zeroes, rip out any puntuation, re-assemble string
     for ss in comptext:
         if 0 != len(ss) and ss[0].isdigit():
             ret = ret + "%010ld"%long(ss)
@@ -44,6 +46,7 @@ def decompose(comptext):
     return ret
 
 def compare_natural(item1, item2):
+    "Compare two strings as 'natural' strings."
     s1=decompose(item1)
     s2=decompose(item2)
     if s1 < s2:
@@ -53,11 +56,11 @@ def compare_natural(item1, item2):
     return 0;
 
 def compare_natural_filename(item1, item2):
+    "Compare two path strings as 'natural' strings."
     if isinstance(item1, tuple):
         item1 = item1[0]
     if isinstance(item2, tuple):
         item1 = item2[0]
-
     path,item1=os.path.split(item1)
     item1, ext = os.path.splitext(item1)
     path,item2=os.path.split(item2)
@@ -160,7 +163,7 @@ for root, dirs, files in os.walk(root_dir):
 
     if '.' == folder_name[0]:
         continue;
-        
+
     print "    " + folder_curr
 
     # How many media files in this folder?

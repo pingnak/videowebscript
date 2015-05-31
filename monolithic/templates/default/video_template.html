@@ -22,8 +22,9 @@
 var vid = {};
 
 vid.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
-vid.bUseNativeControls = !vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+vid.bUseNativeControls = true;//!vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+vid.playlist = [];
 vid.now_playing = '';
 vid.bShuffle = false;
 vid.bWatchMode = false;
@@ -32,19 +33,21 @@ vid.resizeTimeout = -1;
 vid.MOUSE_TIMEOUT = 3000;
 vid.lastScreenY = -1; 
 vid.lastScreenX = -1;
+vid.playlistElement = null;
+
 /**
  * Set things up, when the page loads
 **/
 vid.PlayerInit = function()
 {
     /* If no full screen, or some kinda 'mobile' browser that ignores all the rules, use the native controls */
-    vid.video_box =            document.getElementById("video_box");
     vid.video =                document.getElementById("videoplayer");
     vid.video_controls  =      document.getElementById("video_controls");
     vid.video_controls_left=   document.getElementById("video_controls_left");
-    vid.bPrev =                document.getElementById("bPrev");
-    vid.bPause =               document.getElementById("bPause");
-    vid.bNext =                document.getElementById("bNext");
+    vid.Folders =              document.getElementById("Folders");
+    vid.PlayList =             document.getElementById("PlayList");
+    vid.PlayerBox =            document.getElementById("PlayerBox");
+    vid.bBack =                document.getElementById("bBack");
 
     vid.progress_bar =         document.getElementById("progress_bar");
     vid.progress_text =        document.getElementById("progress_text");
@@ -54,6 +57,9 @@ vid.PlayerInit = function()
     vid.progress_clickme =     document.getElementById("progress_clickme");
     
     vid.video_controls_right = document.getElementById("video_controls_right");
+    vid.bPrev =                document.getElementById("bPrev");
+    vid.bNext =                document.getElementById("bNext");
+    vid.bPause =               document.getElementById("bPause");
     vid.bPlay =                document.getElementById("bPlay");
     vid.bFull =                document.getElementById("bFull");
     vid.bWindow =              document.getElementById("bWindow");
@@ -62,30 +68,7 @@ vid.PlayerInit = function()
     vid.bList =                document.getElementById("bList");
     vid.bWatch =               document.getElementById("bWatch");
 
-    vid.play_list =            document.getElementById("play_list");
-    vid.bBack =                document.getElementById("bBack");
-    
-    if( vid.bUseNativeControls )
-    {
-        /* If full-screen is unavailable to code, stick to native controls */
-        vid.video.setAttribute("controls",true);
-        vid.video_controls.className = "video_controls_top";
-        vid.video_controls_left.style.display = 'none';
-        vid.progress_bar.style.display = 'none';
-    }
-    else
-    {
-        /* Had to add a layer on top of progress bar, to click */
-        vid.progress_clickme.addEventListener( 'mousemove',vid.ProgressTrackMouse );    
-        vid.progress_clickme.addEventListener( 'click',    vid.ProgressClick );
-        vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
-        vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
-
-        vid.video.addEventListener( 'playing',          vid.ShowPaused );
-        vid.video.addEventListener( 'pause',            vid.ShowPaused );
-        vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
-        vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
-    }
+    vid.BrowseFolders();
 
     // Mouse moved or screen touched
     vid.video.addEventListener( 'mousemove',            vid.MouseMovedFilter );    
@@ -105,21 +88,7 @@ vid.PlayerInit = function()
     vid.video.addEventListener( 'pause',                vid.OnResize );
     vid.video.addEventListener( 'loadeddata',           vid.OnResize );
 
-    vid.MakePlaylist();
-    vid.bRand.style.display = 'none';
-    vid.bSeq.style.display  = '';
     vid.OnResizeNow();
-    vid.ListMode();
-
-    var params = window.location.href.split('?');
-    if( 2 == params.length )
-    {   /* If we have '?title.mp4' that's the video in player folder, to play */
-        vid.PlayMedia(decodeURI(params[1]));
-    }
-
-    vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
-    vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
-    video_box.style.display = '';
 }
 
 vid.Error = function(e)
@@ -144,11 +113,12 @@ vid.ListMode = function()
     vid.video_controls_left.style.visibility = 'hidden';
     vid.progress_bar.style.visibility = 'hidden';
 
-    vid.play_list.style.display = '';
+    vid.PlayList.style.display = 'block';
 
     vid.UpdateFullScreen();
     vid.HighlightPlaying();
     vid.MouseMoved();
+    return false;
 }
 
 /**
@@ -164,7 +134,7 @@ vid.WatchMode = function()
     vid.video_controls_left.style.visibility = '';
     vid.progress_bar.style.visibility = '';
 
-    vid.play_list.style.display = 'none';
+    vid.PlayList.style.display = 'none';
 
     vid.UpdateFullScreen();
     
@@ -175,6 +145,7 @@ vid.WatchMode = function()
     }
         
     vid.MouseMoved();
+    return false;
 }
 
 /** Press pause/play button */
@@ -214,7 +185,7 @@ vid.ToggleFullScreen = function()
 vid.IsFullScreen = function()
 {
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-    return (vid.video_box == fullscreenElement) || window.fullScreen  || (window.innerWidth == screen.width && window.innerHeight == screen.height);
+    return (vid.PlayerBox == fullscreenElement) || window.fullScreen  || (window.innerWidth == screen.width && window.innerHeight == screen.height);
 }
 vid.FullScreenWasMe = function()
 {
@@ -226,7 +197,6 @@ vid.FullScreenWasMe = function()
 vid.UpdateFullScreen = function()
 {
     // Sort out full versus windowed playbacl
-    vid.bBack.style.display = (!vid.IsFullScreen() || 0 == window.history.length) ? 'none' : '';
     if( !vid.bFullscreenEnabled || vid.bUseNativeControls )
     {
         vid.bFull.style.display='none';
@@ -410,7 +380,7 @@ vid.MouseTimeout = function()
     if( vid.bWatchMode )
     {
         vid.video_controls.style.visibility = 'hidden';
-        vid.video_box.style.cursor = 'none';
+        vid.PlayerBox.style.cursor = 'none';
         vid.mouseTimeout = -1;
     }
     else
@@ -431,7 +401,7 @@ vid.MouseMovedFilter = function(e)
 vid.MouseMoved = function()
 {
     vid.video_controls.style.visibility = '';
-    vid.video_box.style.cursor = '';
+    vid.PlayerBox.style.cursor = '';
     if( -1 != vid.mouseTimeout )
         clearTimeout(vid.mouseTimeout);
     if( vid.bWatchMode && !vid.video.paused )
@@ -451,16 +421,60 @@ vid.OnResizeNow = function()
 {
     vid.resizeTimeout = -1;
 
+    vid.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    vid.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+    
+    vid.progress_clickme.removeEventListener( 'mousemove',vid.ProgressTrackMouse );    
+    vid.progress_clickme.removeEventListener( 'click',    vid.ProgressClick );
+    vid.progress_clickme.removeEventListener( 'mouseover',vid.ProgressIn );     
+    vid.progress_clickme.removeEventListener( 'mouseout', vid.ProgressOut ); 
+
+    vid.video.removeEventListener( 'playing',          vid.ShowPaused );
+    vid.video.removeEventListener( 'pause',            vid.ShowPaused );
+    vid.video.removeEventListener( 'timeupdate',       vid.UpdateTime );
+    vid.video.removeEventListener( 'loadeddata',       vid.UpdateMeta );
+    
+    vid.bUseNativeControls = vid.browserWidth < 640 
+        // || !vid.bFullscreenEnabled 
+        // || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    
     if( vid.bUseNativeControls )
     {
+        /* If full-screen is unavailable to code, stick to native controls */
+        vid.video_controls.className = 'video_controls_top';
+        vid.video_controls_left.style.display = 'none';
+        vid.progress_bar.style.display = 'none';
         vid.video.setAttribute("controls",true);
     }
     else
     {
         if( vid.video.hasAttribute("controls") )
             vid.video.removeAttribute("controls");
-    }
+        if( vid.bWatchMode )
+        {
+            vid.video_controls.className = 'video_controls_bottom';
+            vid.video_controls_left.style.display = '';
+            vid.progress_bar.style.display = '';
+        }
+        else
+        {
+            vid.video_controls.className = 'video_controls_top';
+            vid.video_controls_left.style.display = 'none';
+            vid.progress_bar.style.display = 'none';
+        }
 
+        /* Had to add a layer on top of progress bar, to click */
+        vid.progress_clickme.addEventListener( 'mousemove',vid.ProgressTrackMouse );    
+        vid.progress_clickme.addEventListener( 'click',    vid.ProgressClick );
+        vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
+        vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
+
+        vid.video.addEventListener( 'playing',          vid.ShowPaused );
+        vid.video.addEventListener( 'pause',            vid.ShowPaused );
+        vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
+        vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
+    }
+    
     
     // If window is shorter than video, when scaled, fit to height instead of width
     var videoAspect = vid.video.videoWidth / vid.video.videoHeight;
@@ -547,40 +561,86 @@ vid.HighlightPlaying = function(noscroll)
 }
 
 /** Make a play list from title links */
-vid.MakePlaylist = function()
+vid.MakePlaylist = function(playlistElement)
 {
-    var collection = document.getElementsByClassName("index_entry");
-    var array = new Array();
+    if( vid.bShuffle )
+    {
+        vid.bRand.style.display = '';
+        vid.bSeq.style.display  = 'none';
+    }
+    else
+    {
+        vid.bRand.style.display = 'none';
+        vid.bSeq.style.display  = '';
+    }
+    if( null == playlistElement )
+    {
+        vid.playlistElement = null;
+        vid.bNext.setAttribute( 'title', "" );
+        vid.bPrev.setAttribute( 'title', "" );
+        return vid.playlist = [];
+    }
+    vid.playlistElement = playlistElement;
+
     var i;
+    var curr;
+    var img;
+    vid.playlist = [];
+    var collection = playlistElement.children;
     for( i = 0; i < collection.length; ++i )
     {
-        array.push(collection[i]);
+        curr = collection[i];
+        if( 'index_entry' == curr.className )
+        {
+            vid.playlist.push(curr);
+        }
+        else if( 'index_entry_highlight' == curr.className )
+        {
+            curr.className = 'index_entry';
+            vid.playlist.push(curr);
+        }
+        else
+            continue;
+        img = curr.getElementsByTagName('img')[0];
+        if( img && !img.src )
+        {
+            img.src = img.getAttribute("defer");
+        }
+
     }
-    vid.bShuffle = false;
-    vid.playlist = array;
+
+    if( vid.bShuffle ) 
+    {
+        vid.ArrayShuffle(vid.playlist);
+        vid.ArrayShuffle(vid.playlist);
+        vid.ArrayShuffle(vid.playlist);
+    }
+
+    vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
+    vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
+
+    vid.HighlightPlaying(true);
+
+    return collection;
+
 }
 
 /** Shuffle a play list */
 vid.PlayListSerial = function()
 {
     vid.MouseMoved();
+    vid.bShuffle = false;
     vid.MakePlaylist();
-    vid.bRand.style.display = 'none';
-    vid.bSeq.style.display  = '';
-    return vid.PlayMedia(vid.playlist[0].getAttribute('path'));
+    return false;
 }
 
 /** Shuffle a play list (assumes it was already generated) */
 vid.PlayListRandom = function()
 {
     vid.MouseMoved();
-    vid.ArrayShuffle(vid.playlist);
-    vid.ArrayShuffle(vid.playlist);
-    vid.ArrayShuffle(vid.playlist);
-    vid.bRand.style.display = '';
-    vid.bSeq.style.display  = 'none';
     vid.bShuffle = true;
-    return vid.PlayMedia(vid.playlist[0].getAttribute('path'));
+    vid.MakePlaylist();
+    return false;
 }
 /**
  * Shuffle an array
@@ -691,6 +751,53 @@ vid.TitleFromPath = function(path)
     return path;
 }
 
+/** List contents of folder */
+vid.BrowseFolder = function( id )
+{
+    // Hide/show other controls
+    vid.Folders.style.display ='none';
+    vid.PlayerBox.style.display ='block';
+    vid.PlayList.style.display ='block';
+    vid.video_controls.style.display = '';
+
+    var collapse = vid.PlayList.children;
+    var i;
+    var element;
+    vid.playlistElement = null;
+    for( i = 0; i < collapse.length; ++i )
+    {
+        element = collapse[i];
+        if( id == element.id )
+        {
+            vid.playlistElement = element;
+            element.style.display = 'block';
+            vid.MakePlaylist(element); 
+        }
+        else
+        {
+            element.style.display = 'none';
+        }
+    }
+    return vid.ListMode();
+}
+    
+/** Browse main folder list */
+vid.BrowseFolders = function()
+{
+    // Hide/show other controls
+    vid.Folders.style.display ='block';
+    vid.PlayerBox.style.display ='none';
+    vid.PlayList.style.display ='none';
+    vid.video_controls.style.display = 'none';
+
+    // Stop playback
+    vid.video.pause();
+    vid.now_playing = null;
+    //vid.video.src = null;
+
+    return false;
+}
+
 // Wake up when the balance of the page is loaded.
 document.addEventListener('DOMContentLoaded', vid.PlayerInit, false);
 
@@ -710,7 +817,8 @@ into the html output with the script.
 /* The remaining CSS is bound to how this page works */
 
 /* Video player modes for windowed/full-screen */
-.video_box {
+#PlayerBox {
+    display: none;
     position: fixed;
     overflow: hidden;
     margin: 0 !important;
@@ -718,7 +826,16 @@ into the html output with the script.
     width:100%;
     height:100%;
 }
-#play_list {
+#PlayList {
+    display: none;
+    position: fixed;
+    padding-left: 10pt;
+    overflow-y: scroll !important;
+    overflow-x: hidden !important;
+    width:100%;
+    height:100%;
+}
+#Folders {
     position: fixed;
     padding-left: 10pt;
     overflow-y: scroll !important;
@@ -749,28 +866,26 @@ into the html output with the script.
 }
 
 /* Skinned control panel mode for windowed and full-screen */
-.video_controls_bottom {
-    position: fixed;
-    display: table;
-    bottom: 16pt;
-    left: 0px;
-    width: 100%;
-}
-.video_controls_top {
-    position: fixed;
-    display: block;
-    top: 8pt;
-    right:0px;
-}
 .video_controls_bottom, .video_controls_top {
-    z-index:1;
-    position: fixed;
     height: 32pt;
     line-height: 32pt;
     vertical-align: middle;
     background: transparent;
     margin: 0;
     padding:0;
+}
+.video_controls_bottom {
+    display: table;
+    position: fixed;
+    bottom: 16pt;
+    width:100%;
+    right:0px;
+}
+.video_controls_top {
+    display: block;
+    position: fixed;
+    top: 8pt;
+    right:0px;
 }
 
 /* Skinned control panel icons in left and right boxes */
@@ -791,7 +906,6 @@ into the html output with the script.
 
 /* Progress bar elements between left and right boxes */
 #progress_bar {
-    z-index:1;
     display: table-cell;
     position: relative;
     height: 32pt;
@@ -806,10 +920,24 @@ into the html output with the script.
     overflow: hidden;
     height: 32pt;
     line-height: 32pt;
+    font-size: 12pt;
     margin: 0 !important;
     padding:0 !important;
     top:0px;
 }
+
+/* Break our progress bar down until it's hopeless */
+@media screen and (max-width: 600pt) {
+    #progress_text_title {
+        display: none;
+    }
+}
+@media screen and (max-width: 500pt) {
+    #progress_text, #progress_text_title {
+        display: none;
+    }
+}
+
 #progress_text {
     text-align: left;
     z-index:3;
@@ -828,6 +956,7 @@ into the html output with the script.
     left: 1%;
     width: 98%;
 }
+
 #progress_clickme {
     z-index:6;
     border: 1px solid #303030;
@@ -838,80 +967,71 @@ into the html output with the script.
     opacity: 0.25;
     background-color: #ff0000;
 }
-.index_thumbnail {
-}
-img.index_thumbnail {
-    width:THUMB_SIZEpx;
-    vertical-align:middle;
-    padding-bottom:8px;
-    padding-right:8px;
-}
 
 </style>
 
 </head>
 
 <body>
-<div id='video_box' class='video_box' >
+<div id='PlayerBox' >
+
 <video id="videoplayer" class='videoplayer' >
     Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
-    <a href="https://www.google.com/intl/en/chrome/browser/">Chrome</a><br/>
-    <a href="http://www.mozilla.org/en-US/firefox/new/">Firefox</a><br/>
-    <a href="http://windows.microsoft.com/en-us/internet-explorer/download-ie">IE, if your Windows version supports a new enough version.</a><br/>
-    <a href="http://www.apple.com/safari/">Safari</a><br/>
-    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Others...</a><br/>
-    <a href="http://www.w3schools.com/html/html5_video.asp">More info about compatibility...</a><br/>
+    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Other Browsers...</a><br/>
 </video>
 
-<div id="play_list">
-<br/>
-<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Last Page" onclick="javascript: window.history.back(); return false; "><div class="back_icon"></div></button>
-<br/>
-<div class="title">TITLE_TEXT</div>
-
-<!-- 
-    These definitions are sought out in this file, and used to replace the 
-    'INDEXES_HERE' with files and folders 
--->
-
-<!-- A movie file link with thumbnail -->
-
-<!--INDEX_FILE
-<div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" ><img class="index_thumbnail" src="MEDIA_IMAGE" />MEDIA_TITLE</a>
 </div>
+
+<!--INDEX_FOLDER
+    <div class="folder_entry" style='FOLDER_STYLE'>
+        <a href='' onclick="return vid.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+    </div>
 -->
 
-<!-- A movie file link with no thumbnail -->
+<!--INDEX_FILES_BEGIN
+<div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
+    <div class='title'><a title="Back To Folder List" href='' onclick="return vid.BrowseFolders();">FOLDER_NAME</a></div>
+-->
+
+<!--INDEX_FILE_THUMB
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
+        <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" ><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a>
+    </div>
+-->
 
 <!--INDEX_FILE_NOTHUMB
-<div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-    <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
+        <a href='' onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
+    </div>
+-->
+
+<!--INDEX_FILES_END
 </div>
 -->
 
-<!-- A folder -->
-
-<!--INDEX_INDEX
-<br/><a class="folder_entry" title="Browse FOLDER_TITLE" style='FOLDER_STYLE' href="FOLDER_PATH" ><div class="folder_icon"></div>FOLDER_TITLE</a>
--->
-
-<!--INDEXES_HERE-->
-
+<div id='Folders'>
+<!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
+<br/>
 <br/>
 <a href="https://github.com/pingnak/videowebscript">Generated by VideoWebScript</a>
 <br/>
 <br/>
-<br/>
+</div>
 </div>
 
+<div id='PlayList' >
+<!--INDEX_FILES_HERE-->
 </div>
 
 <div id="video_controls" class='video_controls_bottom'>
     <div id="video_controls_left">
         <button id="bPlay"  class="button_format" type="button" tabindex='-1' title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"></div></button>
         <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return vid.TogglePause(); "><div class="pause_icon"></div></button>
+        <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
+        <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
+        <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+        <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return vid.PlayNext();"><div class="next_icon"></div></button>
     </div>
     <div id="progress_bar">
         <div id="progress_playing"></div>
@@ -921,18 +1041,12 @@ img.index_thumbnail {
         <div id="progress_clickme"></div>
     </div>
     <div id="video_controls_right">
-        &nbsp;
-        <button id="bPrev"  class="button_format" type="button" tabindex='-1'  title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
-        <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
-        <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
-        <button id="bNext"  class="button_format" type="button" tabindex='-1'  title="Next Video" onclick="javascript: vid.PlayNext(); return false;"><div class="next_icon"></div></button>
-        &nbsp;
-        <button id="bList"   class="button_format" type="button" tabindex='-1' title="Browsing Videos" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"></div></button>
-        <button id="bWatch"  class="button_format" type="button" tabindex='-1' title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"></div></button>
-        <button id="bFull"   class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
+        <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
         <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
+        <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browsing Videos" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"></div></button>
+        <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Watching Videos" onclick="javascript: return vid.ListMode();"><div class="player_icon"></div></button>
+        <button id="bBack"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="back_icon"></div></button>
     </div>
-</div>
 </div>
 
 </body>

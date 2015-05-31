@@ -7,15 +7,17 @@ body {
     font-family: "Arial", Helvetica, sans-serif;
     background-color: #000000; 
     color:#00c0c0; 
-    font-size: 18pt;
+}
+@media screen and (min-width: 800px) {
+body { font-size: 14pt; }
+}
+@media screen and (max-width: 799px) {
+body { font-size: 10pt; }
 }
 body, div {
     margin: 0;
     padding:0;
 }
-h1 { font-size: 2em; }
-h2 { font-size: 1.5em; }
-h3 { font-size: 1.25em; }
 
 /* Links that only underline when tracked, change color if visited (already watched) */
 a:link      { color:#00c0c0; text-decoration: none; }
@@ -32,13 +34,26 @@ button:focus {outline:0;}
     white-space:nowrap;
 }
 
+/* Folder index text */
+.folder_entry {
+    margin-top:4pt;
+    margin-bottom:4pt;
+    height: 34pt;
+    line-height: 34pt;
+    vertical-align: middle;
+    font-size: 2em;
+    white-space:nowrap;
+    overflow: hidden !important;
+}
+
 /* Player index text */
 .index_entry, .index_entry_highlight {
     margin-top:4pt;
     margin-bottom:4pt;
     margin-left:8pt;
-    font-size:1.5em;
+    font-size: 2em;
     white-space:nowrap;
+    vertical-align: middle;
     overflow: hidden !important;
 }
 .index_entry_highlight a:link, .index_entry_highlight a:visited {
@@ -49,16 +64,25 @@ button:focus {outline:0;}
     color: #00c0c0;
     font-weight: normal;
 }
-
-/* Folder index text */
-.folder_entry {
-    white-space:nowrap;
-    height: 1.5em;
-    font-size: 1.5em;
-    line-height: 1.5em;
-    vertical-align:middle;
-    overflow: hidden !important;
+.index_thumbnail {
 }
+@media screen and (min-width: 1024px){
+img.index_thumbnail {
+    width:THUMB_SIZEpx;
+    vertical-align:middle;
+    padding-bottom:8px;
+    padding-right:8px;
+}
+}
+@media screen and (max-width: 1023px){
+img.index_thumbnail {
+    width:20%;
+    vertical-align:middle;
+    padding-bottom:8px;
+    padding-right:8px;
+}
+}
+
 
 /* Text advertising project home page */
 .info_text {
@@ -129,6 +153,6 @@ button:focus {outline:0;}
     background: transparent;
     font-size:0;
     border: none !important;
-    margin-left:1px;
-    margin-right:1px;
+    margin: 0;
+    padding:0;
 }

@@ -3,8 +3,9 @@
 
 #
 # The python version.
+#
 # This will work basically the same as the shell version, only less sketchy
-# across platforms.  You'll need to install python, but once it's there, it 
+# across platforms.  You may need to install python, but once it's there, it 
 # should be pretty consistent.
 #
 
@@ -12,11 +13,11 @@ import os
 import sys
 import re
 import random
-import distutils.spawn
-from subprocess import call
-from xml.sax.saxutils import escape
 import urllib
 import string
+from xml.sax.saxutils import escape
+from subprocess import call
+import distutils.spawn
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -26,23 +27,27 @@ def PrintHelp():
     print "/path2/template:Template in some other folder\n"
     sys.exit(1)
 
-# I'd like to use 'natsort', but installing dependencies on ALL operating systems is a problem.
+# I'd like to use 'natsort', but installing dependencies is a problem.
 regex_strip_punctuation = re.compile('[%s]' % re.escape(string.punctuation))
 def decompose(comptext):
-    # Tuples converted to string
+    "Break input down into a string, for comparison."
+    ret=''
+    # Just deal with the first element of tuple, if it's not just a string
+    if isinstance(comptext, tuple):
+        comptext = comptext[0]
     comptext = ''.join(comptext)
     # Break up by numbers, include numbers
     comptext = re.split( '([0-9]+)', comptext.lower() )
-    # Pad numbers with leading zeroes, re-assemble
-    ret=''
+    # Pad numbers with leading zeroes, rip out any puntuation, re-assemble string
     for ss in comptext:
         if 0 != len(ss) and ss[0].isdigit():
-            ret = ret + "%010ld"%long(ss);
+            ret = ret + "%010ld"%long(ss)
         else:
             ret = ret + regex_strip_punctuation.sub('', ss)
     return ret
 
 def compare_natural(item1, item2):
+    "Compare two strings as 'natural' strings."
     s1=decompose(item1)
     s2=decompose(item2)
     if s1 < s2:
@@ -52,6 +57,11 @@ def compare_natural(item1, item2):
     return 0;
 
 def compare_natural_filename(item1, item2):
+    "Compare two path strings as 'natural' strings."
+    if isinstance(item1, tuple):
+        item1 = item1[0]
+    if isinstance(item2, tuple):
+        item1 = item2[0]
     path,item1=os.path.split(item1)
     item1, ext = os.path.splitext(item1)
     path,item2=os.path.split(item2)
@@ -115,34 +125,25 @@ if not os.path.isfile(PLAYER_TEMPLATE_FILE):
 with open (PLAYER_TEMPLATE_FILE, "r") as myfile:
     PLAYER_TEMPLATE=myfile.read()
 
+# Find and cache a copy of media file template
+INDEX_FOLDER_MATCH=re.search('<!--INDEX_FOLDER(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_FOLDER=INDEX_FOLDER_MATCH.group(1)
+
+# Find index playlist_section completion tag
+INDEX_FILES_BEGIN_MATCH=re.search('<!--INDEX_FILES_BEGIN(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
+INDEX_FILES_BEGIN=INDEX_FILES_BEGIN_MATCH.group(1)
+
 # Find and cache a copy of media file with thumbnail template
-INDEX_FILE_MATCH=re.search('<!--INDEX_FILE(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_FILE_MATCH=re.search('<!--INDEX_FILE_THUMB(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
 INDEX_FILE=INDEX_FILE_MATCH.group(1)
 
 # Find and cache a copy of media file without thumbnail template
 INDEX_FILE_NOTHUMB_MATCH=re.search('<!--INDEX_FILE_NOTHUMB(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
 INDEX_FILE_NOTHUMB=INDEX_FILE_NOTHUMB_MATCH.group(1)
 
-# Which template to use 
-INDEX_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "index_template.html")
-if not os.path.isfile(INDEX_TEMPLATE_FILE):
-    INDEX_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "index_template.html")
-
-# Cache index template
-with open (INDEX_TEMPLATE_FILE, "r") as myfile:
-    INDEX_TEMPLATE=myfile.read()
-
-# Folder index list (left side of template file)
-INDEX_SMALL_MATCH = re.search('<!--INDEX_SMALL(.*?)-->', INDEX_TEMPLATE, re.MULTILINE|re.DOTALL)
-INDEX_SMALL = INDEX_SMALL_MATCH.group(1)
-
-# Folder index (right side of template file)
-INDEX_TOC_FOLDER_MATCH=re.search('<!--INDEX_TOC_FOLDER(.*?)-->', INDEX_TEMPLATE, re.MULTILINE|re.DOTALL)
-INDEX_TOC_FOLDER = INDEX_TOC_FOLDER_MATCH.group(1)
-
-# Play file index   
-INDEX_TOC_FILE_MATCH=re.search('<!--INDEX_TOC_FILE(.*?)-->', INDEX_TEMPLATE, re.MULTILINE|re.DOTALL)
-INDEX_TOC_FILE = INDEX_TOC_FILE_MATCH.group(1)
+# Find index playlist_section completion tag
+INDEX_FILES_END_MATCH=re.search('<!--INDEX_FILES_END(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
+INDEX_FILES_END=INDEX_FILES_END_MATCH.group(1)
 
 # File/folder left padding
 LEFT_PADDING = 4
@@ -157,19 +158,27 @@ print( "\nCrawling folders in %s..." % (root_dir) )
 #
 all_paths_with_media=[]
 total_media_count = 0
-index_toc_small=[]
 index_toc=[]
+player_toc=[]
 need_jpeg=[]
 have_jpeg={}
 
 for root, dirs, files in os.walk(root_dir):
-    files = [f for f in files if not f[0] == '.']
-    dirs[:] = [d for d in dirs if not d[0] == '.']
     
     # Bake some details about this folder
     root = os.path.abspath(root);
     folder_path, folder_name = os.path.split(root)
+
+    # Exclude hidden folders
+    if '.' == folder_name[0]:
+        continue;
+
     folder_relative = os.path.relpath(root,root_dir)
+    print '    '+folder_relative
+    sys.stdout.flush()
+
+    playlist=""
+
     folder_curr = os.path.relpath(root,root_dir)
     folder_curr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX)
     folder_curr_escaped = urllib.quote(folder_curr_escaped.replace('\\', '/')) # Fix any Windows backslashes
@@ -186,21 +195,12 @@ for root, dirs, files in os.walk(root_dir):
     # Record live link folder for left box index/TOC
     all_paths_with_media.append(root)
 
-    playlist=""
-    index_list=""
-
-    print '    '+folder_relative
-    sys.stdout.flush()
-
-    # Record folder for big folder+file TOC
-    output = str(INDEX_TOC_FOLDER)
-    output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
-    output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
-    output = output.replace( 'FOLDER_STYLE', '')
-    index_list = index_list + output
-
     totalFiles = 0;
     for relPath in sorted(files,compare_natural_filename):
+
+        # Exclude hidden files
+        if '.' == relPath[0]:
+            continue;
 
         # Skip files that aren't playable
         fileName, fileExtension = os.path.splitext(relPath)
@@ -215,7 +215,7 @@ for root, dirs, files in os.walk(root_dir):
             total_media_count = total_media_count + 1;
             
             # Bake some details about this file
-            media_path = os.path.relpath(fullPath,root)
+            media_path = os.path.relpath(fullPath,root_dir)
             media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
             filename_title_escaped=escape(fileName)
             
@@ -223,7 +223,7 @@ for root, dirs, files in os.walk(root_dir):
                 # We should have a jpg file, named the same as the playable file
                 jpegName = fileName + '.jpg'
                 jpegPath = fullPathNoExt + '.jpg'
-                filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root))
+                filename_jpeg_escaped=urllib.quote(os.path.relpath(jpegPath,root_dir))
                 need_jpeg.append( (fullPath,jpegPath) )
                 pathcurr=str(INDEX_FILE)
                 pathcurr=re.sub('MEDIA_IMAGE',filename_jpeg_escaped,pathcurr)
@@ -233,48 +233,39 @@ for root, dirs, files in os.walk(root_dir):
 
             # Emit elements for video player
             pathcurr = pathcurr.replace( 'MEDIA_PATH', media_path_escaped)
-            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
             pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
+            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
             playlist = playlist + pathcurr
 
-            # Emit elements for index navigation player
-            pathcurr = str(INDEX_TOC_FILE)
-            pathcurr_escaped = os.path.join(folder_curr,WEBIFY_PLAYER_INDEX).replace('\\', '/')
-            pathcurr_escaped = urllib.quote(pathcurr_escaped)+'?'+media_path_escaped
-            pathcurr = pathcurr.replace( 'MEDIA_PATH', pathcurr_escaped)
-            pathcurr = pathcurr.replace( 'FILE_STYLE', '')
-            pathcurr = pathcurr.replace( 'MEDIA_TITLE', filename_title_escaped)
-            index_list = index_list + pathcurr
         if '.jpg' == extCurr:
             # Record existence of a jpeg file we found
             have_jpeg[fullPath] = True
-            
-    # Record folder for left box index/TOC
-    small_output = str(INDEX_SMALL)
-    small_output = small_output.replace( 'FOLDER_TITLE', folder_name_escaped)
-    small_output_style = 'padding-left:' + str(folder_depth) + 'px;'
+    
+    # Record folder for big folder+file TOC
+    output = str(INDEX_FOLDER)
+    if '.' == folder_relative:
+        folder_relative = '___'+folder_name;
+    FOLDER_ID = re.sub(r'[^a-zA-Z0-9]', '_', folder_relative )
+    output = output.replace( 'FOLDER_ID', FOLDER_ID)
+    output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
+    output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
+    small_output_style = 'padding-left:' + str(folder_depth) + 'pt;'
+    if 0 == totalFiles:
+        small_output_style = small_output_style + ' pointer-events: none; opacity: 0.75;'
+    output = output.replace( 'FOLDER_STYLE', small_output_style )
+    index_toc.append( (root, output) );
+
     if 0 != totalFiles:
-        small_output = small_output.replace( 'FOLDER_PATH',  folder_curr_escaped)
-        small_output = small_output.replace( 'FOLDER_STYLE', small_output_style )
-        index_toc_small.append( (root,small_output) );
+       
+        # Manufacture the play list for this folder
+        output = str(INDEX_FILES_BEGIN)
+        output = output.replace( 'FOLDER_ID', FOLDER_ID)
+        output = output.replace( 'FOLDER_STYLE', '' )
+        output = output.replace( 'FOLDER_NAME', folder_name_escaped)
+        output = output + playlist + INDEX_FILES_END;
 
-        # Add accumulated indexes to list, to defer sort
-        index_toc.append( (root, index_list) );
-        
-        # Manufacture a VideoPlayer.html for folder
-        folder_path, folder_name=os.path.split(root)
-        output = str(PLAYER_TEMPLATE)
-        output = output.replace( 'TITLE_TEXT', escape(folder_name))
-        output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
-        output = output.replace( '<!--INDEXES_HERE-->', playlist)
-        with open(os.path.join(root,WEBIFY_PLAYER_INDEX), "w") as text_file:
-            text_file.write(output)
-
-    else:
-        # Record dead link folder for left box index/TOC
-        small_output = small_output.replace( 'FOLDER_PATH', '')
-        small_output = small_output.replace( 'FOLDER_STYLE', small_output_style + ' pointer-events: none; opacity: 0.75;' )
-        index_toc_small.append( (root,small_output) );
+        # Add accumulated indexes to list, to defer folder sort
+        player_toc.append((folder_curr,output))
 
 
 # Manufacture index.html for entire run of folders, if there were any
@@ -286,24 +277,23 @@ if 0 != len(all_paths_with_media):
 
     folder_path, folder_name = os.path.split(root_dir)
     folder_name_escaped = escape(folder_name)
-    output = str(INDEX_TEMPLATE)
-    output = output.replace( 'TITLE_TEXT', folder_name_escaped )
+    output = str(PLAYER_TEMPLATE)
     output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE )
+    output = output.replace( 'TITLE_TEXT', folder_name_escaped )
+    output = output.replace( 'THUMB_SIZE', str(THUMB_SIZE) )
 
     # Copy table of contents in, sorted.
     big_indexes=''
     for indexPath, item in sorted(index_toc,compare_natural):
         big_indexes = big_indexes + item + '\n'
-    output = output.replace( '<!--INDEXES_HERE-->', big_indexes)
+    output = output.replace( '<!--INDEX_FOLDERS_HERE-->', big_indexes)
     
     # Add the small index list; Only emit index paths that lead to media 
-    small_indexes=''
-    for indexPath, item in sorted(index_toc_small,compare_natural):
-        for apath in all_paths_with_media:
-            if 0 == apath.find(indexPath):
-                small_indexes = small_indexes + item + '\n'
-                break;
-    output = output.replace( '<!--FOLDERS_HERE-->', small_indexes)
+    indexes=''
+    for indexPath, item in sorted(player_toc,compare_natural):
+        indexes = indexes + item
+
+    output = output.replace( '<!--INDEX_FILES_HERE-->', indexes)
     
     # Write index file
     with open(os.path.join(root_dir,WEBIFY_INDEX), "w") as text_file:

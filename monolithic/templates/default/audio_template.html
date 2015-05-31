@@ -391,7 +391,10 @@ into the html output with the script.
 
 <body>
 <div id='PlayerBox'>
-<audio id="audioplayer" controls></audio>
+<audio id="audioplayer" controls>
+    Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Other Browsers...</a><br/>
+</audio>
 <div id="audiocontrols">
 <button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
 <button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
@@ -403,16 +406,16 @@ into the html output with the script.
 
 <!--INDEX_FOLDER
     <div class="folder_entry" style='FOLDER_STYLE'>
-        <a href="#" onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+        <a href='' onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
     </div>
 -->
 <!--INDEX_FILES_BEGIN
 <div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
-    <div class='title'><a title="Back To Folder List" href="#" onclick="return aud.BrowseFolders();">FOLDER_NAME</a></div>
+    <div class='title'><a title="Back To Folder List" href='' onclick="return aud.BrowseFolders();">FOLDER_NAME</a></div>
 -->
 <!--INDEX_ITEM
     <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' >
-        <a href="#" onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
+        <a href='' onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
     </div>
 -->
 <!--INDEX_FILES_END
