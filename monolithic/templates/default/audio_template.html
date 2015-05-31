@@ -35,10 +35,6 @@ aud.PlayerInit = function()
     aud.bNext = document.getElementById("bNext");
     aud.bPrev = document.getElementById("bPrev");
     
-    if( 0 == aud.playlist.length )
-    {
-        aud.audio_box.style.display = 'none';
-    }
     aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
 }
 
@@ -47,7 +43,7 @@ aud.PlayListRandom = function()
 {
     aud.bShuffle = true; 
     aud.MakePlaylist(); 
-    //aud.PlayMedia(aud.playlist[0].getAttribute('path'));
+    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
     return false;
 }
 
@@ -72,12 +68,10 @@ aud.PlayMedia = function(audio_path,noscroll)
     aud.audio.src = aud.now_playing;
     aud.audio.load();
     aud.audio.play();
-    
+
     aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
     aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
     
-    aud.PlayList.className = 'playlist_class';
-    aud.audio_box.style.display ='block';
     aud.HighlightPlaying(noscroll);
     return false;
 }
@@ -278,7 +272,7 @@ aud.TitleFromPath = function(path)
 aud.BrowseFolder = function(id)
 {
     aud.Folders.style.display ='none';
-    aud.audio_box.style.display ='none';
+    aud.audio_box.style.display ='block';
     aud.PlayList.style.display ='block';
 
     var collapse = aud.PlayList.children;
@@ -310,13 +304,9 @@ aud.BrowseFolders = function()
     aud.now_playing = null;
     aud.Folders.style.display ='block';
     aud.audio_box.style.display ='none';
-    aud.PlayList.className = 'playlist_class_hidden';
     aud.PlayList.style.display ='none';
     return false;
 }
-
-// Wake up when the balance of the page is loaded.
-document.addEventListener('DOMContentLoaded', aud.PlayerInit, false);
 
 //]]>
 </script>
@@ -354,11 +344,12 @@ into the html output with the script.
     left:0pt;
     width: 100%;
     height:32pt;
+    outline: 0;
 }
 #bBack {
     position: fixed;
     top:36pt;
-    left:0pt;
+    right:8pt;
 }
 #audiocontrols {
     position: fixed;
@@ -368,17 +359,12 @@ into the html output with the script.
     top:   36pt;
     left:  0pt;
 }
-.playlist_class, .playlist_class_hidden {
+#PlayList {
     display: none;
     position: fixed;
     width: 100%;
     bottom: 0pt;
     overflow: auto;
-}
-.playlist_class_hidden {
-    top: 0%;
-}
-.playlist_class {
     top: 72pt;
 }
 
@@ -389,7 +375,7 @@ into the html output with the script.
 </style>
 </head>
 
-<body>
+<body onload="aud.PlayerInit();" >
 <div id='PlayerBox'>
 <audio id="audioplayer" controls>
     Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
@@ -401,21 +387,21 @@ into the html output with the script.
 <button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
 <button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
 </div>
-<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="back_icon"></div></button>
+<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
 </div>
 
 <!--INDEX_FOLDER
     <div class="folder_entry" style='FOLDER_STYLE'>
-        <a href='' onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
+        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_TITLE" ><div class="folder_icon"></div>FOLDER_TITLE</a>
     </div>
 -->
 <!--INDEX_FILES_BEGIN
 <div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
-    <div class='title'><a title="Back To Folder List" href='' onclick="return aud.BrowseFolders();">FOLDER_NAME</a></div>
+    <div class='title'>FOLDER_NAME</div>
 -->
 <!--INDEX_ITEM
     <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' >
-        <a href='' onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
+        <a onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
     </div>
 -->
 <!--INDEX_FILES_END
@@ -433,7 +419,7 @@ into the html output with the script.
 </div>
 </div>
 
-<div id='PlayList' class='playlist_class_hidden' >
+<div id='PlayList'>
 <!--INDEX_FILES_HERE-->
 </div>
 

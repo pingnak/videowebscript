@@ -44,3 +44,6 @@
 
     /* ./wireframe0014.png */
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABABAMAAABYR2ztAAAAIVBMVEUAAAD////////////////////////////////////////PIev5AAAACnRSTlMAz9+f748vf7+vhA+kiwAAAKZJREFUSMdjYBhCgNVrFSooQJK0WrXKgAtNftUC5lWrFkMVgLhcC1BN5FoA0gJTAOJiKljAQEUFhNygtWqVA6YCplWrlqAIoCtgwC+AwgcHFIaC0YAawgGFkeyR3CC1apUAJ4YCxlWrFuLJaWwJpORLYFwocKBbEQCMi0XEOnIwpChQQGEqQAsoylIUKKCwJtpFQynrjQYUCQHFQijrsaIrcBhKVTIA6h4mpbxxheUAAAAASUVORK5CYII=) no-repeat;
+
+    /* ./wireframe0015.png */
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMA3x+fD+8vfz+/z29PX4+v8XiDmgAAAQ5JREFUWMPtlM0SgyAMhEUIAX/3/Z+2h6B2LNJgpxeHXHWXTb5A1z2+fHC/yN0C0PTD8QYAwHf1jFTxVht9xF7G1+tnEuk8AADm2umtcvTqOmcBALaqjSDHk5w7AgCGXq9f0uw2iSeggqeXrt/puVjBUwJj8JlQCp4bvOX860QqnlOa3nTZ2ViEZ3d4118LPIOsPo3l8Qy+vPol3nK78jwz8HJtyIyXTLq0+kF3Rc88t9XXLLyAIp+Bp9y0/oOnS/qT7aUB0ynuvD8cmgjH33FPYGoM1uOhegvFzFFpED8THHy0BpaZeXT3DcLVhjSDZtAMmkEzaAYPMzDxe1HJQFv/MeiNWm/z03FBW92z6gW22Cy1qXp34AAAAABJRU5ErkJggg==) no-repeat;
