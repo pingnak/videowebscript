@@ -26,7 +26,7 @@ This is probably where I'm going to focus work on for the 'official' build, and 
 
 * Builds the pages a bit faster, when run over network shares.
 
-* You can put the video player into 'full screen' mode, and keep it that way.  Runs well in any browser mode where the main browser controls are hidden, including 'kiosk' and 'presentation' modes.
+* You can put the video player into 'full screen' mode, and keep it that way.  Runs well in any browser mode, especially where the main browser controls are hidden, including 'kiosk' and 'presentation' modes.
 
 * Added/fixed the junk to add it as an iOS/Android 'Home Screen' icon ('web app' launch), and gave it an icon.
 

@@ -361,7 +361,7 @@ vid.MouseTimeout = function()
 /** Only call MouseMoved if the mouse... moved. */
 vid.MouseMovedFilter = function(e)
 {
-    if( Math.abs(e.screenX - vid.lastScreenX)+Math.abs(e.screenY - vid.lastScreenY) )
+    if( Math.abs(e.screenX - vid.lastScreenX)+Math.abs(e.screenY - vid.lastScreenY) > 1 )
         vid.MouseMoved();
     vid.lastScreenX = e.screenX;
     vid.lastScreenY = e.screenY;
@@ -1021,6 +1021,7 @@ into the html output with the script.
 -->
 
 <div id='Folders'>
+<div class='title'>Browse Video</div>
 <!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
 <br/>
