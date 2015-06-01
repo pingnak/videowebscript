@@ -12,15 +12,35 @@ All these scripts do, is iterate through folders and build a web page interface 
 
 This provides a consistent, portable user interface for that content on practically any computer that you open it with, given an HTML5 compatible-enough browser.
 
-## Releases
-
-[The latest stable release](https://github.com/pingnak/videowebscript/releases) is in the github release system.
-
-Otherwise, each of the [AIR projects](https://github.com/pingnak/videowebscript/tree/master/AIR) has 'latest builds', and the [BASH script](https://github.com/pingnak/videowebscript/tree/master/BASH) version should always be usable.
-
 ##The Wiki Documents
 
 Go to the [Wiki Pages](https://github.com/pingnak/videowebscript/wiki), to get more details about how to use and customize this.
+
+##The 'monolithic' folder...
+
+This is probably where I'm going to focus work on for the 'official' build, and concentrate on for the next release snapshot.
+
+* Has a new implementation that sucks all of the web pages into one index.html, instead of one html player file, per folder, and an index.html file, too.
+
+* The Python scripts should still directly run on most NAS boxes that you can shell into, unless you have truly monstrous numbers of media files.
+
+* Builds the pages a bit faster, when run over network shares.
+
+* You can put the video player into 'full screen' mode, and keep it that way.  Runs well in any browser mode where the main browser controls are hidden, including 'kiosk' and 'presentation' modes.
+
+* Added/fixed the junk to add it as an iOS/Android 'Home Screen' icon ('web app' launch), and gave it an icon.
+
+* Fixed issues with full-screen mode present on Android/Silk/etc. browsers.  
+
+* A bit more scalable/navigable for smaller screens
+
+* Mostly fixed my 'nice' seek bar, to work for most screens, except truly ridiculously small ones.  Reverts to native video controls when there isn't enough room.
+
+* Kindle Silk browser still has some issues, if you leave full screen mode and try to go back in the same session, you get technicolor spew.  Also the audio player positioning is a bit borked.  These appear to be driver/browser implementation bugs.
+
+Currently, there's just the python scripts to make all-in-one video and audio pages.  The template is similar to the 'old' model, but not similar enough to re-use with the old templates and new scripts.
+
+I'm deciding whether to just dive in and make a python front-end and installer with 'kivy'.  Maybe the 'kivy' route, if I can make the installers work.  Maybe Adobe AIR again, since that's already mostly baked, and I only have to rewrite a piece of it.
 
 ##Screen Shots
 
