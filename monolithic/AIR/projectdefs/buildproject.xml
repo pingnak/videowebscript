@@ -5,9 +5,9 @@
 	Se the 'fail', just bit below, for more instructions.
 
 -->
-<project basedir="." name="Ant MXMLC Build" default="release" >
+<project basedir="../" name="Ant MXMLC Build" default="release" >
 
-<available file="../configure.properties" property="setupWasRun" />
+<available file="configure.properties" property="setupWasRun" />
 <fail unless="setupWasRun">Setup Failure!
 
 1. Install a recent JDK, not JRE (both for ANT, and for Flex SDK)
@@ -38,11 +38,7 @@ with the previous certificate.
 
 </fail>
 
-	<!-- Grab external depends -->
-	<property file="${user.home}/ant/my.build.properties"/>
-	<property file="../configure.properties"/>
-	<property file="build.properties"/>
-	<property environment="env"/>
+	<!-- Grab external depends (fed from bas build.xml) -->
 	
 	<!--
 		Define mxmlc invocation
@@ -172,30 +168,30 @@ with the previous certificate.
 
 			<exec executable="${AIR.ADT}" osfamily="windows" searchpath="true" vmlauncher="false" failonerror="true" >
                 <arg line="-package"/>
-				<arg line="-storetype '${air.certificate.type}'"/>
-				<arg line="-keystore '${air.certificate.filename}'"/>
-				<arg line="-storepass '${air.certificate.password}'"/>
+                <arg line="-storetype '${air.certificate.type}'"/>
+                <arg line="-keystore '${air.certificate.filename}'"/>
+                <arg line="-storepass '${air.certificate.password}'"/>
                 <arg line="-target native"/>		
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
-				<arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
-				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
-				<arg line="${deploy.file}"/>
-				<arg line="icons"/>
+                <arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
+                <arg line="-C ${air.deploy}"/>	<!-- Change folder -->
+                <arg line="${deploy.file}"/>
+                <arg line="icons"/>
 			</exec>
 
 			<exec executable="${AIR.ADT}" osfamily="mac" searchpath="true" vmlauncher="false" failonerror="true" >
                 <arg line="-package"/>
-				<arg line="-storetype '${air.certificate.type}'"/>
-				<arg line="-keystore '${air.certificate.filename}'"/>
-				<arg line="-storepass '${air.certificate.password}'"/>
+                <arg line="-storetype '${air.certificate.type}'"/>
+                <arg line="-keystore '${air.certificate.filename}'"/>
+                <arg line="-storepass '${air.certificate.password}'"/>
                 <arg line="-target native"/>		
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
-				<arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
-				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
-				<arg line="${deploy.file}"/>
-				<arg line="icons"/>
+                <arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
+                <arg line="-C ${air.deploy}"/>	<!-- Change folder -->
+                <arg line="${deploy.file}"/>
+                <arg line="icons"/>
 			</exec>
 			
 		</sequential>

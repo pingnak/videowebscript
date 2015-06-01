@@ -139,7 +139,7 @@ air.certificate.orgunit==${air.certificate.orgunit}
 air.certificate.country==${air.certificate.country}
 
 # This really shouldn't be part of this file.  Import from somewhere 'safe' from version control.
-air.certificate.filename=../${air.certificate.filename}
+air.certificate.filename=${air.certificate.filename}
 air.certificate.password=${air.certificate.password}
 air.certificate.type=${air.certificate.type}
 
@@ -226,7 +226,7 @@ air.certificate.orgunit==${air.certificate.orgunit}
 air.certificate.country==${air.certificate.country}
 
 # This really shouldn't be part of this file.  Import from somewhere 'safe' from version control.
-air.certificate.filename=../${air.certificate.filename}
+air.certificate.filename=${air.certificate.filename}
 air.certificate.password=${air.certificate.password}
 air.certificate.type=pkcs12
 

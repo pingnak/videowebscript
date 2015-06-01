@@ -14,14 +14,55 @@
 	    </subant>
 	</target>
 
-	<target name="build" description="Build all the other build.xml files" depends="Setup" >
-        <sequential>
-            <subant target="">
-                <fileset dir="." includes="*/build.xml"/>
-            </subant>
-        </sequential>
+	<target name="build" description="Build all of the targets" depends="video,audio" >
 	</target>
 
+	<macrodef name="target_shorthand">
+		<attribute name="target"/>     <!-- What build target to invoke on subant -->
+		<attribute name="properties"/> <!-- What property file to include -->
+        <sequential>
+            <subant target="@{target}" failonerror='true' >
+                <fileset dir="projectdefs" includes="buildproject.xml"/>
+                <property file="${user.home}/ant/my.build.properties"/>
+                <property file="configure.properties"/>
+                <property file="projectdefs/@{properties}"/>
+                <property environment="env"/>
+            </subant>
+        </sequential>
+	</macrodef>
+	
+	<target name="video" description="Build video script." depends="Setup" >
+        <target_shorthand target="release" properties="videowebscript.properties" />
+	</target>
+
+	<target name="video.run" description="Test-run video script." depends="Setup" >
+        <target_shorthand target="run" properties="videowebscript.properties" />
+	</target>
+
+	<target name="video.debug" description="Debug video script." depends="Setup" >
+        <target_shorthand target="rundebug" properties="videowebscript.properties" />
+	</target>
+
+	<target name="video.trace" description="Trace video script." depends="Setup" >
+        <target_shorthand target="runtrace" properties="videowebscript.properties" />
+	</target>
+
+	<target name="audio" description="Build audio script." depends="Setup" >
+        <target_shorthand target="release" properties="jukeboxscript.properties" />
+	</target>
+
+	<target name="audio.run" description="Test-run audio script." depends="Setup" >
+        <target_shorthand target="run" properties="jukeboxscript.properties" />
+	</target>
+
+	<target name="audio.debug" description="Debug audio script." depends="Setup" >
+        <target_shorthand target="rundebug" properties="jukeboxscript.properties" />
+	</target>
+
+	<target name="audio.trace" description="Trace audio script." depends="Setup" >
+        <target_shorthand target="runtrace" properties="jukeboxscript.properties" />
+	</target>
+	
     <target name="zip" description="Zip up all the files with all their contents,">
         <tstamp />
         <sequential>
@@ -30,7 +71,6 @@
             </subant>
         </sequential>
     </target>
-
 	
 </project>
 
