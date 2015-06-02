@@ -247,8 +247,7 @@ for root, dirs, files in os.walk(root_dir):
         folder_relative = '___'+folder_name;
     FOLDER_ID = re.sub(r'[^a-zA-Z0-9]', '_', folder_relative )
     output = output.replace( 'FOLDER_ID', FOLDER_ID)
-    output = output.replace( 'FOLDER_TITLE', folder_name_escaped)
-    output = output.replace( 'FOLDER_PATH',  folder_curr_escaped)
+    output = output.replace( 'FOLDER_NAME', folder_name_escaped)
     small_output_style = 'padding-left:' + str(folder_depth) + 'pt;'
     if 0 == totalFiles:
         small_output_style = small_output_style + ' pointer-events: none; opacity: 0.75;'

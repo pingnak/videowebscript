@@ -154,7 +154,7 @@ with the previous certificate.
 				<arg line="-storepass '${air.certificate.password}'"/>
 				<arg line="${air.output}"/>		<!-- Output file -->
 				<arg line="${air.profile}"/>		<!-- AIR project info -->
-				<arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
+				<arg line="-C ../templates/${default.template} ."/>	<!-- Load default skin -->
 				<arg line="-C ${air.deploy}"/>	<!-- Change folder -->
 				<arg line="${deploy.file}"/>
 				<arg line="icons"/>
@@ -174,7 +174,7 @@ with the previous certificate.
                 <arg line="-target native"/>		
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
-                <arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
+                <arg line="-C ../templates/${default.template} ."/>	<!-- Load default skin -->
                 <arg line="-C ${air.deploy}"/>	<!-- Change folder -->
                 <arg line="${deploy.file}"/>
                 <arg line="icons"/>
@@ -188,7 +188,7 @@ with the previous certificate.
                 <arg line="-target native"/>		
                 <arg line="${air.output}"/>	<!-- Output file -->
                 <arg line="${air.profile}"/>	    <!-- AIR project info -->
-                <arg line="-C ../../templates/${default.template} ."/>	<!-- Load default skin -->
+                <arg line="-C ../templates/${default.template} ."/>	<!-- Load default skin -->
                 <arg line="-C ${air.deploy}"/>	<!-- Change folder -->
                 <arg line="${deploy.file}"/>
                 <arg line="icons"/>

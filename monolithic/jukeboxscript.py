@@ -264,8 +264,8 @@ if 0 != len(all_media_folders):
         else:
             index_section_entry = index_section_entry.replace('FOLDER_STYLE', folder_output_style )
 
-        scratch, FOLDER_TITLE = os.path.split(folder)
-        index_section_entry = index_section_entry.replace( 'FOLDER_TITLE', escape(FOLDER_TITLE) )
+        scratch, FOLDER_NAME = os.path.split(folder)
+        index_section_entry = index_section_entry.replace( 'FOLDER_NAME', escape(FOLDER_NAME) )
         folder = os.path.relpath(folder,root_dir)
         FOLDER_ID = re.sub(r'[^a-zA-Z0-9]', '_', folder )
         index_section_entry = index_section_entry.replace( 'FOLDER_ID', FOLDER_ID )
@@ -273,7 +273,7 @@ if 0 != len(all_media_folders):
         
         if 0 != len(files):
             playlist_section_folder=INDEX_FILES_BEGIN
-            playlist_section_folder = playlist_section_folder.replace( "FOLDER_NAME", FOLDER_TITLE );
+            playlist_section_folder = playlist_section_folder.replace( "FOLDER_NAME", FOLDER_NAME );
             playlist_section_folder = playlist_section_folder.replace( "FOLDER_ID", FOLDER_ID );
             playlist_section_folder = playlist_section_folder.replace( "FOLDER_STYLE", '' );
             playlist_section += playlist_section_folder;

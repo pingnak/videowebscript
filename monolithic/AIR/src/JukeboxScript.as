@@ -27,7 +27,7 @@ package
     public class JukeboxScript extends applet
     {
         protected static const SO_PATH : String = "JukeboxScriptData";
-        protected static const SO_SIGN : String = "JUKEBOXSCRIPT_SIGN_02";
+        protected static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_2.0";
 
 CONFIG::MXMLC_BUILD
 {
@@ -480,7 +480,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                                     {
                                         seded = index_toc_folder;
                                         seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                        seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
+                                        seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
                                         seded = seded.replace(/FOLDER_STYLE/g,"");
                                         file_list_index += seded;
                                     }
@@ -491,14 +491,14 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                                     // Emit index for child folder
                                     seded = index_index;
                                     seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
-                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
+                                    seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'');
                                     index_folders += seded;
 
                                     // Generate indexes for TOC
                                     seded = index_small;
                                     seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
+                                    seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
                                     seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
                                     dbnew = {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth};
                                     folder_list_db.push( dbnew );
@@ -798,7 +798,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
                         // Generate indexes for TOC, for our new player file
                         seded = index_small;
                         seded = seded.replace(/FOLDER_PATH/g, Find.FixEncodeURI(Find.File_relative( outputFile, root_path_media )) );
-                        seded = seded.replace(/FOLDER_TITLE/g, Find.EscapeQuotes(curr_title));
+                        seded = seded.replace(/FOLDER_NAME/g, Find.EscapeQuotes(curr_title));
                         seded = seded.replace(/FOLDER_STYLE/g,'');
                         var dbnew : Object = {name:curr_title,item:seded,path:outputFile,depth:0};
                         play_list_db.push( dbnew );

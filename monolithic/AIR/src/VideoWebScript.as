@@ -26,7 +26,7 @@ package
     public class VideoWebScript extends applet
     {
         protected static const SO_PATH : String = "VideoWebScriptData";
-        protected static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_1.2";
+        protected static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_2.0";
 
 CONFIG::MXMLC_BUILD
 {
@@ -37,19 +37,13 @@ CONFIG::MXMLC_BUILD
 
         /** Where the main UI lives */
         protected var ui : MovieClip;
-        
-        /** What to call the 'top level' index file */
-        public static const HTML_PLAYER     : String = "VideoPlayer.html";
 
         /** What to call the 'TOC' file that has all of the index.htmls in it */
         public static const MAIN_TOC        : String = "index.html";
 
         /** Start of movie player and available content */
-        public static const PLAYER_TEMPLATE : String = "video_template.html";
+        public static const INDEX_TEMPLATE  : String = "video_template.html";
 
-        /** A movie file link with player logic */
-        public static const INDEX_TEMPLATE  : String = "index_template.html";
-        
         /** A css file with theming details */
         public static const CSS_TEMPLATE  : String = "template.css";
 
@@ -60,25 +54,22 @@ CONFIG::MXMLC_BUILD
         public static const FOLDER_DEPTH : int = 16;
 
         /** File/folder left padding*/
-        public static const LEFT_PADDING : int = 0;
+        public static const LEFT_PADDING : int = 4;
 
         /** Regular expressions that we accept as 'MP4 content'
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs
             or DRM, or other proprietary extensions in them.
         **/
-        public static const REGEX_MP4        : String = ".(mp4|m4v|m4p|m4r|3gp|3g2)";
+        public static const REGEX_MP4        : RegExp = /.(mp4|m4v|m4p|m4r|3gp|3g2)/;
 
         /** Regular expressions that we accept as 'jpeg content'*/
-        public static const REGEX_JPEG       : String = ".(jpg|jpeg)";
+        public static const REGEX_JPEG       : RegExp = /.(jpg|jpeg)/;
 
         /** Path to do the job in */
         protected var root_path_media : File;
         
         /** Path to get templates from */
         protected var root_path_template : File;
-
-        /** Path to file containing player template */
-        protected var player_template_file : File;
 
         /** Path to file containing index template */
         protected var index_template_file : File;
@@ -96,6 +87,27 @@ CONFIG::MXMLC_BUILD
 
         /** Set width of thumbnails */
         protected var thumb_size : int;
+
+        /** CSS template file, loaded */
+        protected var css_template : String
+
+        /** Player template file, loaded */
+        protected var index_template : String;
+
+        /** Top level folder template */
+        protected var index_folder : String;
+
+        /** Start of folder group */
+        protected var index_begin : String;
+
+        /** Index file with thumbnail */
+        protected var index_file : String;
+
+        /** Index file without thumbnail */
+        protected var index_file_nothumb : String;
+
+        /** End of folder group */
+        protected var index_end : String;
         
         public function VideoWebScript()
         {
@@ -132,7 +144,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfThumbnailSize.restrict = "0-9";
             ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
-            CheckSetup(ui.bnTOC);
             CheckSetup(ui.bnCompletionTone);
 
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoVideo );
@@ -156,9 +167,7 @@ CONFIG::FLASH_AUTHORING
                 // Tools popup
                 var toolMenu:NativeMenu = new NativeMenu();
                 var removeThumbs:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove Thumbnails"));
-                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove "+HTML_PLAYER+" files"));
                 removeThumbs.addEventListener(Event.SELECT, RemoveThumbs);
-                removeIndexes.addEventListener(Event.SELECT, RemoveIndexes);
 
                 appToolMenu.submenu = toolMenu;
             }
@@ -281,14 +290,12 @@ CONFIG::FLASH_AUTHORING
             // If we are using external template files...
             var root : File = File.applicationDirectory;
             css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
-            player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
             index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
             if( CheckGet( ui.bnTempate ) )
             {
                 try
                 {
                     css_template_file   = Find.File_AddPath( root_path_template, CSS_TEMPLATE );
-                    player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
                     index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
                 }
                 catch( e:Error )
@@ -296,11 +303,6 @@ CONFIG::FLASH_AUTHORING
                     trace(e.getStackTrace());
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                     return;
-                }
-                if( !player_template_file.exists )
-                {
-                    player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
-                    trace("Could not find player template file.  Using default.",player_template_file.nativePath);
                 }
                 if( !index_template_file.exists )
                 {
@@ -313,9 +315,9 @@ CONFIG::FLASH_AUTHORING
                     trace("Could not find CSS template file.  Using default.",css_template_file.nativePath);
                 }
             }
-            if( !player_template_file.exists )
+            if( !css_template_file.exists )
             {
-                trace("Could not find default player template file.",player_template_file.nativePath);
+                trace("Could not find default css template file.",css_template_file.nativePath);
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                 return;
             }
@@ -325,32 +327,61 @@ CONFIG::FLASH_AUTHORING
                 ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                 return;
             }
-            if( !css_template_file.exists )
+
+            // Load CSS file
+            try
             {
-                trace("Could not find default css template file.",css_template_file.nativePath);
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
+                // CSS
+                css_template = LoadText(css_template_file);
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed CSS", css_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
                 return;
             }
 
+            // Load and parse player template file
+            try
+            {
+                // Preload the various template elements we'll be writing for each folder/file
+                index_template = LoadText(index_template_file);
+                
+                const rxFolder : RegExp = /\<\!\-\-INDEX_FOLDER(.*?)\-\-\>/ms;
+                index_folder = index_template.match( rxFolder )[0];
+                index_folder = index_folder.replace(rxFolder,"$1");
+
+                const rxIndexBegin : RegExp = /\<\!\-\-INDEX_FILES_BEGIN(.*?)\-\-\>/ms;
+                index_begin = index_template.match( rxIndexBegin )[0];
+                index_begin = index_begin.replace(rxIndexBegin,"$1");
+
+                const rxFileThumb : RegExp = /\<\!\-\-INDEX_FILE_THUMB(.*?)\-\-\>/ms;
+                index_file = index_template.match( rxFileThumb )[0];
+                index_file = index_file.replace( rxFileThumb, "$1");
+
+                const rxFileNoThumb : RegExp = /\<\!\-\-INDEX_FILE_NOTHUMB(.*?)\-\-\>/ms;
+                index_file_nothumb = index_template.match( rxFileNoThumb )[0];
+                index_file_nothumb = index_file.replace( rxFileNoThumb, "$1");
+
+                const rxIndexEnd : RegExp = /\<\!\-\-INDEX_FILES_END(.*?)\-\-\>/ms;
+                index_end = index_template.match( rxIndexEnd )[0];
+                index_end = index_end.replace(rxIndexEnd,"$1");
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_FOLDER, INDEX_FILES_BEGIN, INDEX_FILE_THUMB, INDEX_FILE_THUMB or INDEX_FILE_NOTHUMB in", index_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
+            }
+            
             // Configuration looks kosher.  Go ahead and save it.            
             CommitSharedData();
 
-            // MP4, PNG, folders
-            var rxMP4 : RegExp = new RegExp(REGEX_MP4,"i");
-            function filter_mp4_png_folders(file:File):Boolean
-            {
-                // No hidden files/folders
-                if( file.isHidden )
-                    return true;
-                // Yes, folders
-                if( file.isDirectory )
-                    return false;
-                // Files with .png/.mp4 extensions
-                var ext : String = Find.File_extension(file);
-                return null == ext.match( rxMP4 );
-            }
-
-            finding = new Find( root_path_media, filter_mp4_png_folders );
+            finding = new Find( root_path_media );
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
@@ -411,26 +442,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfStatus.text = "Thumbnail: " + thumbnail.queue_length.toString() + " " + Find.File_nameext(thumbnail.thumb_file);
         }
 
-        /**
-         * Check for thumbnail file
-         * @param file MP4 file to check for thumbnail
-         * @return Path to thumbnail that exists, or will be generated
-        **/
-        protected function CheckThumbnail(file:File) : File
-        {
-            var file_thumb : File;
-            file_thumb = Find.File_newExtension( file, '.jpg' );
-            if( file.isSymbolicLink )
-            {   // Don't chase symlinks, which may be stale, or duplicate effort.
-                return file_thumb;
-            }
-            if( !file_thumb.exists )
-            {   // Have NO thumbnail (make a jpeg)
-                trace("Needs thumbnail:",file_thumb.url);
-                thumbnail.AddTask( file, file_thumb );
-            }
-            return file_thumb;
-        }
 
         /**
          * Recursively generates files for each folder, and generates a master
@@ -446,82 +457,15 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoVideoFilesTree(found:Array):void
         {
+            var root_dir : File = found[0];
             try
             {
-                // CSS
-                var css_template : String = LoadText(css_template_file);
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed CSS", css_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-                Interactive();
-                return;
-            }
-            
-            try
-            {
-                // Preload the various template elements we'll be writing for each folder/file
-                var player_template : String    = LoadText(player_template_file);
-
-                const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
-                var index_index : String = player_template.match( rxFolder )[0];
-                index_index = index_index.replace(rxFolder,"$1");
-
-                const rxFileThumb : RegExp = /\<\!\-\-INDEX_FILE(.*?)\-\-\>/ms;
-                var index_file : String = player_template.match( rxFileThumb )[0];
-                index_file = index_file.replace( rxFileThumb, "$1");
-
-                const rxFileNoThumb : RegExp = /\<\!\-\-INDEX_FILE_NOTHUMB(.*?)\-\-\>/ms;
-                var index_file_nothumb : String = player_template.match( rxFileNoThumb )[0];
-                index_file_nothumb = index_file_nothumb.replace(rxFileNoThumb,"$1");
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed INDEX_INDEX or INDEX_FILE or INDEX_FILE_NOTHUMB in", player_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-                Interactive();
-                return;
-            }
-                
-            try
-            {
-                // TOC pieces
-                var index_template : String = LoadText(index_template_file);
-
-                const rxIndexToc_Small : RegExp = /\<\!\-\-INDEX_SMALL(.*?)\-\-\>/ms;
-                var index_small : String  = index_template.match( rxIndexToc_Small )[0];
-                index_small = index_small.replace( rxIndexToc_Small, "$1" );
-                
-                const rxIndexToc_File : RegExp = /\<\!\-\-INDEX_TOC_FILE(.*?)\-\-\>/ms;
-                var index_toc_file : String = index_template.match( rxIndexToc_File )[0];
-                index_toc_file = index_toc_file.replace( rxIndexToc_File, "$1" );
-                
-                const rxIndexToc_Folder : RegExp = /\<\!\-\-INDEX_TOC_FOLDER(.*?)\-\-\>/ms;
-                var index_toc_folder : String  = index_template.match( rxIndexToc_Folder )[0];
-                index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed INDEX_SMALL or INDEX_TOC_FILE or INDEX_TOC_FOLDER in", index_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-                Interactive();
-                return;
-            }
-            
-            
-            try
-            {
-                
                 var folder_list_db : Array = new Array();
-                var file_list_index : String = "";
-                var bExportedLinks : Boolean = false;
-
+                
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
+                folders = folders.sort(Find.SortOnNative);
+
                 setTimeout( ThreadPassFolder );
                 var folder_iteration : int = 0;
 
@@ -544,97 +488,20 @@ CONFIG::FLASH_AUTHORING
                     var iteration : int;
                     var seded : String
                     var folder : File;
-                    var root : File = folders[folder_iteration++];
 
-                    ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
 
-                    // Don't write index files in folders with no video content
-                    var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
-                    var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
-                    if( total_files_at_this_depth.length > 0 )
                     {
-                        // Get a list of folders in this folder, files in this folder
-                        var curr_files : Array = Find.GetChildren( found, root );
-                        var curr_folders : Array = Find.GetFolders(curr_files);
-                        curr_files = Find.GetFiles(curr_files);
-
-                        // Create and build top half of index file
-                        var curr_title : String = Find.File_nameext(root);
-                        curr_title = Find.FixDecodeURI(curr_title);
-
-                        seded = player_template;
-                        seded = seded.replace(/THUMB_SIZE/g,thumb_size.toString());
-                        seded = seded.replace(/TITLE_TEXT/g,curr_title);
-                        var index_content : String = seded;
-                        var index_folders : String = "";
-                        var index_files : String = "";
-                        var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
-
-                        // Iterate child folders and generate links to them
-                        for( iteration = 0; iteration < curr_folders.length; ++iteration )
                         {
-                            var curr_folder : File  = curr_folders[iteration];
 
-                            // Filter folders with no movies in any children from lists
-                            total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
-                            total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
-                            if( total_files_at_this_depth.length > 1 )
-                            {
-                                var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                                var curr_index_title : String = Find.File_nameext( curr_folder );
-                                curr_index_title = Find.FixDecodeURI(curr_index_title);
-                                var curr_index_relative : String = Find.File_relative( curr_index, root );
-                                var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
-                                var curr_depth : int = Find.File_Depth(curr_folder,folders[0]);
-
-                                if( 0 == iteration )
-                                {   
-                                    // Generate index folder name heading for toc main list, if folder contains playable files
-                                    if( 0 != curr_files.length )
-                                    {
-                                        seded = index_toc_folder;
-                                        seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                        seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
-                                        seded = seded.replace(/FOLDER_STYLE/g,"");
-                                        file_list_index += seded;
-                                    }
-                                }
-                                else
-                                {
-
-                                    // Emit index for child folder
-                                    seded = index_index;
-                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
-                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
-                                    seded = seded.replace(/FOLDER_STYLE/g,'');
-                                    index_folders += seded;
-
-                                    // Generate indexes for TOC
-                                    seded = index_small;
-                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                    seded = seded.replace(/FOLDER_TITLE/g,Find.EscapeQuotes(curr_index_title));
-                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
-                                    folder_list_db.push( {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth} );
-                                }
-                            }
-                        }
-
-                        // Iterate files and generate code + thumbnails
-                        for( iteration = 0; iteration < curr_files.length; ++iteration )
                         {
-                            var curr_file : File = curr_files[iteration];
-                            var curr_file_relative : String = Find.File_relative( curr_file, root );
                             var curr_file_title : String = Find.File_name( curr_file );
                             curr_file_title = Find.FixDecodeURI(curr_file_title);
 
-                            var file_thumb : File = CheckThumbnail(curr_file);
-                            var curr_file_thumb : String = Find.File_relative( file_thumb, root );
 
                             // Emit index+code to play file
                             if( CheckGet( ui.bnDoThumbs ) )
                             {
                                 seded = index_file;
-                                seded = seded.replace(/MEDIA_IMAGE/g,curr_file_thumb);
                             }
                             else
                             {   // No thumbnail
@@ -644,68 +511,31 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
-
-                            // Emit absolute index to play from TOC
-                            curr_file_relative = Find.File_relative( curr_index_file, folders[0] );
-                            var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
-                            var curr_path   : String = curr_file_relative + '?' + curr_name;
-                            seded = index_toc_file;
-                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_path));
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
-                            seded = seded.replace(/FILE_STYLE/g,'');
-                            file_list_index += seded;
-
-                            bExportedLinks = true;
                         }
 
-                        index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace("<!--INDEXES_HERE-->",index_folders+"<br/>\n"+index_files);
-
-                        // Pack output file a bit
-                        index_content = PackOutput(index_content);
                         
-                        // Now write out index file in one pass
-                        WriteAsync( curr_index_file, index_content );
                     }
-
                 }
 
                 function ThreadComplete():void
                 {
-                    // If user wanted a flattened table of contents, make one.
-                    // We already did all the work for it, above
-                    // Don't generate the TOC if there's only one folder
-                    if( CheckGet( ui.bnTOC ) && folder_list_db.length > 1 )
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
-                        folder_list_db.sort(byNativePath);
-                        function byNativePath( p1:Object, p2:Object ) : int
-                        {
-                            return Find.SortOnNative( p1.path, p2.path );
-                        }
                         var iteration : int;
                         for( iteration = 0; iteration < folder_list_db.length; ++iteration )
                         {
-                            var dbCurr : Object = folder_list_db[iteration];
-                            folder_list += dbCurr.item;
                         }
 
                         var curr_title : String = Find.File_name( folders[0] );
                         var curr_title_escaped : String = Find.EscapeQuotes(curr_title);
                         
                         var index_content : String = index_template;
-                        index_content = index_content.replace(/THUMB_SIZE/g,thumb_size.toString());
-                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title_escaped);
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
-                        index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
 
                         // Pack output file a bit
-                        index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
-                        var toc_file : File = Find.File_AddPath( folders[0], MAIN_TOC );
                         var fs : FileStream = new FileStream();
                         fs.open( toc_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
@@ -751,7 +581,6 @@ CONFIG::FLASH_AUTHORING
         {
             root_path_media = File.desktopDirectory;
             onFolderChanged();
-            CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
             CheckSet( ui.bnDoThumbs, true );
 
@@ -808,7 +637,6 @@ CONFIG::FLASH_AUTHORING
                 root_path_media = File.desktopDirectory;
             onFolderChanged();
 
-            CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
             CheckSet( ui.bnDoThumbs, share_data.bDoThumbs );
 
@@ -845,7 +673,6 @@ CONFIG::FLASH_AUTHORING
 
             // Copy data to our save 'object
             share_data.url_video = root_path_media.url;
-            share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.bDoThumbs = CheckGet( ui.bnDoThumbs );
             share_data.thumb_size = thumb_size;
@@ -1029,60 +856,6 @@ CONFIG::FLASH_AUTHORING
                             {
                                 trace(e.getStackTrace());
                             }
-                        }
-                    }
-                    Interactive();
-                }
-            }
-        }
-
-        /**
-         * Invoke index file nuker
-        **/
-        private function RemoveIndexes(event:Event):void
-        {
-            if( !root_path_media.exists || !root_path_media.isDirectory )
-            {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
-                return;
-            }
-
-            var warning : String = "Every "+HTML_PLAYER+" from the Video Player path will be wiped out!\n\n" + root_path_media.nativePath;
-            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Video Index Files", yeah, warning, "DO IT!", "ABORT!" );
-            var rxIndex : RegExp = new RegExp(HTML_PLAYER,"i");
-            function yeah():void
-            {
-                trace("Removing Index Files...");
-                function OnlyHTML(file:File):Boolean
-                {
-                    // No hidden files/folders
-                    if( file.isHidden )
-                        return true;
-                    // Filtering folders HERE would exclude their contents.
-                    if( file.isDirectory )
-                        return false;
-                    var filename : String = Find.File_nameext(file);
-                    var found:Array = filename.match(rxIndex);
-                    return null == found;
-                }
-                finding = new Find( root_path_media, OnlyHTML );
-                finding.addEventListener( Find.FOUND, doit );
-                finding.addEventListener( Find.MORE, FindStatus );
-                function doit(e:Event):void
-                {
-                    var found : Array = Find.GetFiles( finding.results );
-                    trace("Erasing",found.length,"files...");
-                    var i : int;
-                    for( i = 0; i < found.length; ++i )
-                    {
-                        trace(found[i].nativePath);
-                        try
-                        {
-                            found[i].moveToTrashAsync();
-                        }
-                        catch( e:Error )
-                        {
-                            trace(e.getStackTrace());
                         }
                     }
                     Interactive();
