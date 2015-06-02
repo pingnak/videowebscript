@@ -46,11 +46,8 @@ CONFIG::MXMLC_BUILD
         public static const MAIN_TOC        : String = "index.html";
 
         /** Start of movie player and available content */
-        public static const PLAYER_TEMPLATE : String = "audio_template.html";
+        public static const INDEX_TEMPLATE  : String = "audio_template.html";
         
-        /** Table of contents file */
-        public static const INDEX_TEMPLATE  : String = "index_template.html";
-
         /** A css file with theming details */
         public static const CSS_TEMPLATE  : String = "template.css";
         
@@ -58,26 +55,19 @@ CONFIG::MXMLC_BUILD
         public static const FOLDER_DEPTH : int = 16;
 
         /** File/folder left padding*/        
-        public static const LEFT_PADDING : int = 0;
+        public static const LEFT_PADDING : int = 4;
         
-        /** 
-         * Regular expressions that we accept as 'Playable content' 
-        **/
+        /** Regex to match media files */
         public static const rxMP3 : RegExp = /\.(mp3|ogg|m4a)$/i;
-        // Straight text formats of play lists
-        public static const rxTXT : RegExp = /\.(m3u|m3u8|m4u|bio|pls|txt)$/i;
-        // XML formats of play lists
-        public static const rxXML : RegExp = /\.(asx|xml|wpl|smil|kpl|plist|wpl|xspf)$/i;
-        
+
+        /** Regex to match play list files */
+        public static const rxPLAY_LISTS : RegExp = /\.(asx|aimppl|bio|fpl|kpl|m3u|m3u8|pla|plc|pls|plist|smil|txt|vlc|wpl|xml|xpl|xspf|zpl)$/i;
         
         /** Path to do the job in */
         protected var root_path_media : File;
 
         /** Path to get templates from */
         protected var root_path_template : File;
-
-        /** Path to file containing player template */
-        protected var player_template_file : File;
 
         /** Path to file containing index template */
         protected var index_template_file : File;
@@ -87,6 +77,13 @@ CONFIG::MXMLC_BUILD
         
         /** Finder while searching files/folders */
         protected var finding : Find;
+
+        protected var css_template : String;
+        protected var index_template : String;
+        protected var index_toc_folder : String;
+        protected var index_toc_files : String;
+        protected var index_toc_file : String;
+        protected var index_toc_files_end : String;
         
         public function JukeboxScript()
         {
@@ -117,8 +114,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfPathAudio.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
             ui.bFindPathAudio.addEventListener( MouseEvent.CLICK, BrowsePathAudio );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
-            CheckSetup(ui.bnTOC);
-            CheckSetup(ui.bnPlaylist);
             CheckSetup(ui.bnCompletionTone);
             
             ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoAudio );
@@ -130,21 +125,6 @@ CONFIG::FLASH_AUTHORING
             ui.tfPathTemplate.addEventListener( Event.CHANGE, onTemplateEdited );
             
             LoadSharedData();
-
-            // Build our menu of doom
-            if( NativeApplication.supportsMenu )
-            { 
-                // Tools Menu
-                var appToolMenu:NativeMenuItem; 
-                appToolMenu = NativeApplication.nativeApplication.menu.addItem(new NativeMenuItem("Tools")); 
-
-                // Tools popup
-                var toolMenu:NativeMenu = new NativeMenu(); 
-                var removeIndexes:NativeMenuItem = toolMenu.addItem(new NativeMenuItem("Remove "+HTML_PLAYER+" files")); 
-                removeIndexes.addEventListener(Event.SELECT, RemoveIndexes); 
-                
-                appToolMenu.submenu = toolMenu;
-            }             
 
             // Do a few initial things
             ui.gotoAndStop("interactive");
@@ -226,7 +206,6 @@ CONFIG::FLASH_AUTHORING
 
             var root : File = File.applicationDirectory;
             css_template_file   = Find.File_AddPath( root, CSS_TEMPLATE );
-            player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
             index_template_file = Find.File_AddPath( root, INDEX_TEMPLATE );
 
             // If we are using external template files...
@@ -235,7 +214,6 @@ CONFIG::FLASH_AUTHORING
                 try
                 {
                     css_template_file   = Find.File_AddPath( root_path_template, CSS_TEMPLATE );
-                    player_template_file= Find.File_AddPath( root_path_template, PLAYER_TEMPLATE );
                     index_template_file = Find.File_AddPath( root_path_template, INDEX_TEMPLATE );
                 }
                 catch( e:Error )
@@ -244,16 +222,11 @@ CONFIG::FLASH_AUTHORING
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                     return;
                 }
-                if( !player_template_file.exists && !index_template_file.exists && !css_template_file.exists )
+                if( !index_template_file.exists && !css_template_file.exists )
                 {
                     ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate );
                     trace("Could not find expected files in",css_template_file.nativePath);
                     return;
-                }
-                if( !player_template_file.exists )
-                {
-                    player_template_file= Find.File_AddPath( root, PLAYER_TEMPLATE );
-                    trace("Could not find player template file.  Using default.");
                 }
                 if( !index_template_file.exists )
                 {
@@ -267,22 +240,53 @@ CONFIG::FLASH_AUTHORING
                 }
             }
 
-            CommitSharedData();
-           
-            function filter_mp3_playlist_folders(file:File):Boolean
+            try
             {
-                // No hidden files/folders
-                if( file.isHidden )
-                    return true;
-                // Yes, folders
-                if( file.isDirectory )
-                    return false;
-                // Files with .png/.mp4 extensions
-                var ext : String = Find.File_extension(file);
-                return null == ext.match( rxMP3 ) && null == ext.match( rxTXT ) && null == ext.match( rxXML );
+                // CSS
+                css_template = LoadText(css_template_file);
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed CSS", css_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
+            }
+
+            try
+            {
+                // TOC pieces
+                index_template = LoadText(index_template_file);
+
+                const rxIndexToc_Folder : RegExp = /\<\!\-\-INDEX_FOLDER(.*?)\-\-\>/ms;
+                index_toc_folder = index_template.match( rxIndexToc_Folder )[0];
+                index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
+
+                const rxIndexToc_Files : RegExp = /\<\!\-\-INDEX_FILES_BEGIN(.*?)\-\-\>/ms;
+                index_toc_files = index_template.match( rxIndexToc_Files )[0];
+                index_toc_files = index_toc_files.replace( rxIndexToc_Files, "$1" );
+                
+                const rxIndexToc_File : RegExp = /\<\!\-\-INDEX_ITEM(.*?)\-\-\>/ms;
+                index_toc_file = index_template.match( rxIndexToc_File )[0];
+                index_toc_file = index_toc_file.replace( rxIndexToc_File, "$1" );
+
+                const rxIndexToc_FilesEnd : RegExp = /\<\!\-\-INDEX_FILES_END(.*?)\-\-\>/ms;
+                index_toc_files_end = index_template.match( rxIndexToc_FilesEnd )[0];
+                index_toc_files_end = index_toc_files_end.replace( rxIndexToc_FilesEnd, "$1" );
+            }
+            catch( e:Error )
+            {
+                trace( "Missing or malformed INDEX_SMALL or INDEX_TOC_FILE or INDEX_TOC_FOLDER in", index_template_file.nativePath );
+                trace(e.getStackTrace());
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
+                Interactive();
+                return;
             }
             
-            finding = new Find( root_path_media, filter_mp3_playlist_folders );
+            CommitSharedData();
+           
+            finding = new Find( root_path_media );
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
@@ -323,76 +327,23 @@ CONFIG::FLASH_AUTHORING
         **/
         protected function DoAudioFilesTree(found:Array):void
         {
-            try
-            {
-                // CSS
-                var css_template : String = LoadText(css_template_file);
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed CSS", css_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-                Interactive();
-                return;
-            }
-
-            try
-            {
-                // Preload the various template elements we'll be writing for each folder/file
-                var player_template : String    = LoadText(player_template_file);
-                
-                const rxFolder : RegExp = /\<\!\-\-INDEX_INDEX(.*?)\-\-\>/ms;
-                var index_index : String = player_template.match( rxFolder )[0];
-                index_index = index_index.replace(rxFolder,"$1");
-
-                const rxFile : RegExp = /\<\!\-\-INDEX_FILE(.*?)\-\-\>/ms;
-                var index_file : String = player_template.match( rxFile )[0];
-                index_file = index_file.replace( rxFile, "$1");
-
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed INDEX_INDEX or INDEX_FILE in", player_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-            }
-                
-            try
-            {
-                // TOC pieces
-                var index_template : String = LoadText(index_template_file);
-
-                const rxIndexToc_Small : RegExp = /\<\!\-\-INDEX_SMALL(.*?)\-\-\>/ms;
-                var index_small : String  = index_template.match( rxIndexToc_Small )[0];
-                index_small = index_small.replace( rxIndexToc_Small, "$1" );
-                
-                const rxIndexToc_File : RegExp = /\<\!\-\-INDEX_TOC_FILE(.*?)\-\-\>/ms;
-                var index_toc_file : String = index_template.match( rxIndexToc_File )[0];
-                index_toc_file = index_toc_file.replace( rxIndexToc_File, "$1" );
-                
-                const rxIndexToc_Folder : RegExp = /\<\!\-\-INDEX_TOC_FOLDER(.*?)\-\-\>/ms;
-                var index_toc_folder : String  = index_template.match( rxIndexToc_Folder )[0];
-                index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
-            }
-            catch( e:Error )
-            {
-                trace( "Missing or malformed INDEX_SMALL or INDEX_TOC_FILE or INDEX_TOC_FOLDER in", index_template_file.nativePath );
-                trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathTemplate);
-            }
-
-
+            var root_dir : File = found[0];
             //try
             {
                 var play_list_db : Array = new Array();
+                var media_files_db : Array = [];
+                
+                var all_play_lists : Array = new Array();
                 var folder_list_db : Array = new Array();
+                var file_list_db : Array = new Array();
                 var file_list_index : String = "";
                 var bExportedLinks : Boolean = false;
 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
+
                 setTimeout( ThreadPassFolder );
+                ui.tfStatus.text = "Generating Folders...";
                 var folder_iteration : int = 0;
 
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
@@ -401,451 +352,229 @@ CONFIG::FLASH_AUTHORING
                     if( folder_iteration < folders.length )
                     {
                         // Do next pass
+                        ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
                         setTimeout( ThreadPassFolder );
                     }
                     else
                     {
                         // Break out of 'threaded' loop
                         // Bottom part of file index file; all done
-                        if( CheckGet( ui.bnPlaylist ) )
-                        {
-                            ui.tfStatus.text = "Generating Play Lists...";
-                            setTimeout( MakePlaylists, 34 );
-                        }
-                        else
-                        {
-                            setTimeout( ThreadComplete );
-                        }
+                        ui.tfStatus.text = "Generating Play Lists...";
+                        setTimeout( MakePlaylists, 34 );
                         return;
                     }
-                    
-                    var iteration : int;
+
+                    var root : File = folders[folder_iteration];
+                    var relPath_root : String = Find.File_relative(root,root_dir);
+                    var total_files_at_this_depth : Array = Find.GetChildren( found, root );
                     var seded : String
                     var folder : File;
-                    var root : File = folders[folder_iteration++];
-                    var curr_index_file : File = Find.File_AddPath( root, HTML_PLAYER );
 
-                    ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
+                    // Make folder index and start folder 
+                    var relPath : String = Find.File_relative(root,root_dir);
+                    var curr_depth : int = Find.File_Depth(root,root_dir) + (0 != folder_iteration);
 
-                    // Don't write index files in folders with no audio content
-                    var total_files_folders_at_this_depth : Array = Find.GetChildren( found, root, int.MAX_VALUE );
-                    var total_files_at_this_depth : Array = Find.GetFiles(total_files_folders_at_this_depth);
-                    function just_music(file:File) : Boolean
-                    {
-                        var ext : String = Find.File_extension(file);
-                        return null == ext.match( rxMP3 );
-                    }
-                    total_files_at_this_depth = Find.Filter( total_files_at_this_depth, just_music );
-trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );                    
-                    if( 0 < total_files_at_this_depth.length )
-                    {
-                        // Get a list of folders in this folder, files in this folder
-                        var curr_files : Array = Find.GetChildren( found, root );
-                        var curr_folders : Array = Find.GetFolders(curr_files);
-                        curr_files = Find.GetFiles(curr_files);
-                        curr_files = Find.Filter( curr_files, just_music );
-
-                        // Create and build top half of index file
-                        var curr_title : String = Find.File_nameext(root);
-                        curr_title = Find.FixDecodeURI(curr_title);
-
-                        // Build jukebox file
-                        
-                        var index_folders : String = "";
-                        var index_files : String = "";
-                        var dbnew : Object;
-    
-                        // Iterate child folders and generate links to them
-                        for( iteration = 0; iteration < curr_folders.length; ++iteration )
-                        {
-                            var curr_folder : File  = curr_folders[iteration];
-    
-                            // Filter folders with no movies in any children from lists
-                            total_files_folders_at_this_depth = Find.GetChildren( found, curr_folder, int.MAX_VALUE );
-                            total_files_at_this_depth = Find.GetFiles(total_files_folders_at_this_depth);
-                            total_files_at_this_depth = Find.Filter( total_files_at_this_depth, just_music );
-                            if( total_files_at_this_depth.length > 1 )
-                            {
-                                var curr_index : File = Find.File_AddPath( curr_folder, HTML_PLAYER );
-                                var curr_index_title : String = Find.File_nameext( curr_folder );
-                                curr_index_title = Find.FixDecodeURI(curr_index_title);
-                                var curr_index_relative : String = Find.File_relative( curr_index, root );
-                                var curr_index_absolute : String = Find.File_relative( curr_index, folders[0] );
-                                var curr_depth : int = Find.File_Depth(curr_folder,folders[0]);
-
-                                if( 0 == iteration )
-                                {
-                                    // Make index entry if folder has contents
-                                    if( 0 != curr_files.length )
-                                    {
-                                        seded = index_toc_folder;
-                                        seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                        seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
-                                        seded = seded.replace(/FOLDER_STYLE/g,"");
-                                        file_list_index += seded;
-                                    }
-                                }
-                                else
-                                {
-
-                                    // Emit index for child folder
-                                    seded = index_index;
-                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_relative));
-                                    seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
-                                    seded = seded.replace(/FOLDER_STYLE/g,'');
-                                    index_folders += seded;
-
-                                    // Generate indexes for TOC
-                                    seded = index_small;
-                                    seded = seded.replace(/FOLDER_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                                    seded = seded.replace(/FOLDER_NAME/g,Find.EscapeQuotes(curr_index_title));
-                                    seded = seded.replace(/FOLDER_STYLE/g,'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'px;');
-                                    dbnew = {name:curr_index_title,item:seded,path:curr_folder,depth:curr_depth};
-                                    folder_list_db.push( dbnew );
-                                }
-                            }
-                        }
-                        
-                        // Iterate files and generate code 
-                        for( iteration = 0; iteration < curr_files.length; ++iteration )
-                        {
-                            var curr_file : File = curr_files[iteration];
-                            var curr_file_relative : String = Find.File_relative( curr_file, root );
-                            var curr_file_title : String = Find.File_name( curr_file );
-                            curr_file_title = Find.FixDecodeURI(curr_file_title);
-                            
-                            // Emit index+code to play file
-                            seded = index_file;
-                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
-                            seded = seded.replace(/FILE_STYLE/g,'');
-                            index_files += seded;
-    
-                            // Emit absolute index to play from TOC
-                            curr_file_relative = Find.File_relative( curr_index_file, folders[0] );
-                            var curr_name   : String = Find.FixDecodeURI(Find.File_nameext(curr_file));
-                            var curr_path   : String = curr_file_relative + '?' + curr_name;
-                            seded = index_toc_file;
-                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_path));
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
-                            seded = seded.replace(/FILE_STYLE/g,'');
-                            file_list_index += seded;
-
-                            bExportedLinks = true;
-                        }
-    
-                        if( bExportedLinks )
-                        {
-                            bExportedLinks = false;
-                            var index_content : String = player_template;
-                            index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
-                            index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                            index_content = index_content.replace("<!--INDEXES_HERE-->",index_folders+"<br/>\n"+index_files);
-                            index_content = PackOutput(index_content);
-    
-                            // Now write out index file in one pass
-                            var fs : FileStream = new FileStream();
-                            fs.open( curr_index_file, FileMode.WRITE );
-                            fs.writeUTFBytes(index_content);
-                            fs.close();
-                        }
-                    }
+                    // Create and build top half of index file
+                    var curr_title : String = Find.File_nameext(root);
+                    curr_title = Find.FixDecodeURI(curr_title);
+                    curr_title = Find.EscapeQuotes(curr_title);
                     
-                }
+                    var FOLDER_ID : String = relPath.replace(/[^a-zA-Z0-9]/g, '_' );
 
-                // Database of filenames->File
-                var database : Dictionary;
-                // Iteration 'thread' details
-                var playlist_iteration : int = 0;
-                var aPlaylists : Array;
-                // List of generated play list titles
-                var aPlayListsAvailable : Array = new Array();
-                /**
-                 * Scan for playlists and poop 'em out as folders
-                 * Should probably appear in main index table of contents, at top.
-                 * We need to do this *before* the index/TOC is generated, because
-                 * I want them in the index.html TOC box
-                **/
-                function BorkedFile(sz:String) : String
-                {
-                    sz = Find.FixDecodeURI(sz);
-                    sz = Find.FixEncodeURI(sz);
-                    return sz.toLowerCase();
+                    var index_files : String = "";
+                    
+                    var iFile : int;
+                    var curr_file : File;
+
+                    var curr_files_list : Array = [];
+                    for( iFile = 0; iFile < total_files_at_this_depth.length; ++iFile )
+                    {
+                        curr_file = total_files_at_this_depth[iFile];
+                        var extCurr : String = Find.File_extension(curr_file);
+                        if( extCurr.match(rxMP3) )
+                        {
+                            media_files_db.push(curr_file);
+                            curr_files_list.push(curr_file);
+                        }
+                        else if( extCurr.match(rxPLAY_LISTS) )
+                        {
+                            all_play_lists.push(curr_file);
+                        }
+                    }
+                    folder_list_db.push( { root:root, index:curr_files_list } );
+                    
+                    ++folder_iteration;
                 }
                 
+                /* 
+                    Ultra-evil brute force play list import function
+                    Search the whole file versus every file we know about; if
+                    there are matches, make a 'fake' folder out of it.
+                */
+                var playlist_iteration : int = 0;
+
                 function MakePlaylists():void
                 {
-                    database = new Dictionary();
-                    
-                    function filter_playable(file:File):Boolean
-                    {
-                        // Play list files with recognizeable file extensions
-                        var ext : String = Find.File_extension(file);
-                        return null == ext.match( rxMP3 );
-                    }
-                    aPlaylists = Find.Filter( finding.results, filter_playable );
-
-                    // Make a quicker index for potential play list members
-                    var i : int;
-                    var curr : File;
-                    var currname : String;
-                    for( i = 1; i < aPlaylists.length; ++i )
-                    {
-                        curr = aPlaylists[i];
-                        currname = Find.File_name(curr);
-                        currname = BorkedFile(currname);
-                        if( null != database[currname] )
-                        {
-                            // Tell us about bothersome conflicts in trace output
-                            trace( "Playlist DB:", database[currname].nativePath, "conflicts with", curr.nativePath );
-                        }
-                        else
-                        {
-                            database[currname] = curr;
-                            //trace("Added '"+currname+"' to database from",curr.nativePath);
-                        }
-                    }
-
-                    // Get play list files, to iterate and parse
-                    function filter_playlists(file:File):Boolean
-                    {
-                        // Play list files with recognizeable file extensions
-                        var ext : String = Find.File_extension(file);
-                        return null == ext.match( rxTXT ) && null == ext.match( rxXML );
-                    }
-                    
-                    // Build a list of potential play lists
-                    aPlaylists = Find.Filter( finding.results, filter_playlists );
-                    aPlaylists.shift();
-                    aPlaylists.sort(Find.SortOnName);
-    
-                    if( 0 != aPlaylists.length )
-                    {
-                        playlist_iteration = 0;
-                        setTimeout( ThreadPassPlaylist );
-                    }
-                    else
-                    {
-                        setTimeout( ThreadComplete );
-                    }
+                    ui.tfStatus.text = "Play Lists...";
+                    setTimeout( ThreadPassPlayList, 34 );
                 }
-
-                function ThreadPassPlaylist():void
+                    
+                //for( playlist_iteration = 0; playlist_iteration < all_play_lists.length; ++playlist_iteration )
+                function ThreadPassPlayList():void
                 {
-                    if( playlist_iteration < aPlaylists.length )
+                    if( playlist_iteration < all_play_lists.length )
                     {
                         // Do next pass
-                        setTimeout( ThreadPassPlaylist );
-                        ui.tfStatus.text = "Generating Play Lists " + (playlist_iteration) + " / " + (aPlaylists.length-1);
-                        trace( ui.tfStatus.text );
+                        ui.tfStatus.text = "Play List: "+playlist_iteration.toString()+"/"+all_play_lists.length.toString();
+                        setTimeout( ThreadPassPlayList, 34 );
                     }
                     else
                     {
                         // Break out of 'threaded' loop
                         // Bottom part of file index file; all done
-                        ui.tfStatus.text = "Writing index...";
-                        setTimeout( ThreadComplete );
+                        ui.tfStatus.text = "Generating index...";
+                        setTimeout( ThreadComplete, 34 );
                         return;
                     }
-                    var playListCurr : File = aPlaylists[playlist_iteration++];
-                    var contents : String = LoadText(playListCurr);
-                    var ext : String = Find.File_extension( playListCurr );
-                    var found_paths : Array = new Array();
-
-                    function IsItAPath(line:String) : Boolean
-                    {
-                        // Line ends with a recognized file extension?
-                        // eat messy leading/trailing white space, including DOS '\r'
-                        var lastSlash : int;
-                        var lastDot : int;
-                        line=line.replace(/^\s+|\s+$/g,'');
-                        if( null != line.match( rxMP3 ) )
-                        {
-                            lastSlash = line.lastIndexOf('/');
-                            if( -1 == lastSlash )
-                                lastSlash = line.lastIndexOf('\\');
-                            lastDot = line.lastIndexOf('.');
-                            if( lastDot > lastSlash )
-                            {
-                                var path : String = line.substr(lastSlash+1,-1+lastDot-lastSlash);
-                                path = BorkedFile(path);
-                                foundFile = database[path];
-                                if( null != foundFile )
-                                {
-                                    //trace("Found: ", path);
-                                    found_paths.push(foundFile);
-                                    return true;
-                                }
-                                else
-                                {
-                                    trace("Not found: '"+path+"'");
-                                }
-                            }
-                        }
-                        return false;
-                    }
-
-                    if( ext.match( rxTXT ) )
-                    {   //
-                        // Go through this line-by-line, looking for lines that 
-                        // end with a playable file extension, and if it looks
-                        // like a 'path', see if it's in our database, and if so,
-                        // emit it.
-                        //
-                        var lines : Array = contents.split( '\n' );
-                        if( 1 == lines.length ) // DOS-ish
-                            lines = contents.split( '\r' );
-                        var line : String;
-                        var i : int;
-                        for( i = 0; i < lines.length; ++i )
-                        {
-                            line = lines[i];
-                            if( '#' != line.substr(0,1) )
-                            {
-                                IsItAPath(line);
-                            }
-                        }
-                    }
-                    else
-                    {   //
-                        // Recursively tear the XML apart, looking for text that 
-                        // looks like a playable file name, and compare against
-                        // our database of file names.  Emit if we match.
-                        //
-                        // Pure evil, but I don't want to get bogged down in 
-                        // petty details over who thinks what the XML should look
-                        // like, be named, whether to put it in an attribute, 
-                        // etc., and all of the possible permutations of that.
-                        //
-                        var xml : XML = new XML(contents);
-                        // Iteratr through everything that looks like a path.
-                        // If we find a match, add it to output
-                        function CurseAndRecurse(xml:XML) : Boolean
-                        {
-                            var i : int;
-                            var list : XMLList;
-
-                            // This looks like a path to a song?
-                            if( IsItAPath(xml.toString()) )
-                                return true;
-
-                            // An attribute looks like a path to a song?
-                            list = xml.attributes();
-                            for( i = 0; i < list.length(); ++i )
-                            {
-                                IsItAPath(list[i].toString());
-                            }
-                                
-                            // Recurse and try further in
-                            list = xml.children();
-                            for( i = 0; i < list.length(); ++i )
-                            {
-                                CurseAndRecurse(list[i]);
-                            }
-                            return false;
-                        }
-                        CurseAndRecurse(xml);
-                    }
-
-                    // If we have a play list with content, generate the player file for it and add it to play_list_db database
-                    if( "" != index_files )
-                    {
-                        var index_files : String = "";
-                        found_paths.sort(Find.SortOnName);
-         
-                        // Remove duplicates
-                        for( i = found_paths.length-1; i >= 1; --i )
-                        {
-                            if( found_paths[i] == found_paths[i-1] )
-                            {
-                                found_paths.splice(i,1);
-                            }
-                        }
-
-                        for( i = 0; i < found_paths.length; ++i )
-                        {
-                            var foundFile : File = found_paths[i];
-                            var curr_index_title : String = Find.File_name( foundFile );
-                            curr_index_title = Find.FixDecodeURI(curr_index_title);
-                            var curr_index_absolute : String = Find.File_relative( foundFile, root_path_media );
-
-                            var seded : String = index_file;
-                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_index_absolute));
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_index_title));
-                            seded = seded.replace(/FILE_STYLE/g,'');
-                            index_files += seded;
-                        }
-
-
-                        var outputFileName : String = Find.File_name( playListCurr );
-                        var outputFile : File = Find.File_AddPath( root_path_media, outputFileName );
-                        outputFile = Find.File_newExtension( outputFile, ".html" );
-                        var curr_title : String = Find.File_name( playListCurr );
-                        curr_title = Find.FixDecodeURI(curr_title);
-    
-                        var index_content : String = player_template;
-                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title);
-                        index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace("<!--INDEXES_HERE-->",index_files);
-                        index_content = PackOutput(index_content);
-                        
-                        // Now write out index file in one pass
-                        var fs : FileStream = new FileStream();
-                        fs.open( outputFile, FileMode.WRITE );
-                        fs.writeUTFBytes(index_content);
-                        fs.close();
-
-                        // Generate indexes for TOC, for our new player file
-                        seded = index_small;
-                        seded = seded.replace(/FOLDER_PATH/g, Find.FixEncodeURI(Find.File_relative( outputFile, root_path_media )) );
-                        seded = seded.replace(/FOLDER_NAME/g, Find.EscapeQuotes(curr_title));
-                        seded = seded.replace(/FOLDER_STYLE/g,'');
-                        var dbnew : Object = {name:curr_title,item:seded,path:outputFile,depth:0};
-                        play_list_db.push( dbnew );
-                    }
-                }                
                 
+                    //for each( curr_file in all_play_lists )
+                    var curr_file : File = all_play_lists[playlist_iteration];
+                    {
+
+                        var curr_file_text : String = LoadText( curr_file );
+                        // Eat up XML/HTML entities
+                        curr_file_text = new XML(curr_file_text).toString();
+                        // Get rid of URI escapes
+                        //curr_file_text = Find.FixDecodeURI(curr_file_text);
+                        // All lower-case for case-insensitivity
+                        curr_file_text = curr_file_text.toLowerCase(); 
+                        
+                        // At this point, our image of the play list is utterly ruined, except as something to search as a block of text
+                        
+                        var files : Array = [];
+            
+                        // Treat play list file as raw text, and look for literal matches of file names that we have.
+                        var media_curr : File;
+                        var name_curr : String;
+                        
+                        for each (media_curr in media_files_db)
+                        {
+                            name_curr = Find.File_name(media_curr);
+                            name_curr = name_curr.toLowerCase();
+                            name_curr = '/' + name_curr + '.';
+                            if( -1 != curr_file_text.indexOf( name_curr ) )
+                                files.push( media_curr );
+                        }
+                        
+                        // We found file names in our collection in that play list, so we will treat it like a real one.
+                        if( 0 != files.length )
+                        {
+                            // Make sure we have only unique files.
+                            var uniquefiles : Dictionary = new Dictionary();
+                            for each (media_curr in files)
+                                uniquefiles[media_curr] = 'true';
+                            files = [];
+                            for(media_curr in uniquefiles)
+                                files.push(media_curr);
+                                
+                            // Add play list file like a folder
+                            var newpath : File = new File( Find.GetPathWithoutExt(curr_file) );
+                            folder_list_db.push( { root:newpath, index:files } );
+                        }
+                    }
+                    ++playlist_iteration;
+                }
+                    
+
                 function ThreadComplete():void
                 {
                     // If user wanted a flattened table of contents, make one.
-                    if( CheckGet( ui.bnTOC ) && folder_list_db.length > 1 )
+                    if( 0 != media_files_db.length )
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
-                        var dbCurr : Object = folder_list_db[iteration];
-                        var iteration : int;
-                        folder_list_db.sort(byNativePath);
+                        var player_list : String = "";
+                        
                         function byNativePath( p1:Object, p2:Object ) : int
                         {
-                            return Find.SortOnNative( p1.path, p2.path );
+                            return Find.SortOnNative( p1.root, p2.root );
                         }
-                        if( 0 != play_list_db.length )
+                        folder_list_db = folder_list_db.sort(byNativePath);
+                        
+                        var folder_iteration : int;
+                        for( folder_iteration = 0; folder_iteration < folder_list_db.length; ++folder_iteration )
                         {
-                            //play_list_db.sortOn(name);
-                            folder_list += "Play Lists:";
-                            for( iteration = 0; iteration < play_list_db.length; ++iteration )
-                            {
-                                dbCurr = play_list_db[iteration];
-                                folder_list += dbCurr.item;
-                            }
-                            folder_list += "<br/><br/>Folders:";
-                        }
-                        for( iteration = 0; iteration < folder_list_db.length; ++iteration )
-                        {
-                            dbCurr = folder_list_db[iteration];
-                            folder_list += dbCurr.item;
-                        }
+                            var curr_folder : Object = folder_list_db[folder_iteration];
+                            var root : File = curr_folder.root;
+                            var curr_index : Array = curr_folder.index;
 
-                        var curr_title : String = Find.File_name( folders[0] );
-                        var curr_title_escaped : String = Find.EscapeQuotes(curr_title);
+                            var seded : String
+        
+                            // Make folder index and start folder 
+                            var relPath : String = Find.File_relative(root,root_dir);
+                            var curr_depth : int = Find.File_Depth(root,root_dir) + (0 != folder_iteration);
+        
+                            // Create and build top half of index file
+                            var curr_title : String = Find.File_nameext(root);
+                            curr_title = Find.FixDecodeURI(curr_title);
+                            curr_title = Find.EscapeQuotes(curr_title);
+                           
+                            var FOLDER_ID : String = relPath.replace(/[^a-zA-Z0-9]/g, '_' );
+                            
+                            seded = index_toc_folder;
+                            seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                            var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
+                            seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                            
+                            if( 0 == curr_index.length )
+                            {
+                                // Add disabled link for folder list
+                                const folder_disabled : String = ' pointer-events: none; opacity: 0.75;';
+                                seded = seded.replace(/FOLDER_STYLE/g,indent+folder_disabled);
+                                folder_list += seded;
+                            }
+                            else
+                            {
+                                // Add active link for folder list
+                                seded = seded.replace(/FOLDER_STYLE/g,indent);
+                                folder_list += seded;
+                                
+                                // Now build the file index for this folder and add it to the list
+                                var index_files : String = "";
+                                var media_iteration : int;
+                                curr_index = curr_index.sort(Find.SortOnNative);
+                                for( media_iteration = 0; media_iteration < curr_index.length; ++media_iteration )
+                                {
+                                    var curr_file : File = curr_index[media_iteration];
+                                    var curr_file_relative : String = Find.File_relative( curr_file, root_dir );
+                                    var curr_file_title : String = Find.File_name( curr_file );
+                                    curr_file_title = Find.FixDecodeURI(curr_file_title);
+                                    curr_file_title = Find.EscapeQuotes(curr_file_title);
+                                    
+                                    seded = index_toc_file;
+                                    seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
+                                    seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
+                                    seded = seded.replace(/FILE_STYLE/g,'');
+                                    index_files += seded;
+                                }
+                                seded = index_toc_files;
+                                seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                                seded = seded.replace(/FOLDER_STYLE/g, '');
+                                seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                                index_files = seded + index_files + index_toc_files_end;
+                                player_list += index_files;
+                            }
+                        }
                         
+                        var TITLE_TEXT : String = Find.File_name( root_dir );
+                        TITLE_TEXT = Find.EscapeQuotes(TITLE_TEXT);
                         var index_content : String = index_template;
-                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title_escaped);
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace("<!--INDEXES_HERE-->",file_list_index);
-                        index_content = index_content.replace("<!--FOLDERS_HERE-->",folder_list);
+                        index_content = index_content.replace(/TITLE_TEXT/g,TITLE_TEXT);
+                        index_content = index_content.replace("<!--INDEX_FOLDERS_HERE-->", folder_list);
+                        index_content = index_content.replace("<!--INDEX_FILES_HERE-->", player_list);
                         
-                        index_content = PackOutput(index_content);
+                        //index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
                         var toc_file : File = Find.File_AddPath( root_path_media, MAIN_TOC );
@@ -871,66 +600,13 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
 
 
         /**
-         * Parse common text and XML based formats
-         *
-         * Play lists will be exported with their own index and with their own
-         * Playlistname.html files, matching the play list file names.
-         *
-         * This is a 'forgiving' playlist generator.  We strip the paths off and
-         * match just the file name, case insensitive, so something like...
-         *
-         * /volumes/music/artist/album/My Favorite Song About Food.mp3
-         *
-         * ...and...
-         *
-         * /spork/arbitrary/path/to/thing/spewspew/My Favorite Song About Food.mp3
-         &
-         * ...would match, as would...
-         &
-         * My Favorite song about Food
-         *
-         * ...without any file extension.
-         *
-         * I do this so play lists can be exchanged/used without keeping the 
-         * tree of mp3 files across computers and different people's libraries.
-         * As long as you both have the required songs, *named the same things*
-         * a playlist will be generated.  If there's no match for an entry, 
-         * then, no harm, no foul, we simply don't include it.
-         *
-         * There are a whole bunch of play list file formats to mess around with,
-         * but they break down into two categoties for this app.  Plain text and
-         * XML text.  We only look for common patterns/attributes/entries from
-         * identifiable formats with the PATH in them.   This is sort of 'dirty',
-         * but handling dozens of different input formats is dirty.
-         *
-         * I will label my 'native' format as plain text, since it is trivial
-         * to work with.  In a txt file, lines beginning with '#' will be ignored
-         * exactly the behavior I use for m3u and its derivations.
-         *
-         * For a 'playlist.txt' filename, you could make a playlist like this...
-         * find /mymusic/rock -name *.mp3 > playlist.txt
-         *
-         * In Windows...
-         * dir /s /b D:\mymusic\rock\*.mp3 > playlist.txt
-         *
-         * Either way, once you have the recursive list of files list, you can 
-         * pare down what you wanted in a text editor.  If you change your mind 
-         * about what files go into what folders later, it will still work just 
-         * like you never changed anything.
-        **/
-
-
-        
-        /**
          * Reset persistent settings
         **/
         protected function ResetSharedData() : Object
         {
             root_path_media = File.desktopDirectory;
             onFolderChanged();
-            CheckSet( ui.bnTOC, true );
             CheckSet( ui.bnCompletionTone, true );
-            CheckSet( ui.bnPlaylist, true );
             
             CheckSet( ui.bnTempate, false );
             ChangeTemplateEnable();
@@ -983,9 +659,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
             if( !root_path_media.exists )
                 root_path_media = File.desktopDirectory;
 
-            CheckSet( ui.bnTOC, share_data.bDoTOC );
             CheckSet( ui.bnCompletionTone, share_data.bPlayTune );
-            CheckSet( ui.bnPlaylist, share_data.bPlaylist );
             
             onFolderChanged();
             
@@ -1016,10 +690,7 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
             // Copy data to our save 'object
             share_data.url_audio = root_path_media.url;
 
-            share_data.bDoTOC = CheckGet( ui.bnTOC );
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
-            share_data.bPlaylist = CheckGet( ui.bnPlaylist );
-
             share_data.bTemplate = CheckGet( ui.bnTempate );
             share_data.url_template = root_path_template.url;
             
@@ -1127,52 +798,6 @@ trace( curr_index_file.nativePath + ': ' + total_files_at_this_depth.length );
             ui.tfPathTemplate.text = root_path_template.nativePath;
         }
 
-        /**
-         * Invoke index file nuker
-        **/
-        private function RemoveIndexes(event:Event):void 
-        { 
-            if( !root_path_media.exists || !root_path_media.isDirectory )
-            {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
-                return;
-            }
-
-            var warning : String = "Every "+HTML_PLAYER+" from the Audio Player path will be wiped out!\n\n" + root_path_media.nativePath;
-            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Audio Index Files", yeah, warning, "DO IT!", "ABORT!" );
-            var rxIndex : RegExp = new RegExp(HTML_PLAYER,"i");
-            function yeah():void
-            {
-                trace("Removing Index Files...");
-                function OnlyHTML(file:File):Boolean 
-                { 
-                    // No hidden files/folders
-                    if( file.isHidden )
-                        return true;
-                    // Filtering folders HERE would exclude their contents.
-                    if( file.isDirectory )
-                        return false;
-                    var filename : String = Find.File_nameext(file);
-                    var found:Array = filename.match(rxIndex);
-                    return null == found;
-                }
-                finding = new Find( root_path_media, OnlyHTML );
-                finding.addEventListener( Find.FOUND, doit );
-                finding.addEventListener( Find.MORE, FindStatus );
-                function doit(e:Event):void
-                {
-                    var found : Array = Find.GetFiles( finding.results );
-                    trace("Erasing",found.length,"files...");
-                    var i : int;
-                    for( i = 0; i < found.length; ++i )
-                    {
-                        trace(found[i].nativePath);
-                        found[i].moveToTrashAsync();
-                    }
-                    Interactive();
-                }
-            }
-        } 
         
         /**
          * Keep file 'legible', but remove excess comments and whitespace

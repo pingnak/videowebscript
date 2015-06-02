@@ -494,6 +494,7 @@ CONFIG::FLASH_AUTHORING
                     var relPath_root : String = Find.File_relative(root,root_dir);
 
                     var total_files_at_this_depth : Array = Find.GetChildren( found, root );
+                    var sortedFiles : Array = total_files_at_this_depth.sort(Find.SortOnNative);
 
                     var iteration : int;
                     var seded : String
@@ -514,7 +515,6 @@ CONFIG::FLASH_AUTHORING
                     
                     var iFile : int;
                     var curr_file : File;
-                    var sortedFiles : Array = total_files_at_this_depth.sort(Find.SortOnNative);
                     for( iFile = 0; iFile < sortedFiles.length; ++iFile )
                     {
                         curr_file = sortedFiles[iFile];
@@ -594,7 +594,7 @@ CONFIG::FLASH_AUTHORING
                     }
                     ++folder_iteration;
                 }
-
+                
                 // Generate index.html file...
                 function ThreadComplete():void
                 {

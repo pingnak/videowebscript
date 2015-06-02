@@ -1,14 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-	This is an ant build for the AIR SDK
-	
-	Se the 'fail', just bit below, for more instructions.
+	This is an ant build for the AIR SDK sub-projects
+
+	Se the 'fail' bit, below, for more instructions.
 
 -->
 <project basedir="../" name="Ant MXMLC Build" default="release" >
 
 <available file="configure.properties" property="setupWasRun" />
 <fail unless="setupWasRun">Setup Failure!
+
+0. This is a sub-ant script.  Invoke the build.xml, one folder below.
 
 1. Install a recent JDK, not JRE (both for ANT, and for Flex SDK)
     http://www.oracle.com/technetwork/java/javase/downloads/index.html
@@ -31,10 +33,10 @@ In the parent folder, running...
 
 ant -DJustConfigure=true -f setup.xml
 
-... will re-create a random certificate, if you delete the existing one.
+... will re-create a new certificate, if you delete the existing one.
 
 If you change the certificate, you will have to uninstall all of the apps signed
-with the previous certificate.
+with the previous certificate, to install new versions of the apps.
 
 </fail>
 
