@@ -461,6 +461,9 @@ CONFIG::FLASH_AUTHORING
             try
             {
                 var folder_list_db : Array = new Array();
+                var file_list_db : Array = new Array();
+                var media_files_db : Array = new Array();
+                var thumbnail_db : Dictionary = new Dictionary();
                 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -484,24 +487,56 @@ CONFIG::FLASH_AUTHORING
                         setTimeout( ThreadComplete );
                         return;
                     }
+                    ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
+                    trace( ui.tfStatus.text );
+
+                    var root : File = folders[folder_iteration];
+                    var relPath_root : String = Find.File_relative(root,root_dir);
+
+                    var total_files_at_this_depth : Array = Find.GetChildren( found, root );
 
                     var iteration : int;
                     var seded : String
                     var folder : File;
 
+                    // Make folder index and start folder 
+                    var relPath : String = Find.File_relative(root,root_dir);
+                    var curr_depth : int = Find.File_Depth(root,root_dir) + (0 != folder_iteration);
 
+                    // Create and build top half of index file
+                    var curr_title : String = Find.File_nameext(root);
+                    curr_title = Find.FixDecodeURI(curr_title);
+                    curr_title = Find.EscapeQuotes(curr_title);
+                    
+                    var FOLDER_ID : String = relPath.replace(/[^a-zA-Z0-9]/g, '_' );
+
+                    var index_files : String = "";
+                    
+                    var iFile : int;
+                    var curr_file : File;
+                    var sortedFiles : Array = total_files_at_this_depth.sort(Find.SortOnNative);
+                    for( iFile = 0; iFile < sortedFiles.length; ++iFile )
                     {
+                        curr_file = sortedFiles[iFile];
+                        var extCurr : String = Find.File_extension(curr_file);
+                        if( extCurr.match(REGEX_MP4) )
                         {
+                            media_files_db.push(curr_file);
 
-                        {
+                            var curr_file_relative : String = Find.File_relative( curr_file, root_dir );
                             var curr_file_title : String = Find.File_name( curr_file );
                             curr_file_title = Find.FixDecodeURI(curr_file_title);
+                            curr_file_title = Find.EscapeQuotes(curr_file_title);
 
+                            // Thumb to-do list
+                            var file_thumb : File = Find.File_newExtension(curr_file,'.jpg');
+                            var curr_file_thumb : String = Find.File_relative( file_thumb, root_dir );
 
                             // Emit index+code to play file
                             if( CheckGet( ui.bnDoThumbs ) )
                             {
                                 seded = index_file;
+                                seded = seded.replace(/MEDIA_IMAGE/g,Find.FixEncodeURI(curr_file_thumb));
                             }
                             else
                             {   // No thumbnail
@@ -511,20 +546,75 @@ CONFIG::FLASH_AUTHORING
                             seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
                             seded = seded.replace(/FILE_STYLE/g,'');
                             index_files += seded;
+                            
                         }
-
-                        
+                        else if( extCurr.toLowerCase() == '.jpg' )
+                        {
+                            thumbnail_db[curr_file.nativePath] = 'true';
+                        }
                     }
+
+                    // Add missing thumbnails to 'to do' list.
+                    var curr_thumb : File;
+                    for( iFile = 0; iFile < media_files_db.length; ++iFile )
+                    {
+                        curr_file = media_files_db[iFile];
+                        curr_thumb = Find.File_newExtension(curr_file,'.jpg');
+                        if( !(curr_thumb.nativePath in thumbnail_db) )
+                        {
+                            thumbnail.AddTask( curr_file, curr_thumb );
+                        }
+                    }
+                    
+                    // Emit folder
+                    seded = index_folder;
+                    seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                    var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
+                    seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                    if( 0 == media_files_db.length )
+                    {
+                        // Indent and emit disabled folder
+                        const folder_disabled : String = ' pointer-events: none; opacity: 0.75;';
+                        seded = seded.replace(/FOLDER_STYLE/g,indent+folder_disabled);
+                        folder_list_db.push( {root:root,index:seded} );
+                    }
+                    else
+                    {
+                        // Indent enabled folder
+                        seded = seded.replace(/FOLDER_STYLE/g,indent);
+                        folder_list_db.push( {root:root,index:seded} );
+                        
+                        // Add file list div
+                        seded = index_begin;
+                        seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                        seded = seded.replace(/FOLDER_STYLE/g, '');
+                        seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                        index_files = seded + index_files + index_end;
+                        file_list_db.push( {root:root,index:index_files} );
+                    }
+                    ++folder_iteration;
                 }
 
+                // Generate index.html file...
                 function ThreadComplete():void
                 {
+                    if( folder_list_db.length > 1 )
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
                         var iteration : int;
+                        var dbCurr : Object;
                         for( iteration = 0; iteration < folder_list_db.length; ++iteration )
                         {
+                            dbCurr = folder_list_db[iteration];
+                            folder_list += dbCurr.index;
+                        }
+                        
+                        var file_list : String = "";
+                        for( iteration = 0; iteration < file_list_db.length; ++iteration )
+                        {
+                            dbCurr = file_list_db[iteration];
+                            file_list += dbCurr.index;
                         }
 
                         var curr_title : String = Find.File_name( folders[0] );
@@ -532,10 +622,16 @@ CONFIG::FLASH_AUTHORING
                         
                         var index_content : String = index_template;
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
+                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title_escaped);
+                        index_content = index_content.replace(/THUMB_SIZE/g,thumb_size.toString());
+                        index_content = index_content.replace("<!--INDEX_FOLDERS_HERE-->", folder_list);
+                        index_content = index_content.replace("<!--INDEX_FILES_HERE-->",   file_list);
 
                         // Pack output file a bit
+                        //index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
+                        var toc_file : File = Find.File_AddPath( root_dir, MAIN_TOC );
                         var fs : FileStream = new FileStream();
                         fs.open( toc_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
@@ -678,7 +774,7 @@ CONFIG::FLASH_AUTHORING
             share_data.thumb_size = thumb_size;
             share_data.bTemplate = CheckGet( ui.bnTempate );
             share_data.url_template = root_path_template.url;
-            
+
             share_data.sign = SO_SIGN;
 
             // Commit file stream
