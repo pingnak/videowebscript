@@ -16,9 +16,7 @@ This provides a consistent, portable user interface for that content on practica
 
 Go to the [Wiki Pages](https://github.com/pingnak/videowebscript/wiki), to get more details about how to use and customize this.
 
-##The 'monolithic' folder...
-
-This is probably where I'm going to focus work on for the 'official' build, and concentrate on for the next release snapshot.
+##The new, 'monolithic' UI...
 
 * Has a new implementation that sucks all of the web pages into one index.html, instead of one html player file, per folder, and an index.html file, too.
 
@@ -34,24 +32,29 @@ This is probably where I'm going to focus work on for the 'official' build, and 
 
 * A bit more scalable/navigable for smaller screens
 
-* Mostly fixed my 'nice' seek bar, to work for most screens, except truly ridiculously small ones.  Reverts to native video controls when there isn't enough room.
+* Mostly fixed my 'nice' seek bar, to work for most screens, except truly ridiculously small ones.  Reverts to native video controls when there just isn't enough room.
 
 * Kindle Silk browser still has some issues, if you leave full screen mode and try to go back in the same session, you get technicolor spew.  Also the audio player positioning is a bit borked.  These appear to be driver/browser implementation bugs.
 
-Currently, there's just the python scripts to make all-in-one video and audio pages.  The template is similar to the 'old' model, but not similar enough to re-use with the old templates and new scripts.
+There are native and Adobe AIR installers, if you have a phobia of shell commands.
 
-I'm deciding whether to just dive in and make a python front-end and installer with 'kivy'.  Maybe the 'kivy' route, if I can make the installers work.  Maybe Adobe AIR again, since that's already mostly baked, and I only have to rewrite a piece of it.
+I'm still deciding whether to dive in and make a python front-end and installer with 'kivy'. 
 
 ##Screen Shots
 
-![untitled2](https://cloud.githubusercontent.com/assets/6754243/7664509/65f2298e-fb40-11e4-8c2b-51a971fea035.jpg)
-Video Page Snapshot; Content from 'Physics for Future Presidents', with Richard A. Muller
+![screen shot 2015-06-02 at 10 59 29](https://cloud.githubusercontent.com/assets/6754243/7943027/de4f79f2-0916-11e5-84b4-e001eab2c205.png)
 
-![Jukebox Page Snapshot](https://cloud.githubusercontent.com/assets/6754243/7543869/e85ec2c0-f57c-11e4-96f9-706c0805d161.png)
-Jukebox Page Snapshot
+Landscape, Phone/iPod Sized, Play List (Physics for Future Presidents, Richard A. Muller, Berkely)
 
-![screen shot 2015-05-08 at 12 31 35 pm](https://cloud.githubusercontent.com/assets/6754243/7544019/3d71af24-f57e-11e4-93b7-4c28895d9cf7.png)
-Contact Sheet Snapshot - Photographs of animals at The Living Desert, in Palm Desert, CA
+![screen shot 2015-06-02 at 11 00 15](https://cloud.githubusercontent.com/assets/6754243/7943028/de4f8aa0-0916-11e5-9384-8fd629534071.png)
+
+Landscape, Phone/iPod Sized, Player (Physics for Future Presidents, Richard A. Muller, Berkely)
+
+Note: The seek bar looks a little high, but many devices have 'active edges', nowadays.  Maybe it is a little high, too.  Anyway, while playing, all of that disappears after three seconds, until you touch it again.
+
+![screen shot 2015-06-02 at 11 08 43](https://cloud.githubusercontent.com/assets/6754243/7943181/ced4c2ba-0917-11e5-8084-93cc4e463900.png)
+
+Portrait, Phone/iPod Sized, Audio Player
 
 ## Skinning
 
@@ -59,13 +62,11 @@ Now you can skin/change the HTML templates for all of the tools, from a couple o
 
 Just edit a CSS file, point the tool at it, and run, if you don't like my topaz coloring, or icons, or just want to make the icons 'match' your own browser's control scheme.
 
-Edit the other files to add your own personal touches, like your own personalized title, or completely alter the user interface.
+Edit the other files to add your own personal touches, like your own personalized titles, or completely alter the user interface, to fit some other need.
 
 See: https://github.com/pingnak/videowebscript/wiki/Skinning-or-Theming
 
 ##License
-
-I picked the MIT license, mainly because the 'contact sheet' app [uses an 'exif-as3' library](https://github.com/bashi/exif-as3) that picks through the EXIF data in jpeg files, and that's its license.
 
 I can't control what you do with it, and don't really care, because _I can't control what you do with it_.  Use it, abuse it, modify and release it again as your own without giving me any 'credit'.  Just don't blame me for what happens if you break laws or try to use it as part of a missile guidance system and blow yourself up, or whatever.
 
