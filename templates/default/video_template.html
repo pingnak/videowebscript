@@ -41,6 +41,7 @@ vid.MOUSE_TIMEOUT = 3000;
 vid.lastScreenY = -1; 
 vid.lastScreenX = -1;
 vid.playlistElement = null;
+vid.bTrackingProgress = false;
 
 /**
  * Set things up, when the page loads
@@ -86,7 +87,6 @@ vid.PlayerInit = function()
     vid.video.addEventListener( 'click',                vid.TogglePause );
     
     //vid.video.addEventListener( 'canplay',              vid.WatchMode );
-    //vid.video.addEventListener( 'error',                vid.Error );
     vid.video.addEventListener( 'ended',                vid.PlayNextWrap );
     window.addEventListener( 'resize',                  vid.OnResize );
     window.addEventListener( 'fullscreenchange',        vid.OnResize );
@@ -103,7 +103,8 @@ vid.PlayerInit = function()
 vid.Error = function(e)
 {
     console.log(e);
-    vid.BrowseFolder();
+    vid.video.innerHTML = "Video Playback Error: " + e;
+    //vid.BrowseFolder();
 }
 
 
@@ -250,6 +251,8 @@ vid.hhmmss = function(t)
 /** Update progress */
 vid.UpdateTime = function()
 {   
+    if( vid.bTrackingProgress )
+        return false;
     vid.progress_playing.style.width = (100*vid.video.currentTime/vid.video.duration)+'%';
     vid.progress_text.innerHTML = vid.hhmmss(vid.video.currentTime);
     vid.progress_text_total.innerHTML = vid.hhmmss(vid.video.duration);
@@ -315,16 +318,16 @@ vid.ProgressClick = function(e)
 /** Mouse entered progress; disable time updates */
 vid.ProgressIn = function(e)
 {
+    vid.bTrackingProgress = true;
     vid.MouseMoved();
     vid.ProgressTrackMouse(e);
-    vid.video.removeEventListener( 'timeupdate', vid.UpdateTime );
 }
 /** Mouse exited progress; enable time updates */
 vid.ProgressOut = function(e)
 {
+    vid.bTrackingProgress = false;
     vid.MouseMoved();
     vid.UpdateTime();
-    vid.video.addEventListener( 'timeupdate', vid.UpdateTime );
 }
 /** Update progress bar and time with mouse motion */
 vid.ProgressTrackMouse = function(e)
@@ -438,15 +441,17 @@ vid.RefreshControls = function()
         break;
     }
 
+    vid.bTrackingProgress = false;
+    
     vid.progress_clickme.removeEventListener( 'mousemove',vid.ProgressTrackMouse );    
     vid.progress_clickme.removeEventListener( 'click',    vid.ProgressClick );
     vid.progress_clickme.removeEventListener( 'mouseover',vid.ProgressIn );     
     vid.progress_clickme.removeEventListener( 'mouseout', vid.ProgressOut ); 
 
-    vid.video.removeEventListener( 'playing',          vid.ShowPaused );
-    vid.video.removeEventListener( 'pause',            vid.ShowPaused );
-    vid.video.removeEventListener( 'timeupdate',       vid.UpdateTime );
-    vid.video.removeEventListener( 'loadeddata',       vid.UpdateMeta );
+    vid.video.removeEventListener( 'playing',       vid.ShowPaused );
+    vid.video.removeEventListener( 'pause',         vid.ShowPaused );
+    vid.video.removeEventListener( 'timeupdate',    vid.UpdateTime );
+    vid.video.removeEventListener( 'loadeddata',    vid.UpdateMeta );
 
     vid.bUseNativeControls = vid.browserWidth < 640 
         // || !vid.bFullscreenEnabled 
@@ -528,6 +533,7 @@ vid.PlayMedia = function(video_path,noscroll)
 /** Setting attributes kills the video... so let the stack unwind and start it second */
 vid.PlayMedia2 = function()
 {
+    vid.video.addEventListener( 'error', vid.Error );
     vid.video.setAttribute("src",vid.now_playing);
     vid.video.load();
     vid.video.play();
@@ -536,6 +542,7 @@ vid.PlayMedia2 = function()
     vid.progress_text_title.innerHTML = vid.TitleFromPath(vid.now_playing);
 
     vid.MouseMoved();
+    vid.bTrackingProgress = false;
     vid.UpdateTime();
     vid.WatchMode();
 }
@@ -806,6 +813,7 @@ vid.BrowseFolders = function()
 
     // Stop playback
     vid.video.pause();
+    vid.video.removeEventListener( 'error', vid.Error );
     vid.now_playing = null;
     vid.video.src = '';
     vid.bVideoResumable = false;
@@ -816,13 +824,13 @@ vid.BrowseFolders = function()
 //]]>
 </script>
 
-<style type="text/css">
-
-/* 
-This is similar to what the following would accomplish, except I just bake it
-into the html output with the script.
+<!-- 
+The 'INSERT_CSS_HERE is similar to what the following would accomplish, except 
+it gets baked into the html output with the script.
 <link rel="stylesheet" type="text/css" href="template.css"> 
-*/
+-->
+
+<style type="text/css">
 
 /*INSERT_CSS_HERE*/
 
@@ -876,19 +884,22 @@ into the html output with the script.
 
 /* Skinned control panel mode for windowed and full-screen */
 #video_controls, #overlay_controls {
-    height: 32pt;
-    line-height: 32pt;
+    height: 32pt !important;
+    line-height: 0px;
+    font-size: 0px;
     vertical-align: middle;
     background: transparent;
     margin: 0;
     padding:0;
+    overflow: hidden !important;
+    white-space:nowrap;
 }
 #video_controls {
     display: table;
     position: fixed;
-    width:100%;
-    bottom: 16pt;
+    bottom: 8pt;
     left:0px;
+    width:100%;
 }
 #overlay_controls {
     display: block;
@@ -900,16 +911,17 @@ into the html output with the script.
 /* Skinned control panel icons in left and right boxes */
 #video_controls_left, #video_controls_right {
     display: table-cell;
-    text-decoration: none;
-    white-space:nowrap;
-    height: 32pt;
     width: 1px;
-    overflow: hidden;
+    box-sizing: border-box;
 }
 #video_controls_left {
+    padding-left: 8pt;
+    padding-right: 4pt;
     left: 0px;
 }
 #video_controls_right {
+    padding-left: 4pt;
+    padding-right: 8pt;
     right:0px;
 }
 
@@ -917,52 +929,53 @@ into the html output with the script.
 #progress_bar {
     display: table-cell;
     position: relative;
-    height: 32pt;
     width: auto;
-    margin: 0 !important;
-    padding:0 !important;
+    box-sizing: border-box;
 }
 #progress_playing, #progress_text, #progress_text_total, #progress_text_title, #progress_clickme {
     color: #c0c0c0;
     position: absolute;
     white-space:nowrap;
     overflow: hidden;
+    top:0px;
     height: 32pt;
     line-height: 32pt;
-    font-size: 12pt;
-    margin: 0 !important;
-    padding:0 !important;
-    top:0px;
+    font-size: 14pt;
 }
-
+#progress_playing {
+    z-index:2;
+    top: 1pt;
+    height: 31pt;
+    opacity: 0.25;
+    background-color: #ff0000;
+}
 #progress_text {
     text-align: left;
     z-index:3;
     left: 1%;
     width: 98%;
-}
-#progress_text_title {
-    text-align: center;
-    z-index:5;
-    left: 0%;
-    width: 100%;
+    text-shadow: 1pt 1pt #000000;
 }
 #progress_text_total {
     text-align: right;
     z-index:4;
     left: 1%;
     width: 98%;
+    text-shadow: 1pt 1pt #000000;
 }
-
+#progress_text_title {
+    text-align: center;
+    z-index:5;
+    left: 0%;
+    width: 100%;
+    text-shadow: 1pt 1pt #000000;
+}
 #progress_clickme {
     z-index:6;
-    border: 1px solid #303030;
+    top: 1pt;
+    height: 30pt;
+    border: 1pt solid #303030;
     width: 100%;
-}
-#progress_playing {
-    z-index:2;
-    opacity: 0.25;
-    background-color: #ff0000;
 }
 
 </style>
@@ -973,7 +986,7 @@ into the html output with the script.
 <div id='PlayerBox' >
 
 <video id="videoplayer" class='videoplayer' >
-    Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or it is disabled.<br/><br/>
+    Get a <i>modern</i> browser that supports HTML5 Video.  If you see this, it doesn't, or video is disabled.<br/><br/>
     <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Other Browsers...</a><br/>
 </video>
 
@@ -989,8 +1002,7 @@ into the html output with the script.
         <div id="progress_text_title"></div>
         <div id="progress_clickme"></div>
     </div>
-    <div id="video_controls_right">
-    </div>
+    <div id="video_controls_right"></div>
 </div>
 
 </div>
@@ -1023,7 +1035,7 @@ into the html output with the script.
 -->
 
 <div id='Folders'>
-<div class='title'>Browse Video</div>
+<div class='title'>Browse TITLE_TEXT</div>
 <!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
 <br/>
@@ -1039,7 +1051,6 @@ into the html output with the script.
 </div>
 
 <div id="overlay_controls" >
-
     <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
     <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
     <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>

@@ -3,59 +3,62 @@
  * There is some 'extra' overhead, but we can override most of the appearance 
  * with one file, if we're not changing the underlying/scripted behaviors. 
 **/
-body {
+@media screen and (min-width: 1024px) {
+html, body {
     font-family: "Arial", Helvetica, sans-serif;
-    background-color: #000000; 
+    background-color: black; 
     color:#00c0c0; 
+    font-size: 14pt;
 }
-@media screen and (min-width: 800px) {
-body { font-size: 14pt; }
 }
-@media screen and (max-width: 799px) {
-body { font-size: 10pt; }
+@media screen and (max-width: 1023px) {
+html, body {
+    font-family: "Arial", Helvetica, sans-serif;
+    background-color: black; 
+    color:#00c0c0; 
+    font-size: 10pt;
 }
+}
+
 body, div {
     margin: 0;
     padding:0;
 }
 
 /* Links that only underline when tracked, change color if visited (already watched) */
-a:link      { color:#00c0c0; text-decoration: none; }
-a:visited   { color:#00c0c0; text-decoration: none; }
-a:hover     { color:#00c0c0; text-decoration: underline; }
+a:link      { text-decoration: none; }
+a:visited   { text-decoration: none; }
+a:hover     { text-decoration: underline; }
 a:active    { color:#20ffff; text-decoration: none; }
 button:focus {outline:0;}
 
 .title {
-    color: #00ffff;
+    color: #c0c0c0;
     clear: both;
     width:100%;
-    font-size:2em;
+    font-size:2.5em;
     white-space:nowrap;
 }
 
 /* Folder index text */
 .folder_entry {
-    height: 34pt;
-    line-height: 34pt;
-    vertical-align: middle;
-    font-size: 2em;
+    margin-top:2pt;
+    margin-bottom:4pt;
+    margin-left:8pt;
+    font-size: 2.5em;
     white-space: nowrap;
-    overflow: hidden !important;
-    margin-top: 4pt;
-    margin-bottom: 4pt;
+    overflow: hidden;
     cursor: pointer;
 }
 
 /* Player index text */
 .index_entry, .index_entry_highlight {
-    margin-top:4pt;
+    margin-top:2pt;
     margin-bottom:4pt;
     margin-left:8pt;
-    font-size: 2em;
+    font-size: 2.5em;
     white-space:nowrap;
-    vertical-align: middle;
-    overflow: hidden !important;
+    overflow: hidden;
     cursor: pointer;
 }
 
@@ -64,26 +67,25 @@ button:focus {outline:0;}
     font-weight: bold;
 }
 .index_entry, .index_entry a:link, .index_entry_highlight a:visited {
-    color: #00c0c0;
     font-weight: normal;
 }
 .index_thumbnail {
 }
 @media screen and (min-width: 1024px){
-img.index_thumbnail {
-    width:THUMB_SIZEpx;
-    vertical-align:middle;
-    padding-bottom:8px;
-    padding-right:8px;
-}
+    img.index_thumbnail {
+        width:THUMB_SIZEpx;
+        vertical-align:middle;
+        padding-bottom:2pt;
+        padding-right:4pt;
+    }
 }
 @media screen and (max-width: 1023px){
-img.index_thumbnail {
-    width:20%;
-    vertical-align:middle;
-    padding-bottom:8px;
-    padding-right:8px;
-}
+    img.index_thumbnail {
+        width:20%;
+        vertical-align:middle;
+        padding-bottom:1pt;
+        padding-right:2pt;
+    }
 }
 
 
@@ -148,21 +150,24 @@ img.index_thumbnail {
 }
     
 .icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, 
-.window_icon, .play_icon, .pause_icon, .back_icon, .folder_icon, .list_icon, 
+.folder_icon, .window_icon, .play_icon, .pause_icon, .back_icon, .list_icon, 
 .player_icon, .home_icon {
     display: inline-block;
     background-size:cover;
     height:32pt;
     width:32pt;
-    margin: 0;
-    padding:0;
-    cursor: pointer;
+}
+
+.folder_icon {
+    vertical-align:text-top;
+    width:1em;
+    height:1em;
 }
 
 .button_format {
+    cursor: pointer;
     background: transparent;
     font-size:0;
     border: none !important;
-    margin: 0;
-    padding:0;
 }
+
