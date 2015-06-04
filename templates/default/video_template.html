@@ -24,7 +24,7 @@
 var vid = {};
 
 vid.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
-vid.bUseNativeControls = true;//!vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+vid.bUseNativeControls = false;//!vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
 vid.mode_folders = 'folders';
 vid.mode_folder  = 'folder';
@@ -81,7 +81,7 @@ vid.PlayerInit = function()
     vid.BrowseFolders();
 
     // Mouse moved or screen touched
-    vid.PlayerBox.addEventListener( 'mousemove',            vid.MouseMovedFilter );    
+    vid.PlayerBox.addEventListener( 'mousemove',        vid.MouseMovedFilter );    
 
     // Tap to pause/play (and show controls)
     vid.video.addEventListener( 'click',                vid.TogglePause );
@@ -846,20 +846,13 @@ it gets baked into the html output with the script.
     width:100%;
     height:100%;
 }
-#PlayList {
-    display: none;
-    position: fixed;
+.playlist {
+    display:block;
     padding-left: 10pt;
-    overflow-y: scroll !important;
     overflow-x: hidden !important;
     width:100%;
-    height:100%;
 }
-#Folders {
-    overflow-x: hidden !important;
-    display:block;
-    width: 100%;
-}
+
 .videoplayer, .videoplayer_alt {
     position: fixed;
     overflow: hidden;
@@ -1034,7 +1027,7 @@ it gets baked into the html output with the script.
 </div>
 -->
 
-<div id='Folders'>
+<div id='Folders' class='playlist'>
 <div class='title'>Browse TITLE_TEXT</div>
 <!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
@@ -1046,7 +1039,7 @@ it gets baked into the html output with the script.
 </div>
 </div>
 
-<div id='PlayList' >
+<div id='PlayList' class='playlist'>
 <!--INDEX_FILES_HERE-->
 </div>
 
@@ -1057,8 +1050,8 @@ it gets baked into the html output with the script.
     <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return vid.PlayNext();"><div class="next_icon"></div></button>
     &nbsp;
     <button id="bBack"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
-    <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return vid.WatchMode();" ><div class="list_icon"></div></button>
-    <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="player_icon"></div></button>
+    <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return vid.WatchMode();" ><div class="player_icon"></div></button>
+    <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
     <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
     <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
 </div>
