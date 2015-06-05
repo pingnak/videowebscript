@@ -223,7 +223,7 @@ if 0 != len(all_media_folders):
             # Treat play list file as raw text, and look for literal matches of file names that we have.
             for filename, path in all_media_files.iteritems():
                 # Stick the '/' and '.' on (but not extension), to set the 'end' of the file, in our dirty searches
-                if -1 != playlist_curr.find( '/'+filename.lower()+'.' ):
+                if -1 != playlist_curr.find( '/'+filename.lower()+'.' ) or -1 != playlist_curr.find( '/'+urllib.quote(filename.lower())+'.' ):
                     files.append( (filename, path) )
 
             # We found files in the play list
