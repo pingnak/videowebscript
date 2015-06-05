@@ -22,8 +22,8 @@ var aud = {};
 
 aud.bShuffle = false;
 aud.now_playing = null;
-aud.playlist = [];
 aud.playlistElement = null;
+aud.now_playing_element = null;
 
 aud.PlayerInit = function()
 {
@@ -38,6 +38,14 @@ aud.PlayerInit = function()
     aud.bPrev = document.getElementById("bPrev");
     
     aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
+
+    // Set up play lists so that they can be sorted after being shuffled
+    var collection = document.getElementsByClassName("index_entry");
+    var i;
+    for( i = 0; i < collection.length; ++i )
+    {
+        collection[i].index = i;
+    }
     
     aud.BrowseFolders();
 }
@@ -46,8 +54,8 @@ aud.PlayerInit = function()
 aud.PlayListRandom = function()
 {
     aud.bShuffle = true; 
-    aud.MakePlaylist(); 
-    aud.PlayMedia(aud.playlist[0].getAttribute('path'));
+    aud.MakePlaylist();
+    aud.PlayNext();
     return false;
 }
 
@@ -55,7 +63,8 @@ aud.PlayListRandom = function()
 aud.PlayListSerial = function()
 {
     aud.bShuffle = false;
-    aud.MakePlaylist(); 
+    aud.MakePlaylist();
+    aud.HighlightPlaying();
     return false;
 }
 
@@ -67,44 +76,94 @@ aud.PlayMedia = function(audio_path,noscroll)
 {
     noscroll = noscroll || false;
     if(typeof(audio_path)==='undefined') 
-        audio_path = aud.playlist[0].getAttribute('path');
-    aud.now_playing = audio_path;
-    aud.audio.src = aud.now_playing;
-    aud.audio.load();
-    aud.audio.play();
+        audio_path = aud.now_playing_element.getAttribute('path');
 
-    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
-    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+    aud.now_playing = audio_path;
+    if( aud.HighlightPlaying(noscroll) )
+    {
+        aud.audio.src = audio_path;
+        aud.audio.load();
+        aud.audio.play();
     
-    aud.HighlightPlaying(noscroll);
+        aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().children[0].innerHTML );
+        aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().children[0].innerHTML );
+    }
+    
     return false;
 }
+
+/** Convert DOM collections of index_entry objects to array */
+aud.Playable = function(element)
+{
+    var i;
+    var curr;
+    var result = new Array();
+    collection = element.children;
+    for( i = 0; i < collection.length; ++i )
+    {
+        curr = collection[i];
+        if( "index_entry" == curr.className || "index_entry_highlight" == curr.className )
+            result.push(collection[i]);
+    }
+    return result;
+}
+
 /** Show which item is playing in the play list */
 aud.HighlightPlaying = function(noscroll)
 {
-    var item;
-    for( i = 0; i < aud.playlist.length; ++i )
+    var collection;
+    var i;
+    var curr;
+    aud.now_playing_element = null;
+    
+    // Find and reset elements 
+    if( null == aud.playlistElement )
     {
-        item = aud.playlist[i];
-        delete item.style;
-        item.className = 'index_entry';
-    }
-    item = aud.playlist[aud.IndexPlaying()];
-    if( !!item )
-    {
-        item.className = 'index_entry_highlight';
-        if( !noscroll && item.scrollIntoView )
+        collection = aud.Playable(document);
+        for( i = 0; i < collection.length; ++i )
         {
-            var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
-            item.scrollIntoView();
-            if( item.offsetTop - window.scrollY <= aud.audio_box.clientHeight )
-                window.scrollTo(0,window.scrollY-(0.5*browserHeight));
+            curr = collection[i];
+            if( curr.getAttribute('path') == aud.now_playing )
+            {
+                aud.BrowseFolder(curr.parentNode.id);
+                aud.now_playing_element = curr;
+            }
+            delete curr.style;
+            curr.className = 'index_entry';
         }
     }
     else
     {
-        window.scrollTo(0,0);
+        collection = aud.Playable(aud.playlistElement);
+        for( i = 0; i < collection.length; ++i )
+        {
+            curr = collection[i];
+            if( curr.getAttribute('path') == aud.now_playing )
+            {
+                aud.now_playing_element = curr;
+            }
+            delete curr.style;
+            curr.className = 'index_entry';
+        }
     }
+    if( null == aud.now_playing_element )
+    {
+        console.log( "Media not found in internal play lists:", aud.now_playing );
+        window.scrollTo(0,0);
+        return false;
+    }
+
+    // Highlight what we found
+    item = aud.now_playing_element;
+    item.className = 'index_entry_highlight';
+    if( !noscroll && item.scrollIntoView )
+    {
+        var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+        item.scrollIntoView();
+        if( item.offsetTop - window.scrollY <= aud.audio_box.clientHeight )
+            window.scrollTo(0,window.scrollY-(0.5*browserHeight));
+    }
+    return true;
 }
 
 /* Make a play list from title links */
@@ -130,37 +189,33 @@ aud.MakePlaylist = function(playlistElement)
     }
     aud.playlistElement = playlistElement;
 
-    var i;
-    var curr;
-    aud.playlist = [];
-    var collection = playlistElement.children;
-    for( i = 0; i < collection.length; ++i )
-    {
-        curr = collection[i];
-        if( 'index_entry' == curr.className )
-        {
-            aud.playlist.push(curr);
-        }
-        else if( 'index_entry_highlight' == curr.className )
-        {
-            curr.className = 'index_entry';
-            aud.playlist.push(curr);
-        }
-    }
+    var playlist = aud.Playable(aud.playlistElement);
 
     if( aud.bShuffle ) 
     {
-        aud.ArrayShuffle(aud.playlist);
-        aud.ArrayShuffle(aud.playlist);
-        aud.ArrayShuffle(aud.playlist);
+        aud.ArrayShuffle(playlist);
+        aud.ArrayShuffle(playlist);
+        aud.ArrayShuffle(playlist);
+    }
+    else
+    {
+        playlist.sort( function(a,b) { return a.index - b.index; } )
     }
 
-    aud.bNext.setAttribute( 'title', "Next: " + aud.TitleFromPath( aud.WhatNext() ) );
-    aud.bPrev.setAttribute( 'title', "Prev: " + aud.TitleFromPath( aud.WhatPrev() ) );
+    // Order play list from sort/shuffle, reset index_entry
+    var i;
+    for( i = 0; i < playlist.length; ++i )
+    {
+        playlist[i].className = 'index_entry';
+        playlistElement.appendChild(playlist[i]);
+    }
+    
+    aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().children[0].innerHTML );
+    aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().children[0].innerHTML );
 
     aud.HighlightPlaying(true);
 
-    return collection;
+    return playlist;
 }
 
 /**
@@ -182,17 +237,7 @@ aud.ArrayShuffle = function(array)
     }
     return array;
 }
-/** Get index of currently playing media */
-aud.IndexPlaying = function()
-{
-    var i = aud.playlist.length;
-    while( 0 <= --i )
-    {
-        if( aud.playlist[i].getAttribute('path') == aud.now_playing )
-            return i;
-    }
-    return -1;
-}
+
 /** Play the previous one */
 aud.PlayPrev = function()
 {
@@ -203,77 +248,72 @@ aud.PlayPrev = function()
     }
     else
     {
-        aud.PlayMedia(aud.WhatPrev());
+        aud.PlayMedia(aud.WhatPrev().getAttribute('path'));
     }
     return false;
 }
 /** Play the next one */
 aud.PlayNext = function()
 {
-    aud.PlayMedia(aud.WhatNext());
+    aud.PlayMedia(aud.WhatNext().getAttribute('path'));
     return false;
 }
 /** At end of media, play the next one; re-shuffle as appropriate */
 aud.PlayNextWrap = function()
 {
-    var i = aud.IndexPlaying() + 1;
-    if( i >= aud.playlist.length )
+    if( null == aud.playlistElement )
+        return false;
+        
+    aud.now_playing_element = aud.now_playing_element.nextElementSibling;
+    if( null == aud.now_playing_element )
     {
-        i = 0;
         if( aud.bShuffle )
         {
             return aud.PlayListRandom();
         }
+        var collection = aud.Playable(aud.playlistElement);
+        aud.now_playing_element = collection[0];
     }
-    aud.PlayMedia(aud.playlist[i].getAttribute('path'));
+    aud.PlayMedia(aud.now_playing_element.getAttribute('path'));
+    return false;
 }
 /** What will play previous */
 aud.WhatPrev = function()
 {
-    var i = aud.IndexPlaying() - 1;
-    if( i < 0 )
+    if( null == aud.playlistElement )
+        return false;
+        
+    var result;
+    if( null == aud.now_playing_element )
+        result = null;
+    else
+        result = aud.now_playing_element.previousElementSibling;
+    if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        i = aud.playlist.length-1;
+        var collection = aud.Playable(aud.playlistElement);
+        result = collection[collection.length-1];
     }
-    var path = aud.playlist[i].getAttribute('path');
-    return path;
+    return result;
 }
+
 /** What will play next */
 aud.WhatNext = function()
 {
-    var i = aud.IndexPlaying() + 1;
-    if( i >= aud.playlist.length )
+    if( null == aud.playlistElement )
+        return false;
+        
+    var result;
+    if( null == aud.now_playing_element )
+        result = null;
+    else
+        result = aud.now_playing_element.nextElementSibling;
+        
+    if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        i = 0;
+        var collection = aud.Playable(aud.playlistElement);
+        result = collection[0];
     }
-    var path = aud.playlist[i].getAttribute('path');
-    return path;
-}
-/** Turn video URI into title text */
-aud.TitleFromPath = function(path)
-{
-    path = path.substring(path.lastIndexOf('/')+1);
-    path = path.substring(0,path.lastIndexOf('.'));
-    
-    // URI decoders don't do the whole job, apparently.
-    var parts = path.split('%');
-    if( 1 == parts.length )
-        return path;
-    var ss;
-    path = parts.shift();
-    while( 0 < parts.length )
-    {
-        ss = parts.shift();
-        if( ss.match( /^[0-9A-F][0-9A-F].*/i ) )
-        {
-            path += String.fromCharCode( parseInt(ss.slice(0,2), 16) ) + ss.slice(2);
-        }
-        else
-        {
-            path += '%'+ss;
-        }
-    }
-    return path;
+    return result;
 }
 
 // Show folder contents
