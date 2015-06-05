@@ -168,10 +168,8 @@ for root, dirs, files in os.walk(root_dir):
     # Bake some details about this folder
     root = os.path.abspath(root);
     folder_path, folder_name = os.path.split(root)
-
-    # Exclude hidden folders
-    if '.' == folder_name[0]:
-        continue;
+    
+    dirs[:] = [d for d in dirs if not d[0] == '.']
 
     folder_relative = os.path.relpath(root,root_dir)
     print '    '+folder_relative

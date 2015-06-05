@@ -161,8 +161,7 @@ for root, dirs, files in os.walk(root_dir):
     folder_path, folder_name = os.path.split(root)
     folder_curr = os.path.relpath(root,root_dir)
 
-    if '.' == folder_name[0]:
-        continue;
+    dirs[:] = [d for d in dirs if not d[0] == '.']
 
     print "    " + folder_curr
 

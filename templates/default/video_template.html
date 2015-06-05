@@ -17,10 +17,7 @@
 
 <script type="text/javascript">
 //<![CDATA[
-/**
- * The global player object.
- * A namespace for all of these otherwise global things, to keep them all together
-**/
+/** A namespace for all of these otherwise global things, to keep them all together */
 var vid = {};
 
 vid.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
@@ -57,7 +54,7 @@ vid.PlayerInit = function()
     vid.Folders =             document.getElementById("Folders");
     vid.PlayList =            document.getElementById("PlayList");
     vid.PlayerBox =           document.getElementById("PlayerBox");
-    vid.bBack =               document.getElementById("bBack");
+    vid.bHome =               document.getElementById("bHome");
     vid.bList =               document.getElementById("bList");
     vid.bWatch =              document.getElementById("bWatch");
 
@@ -403,10 +400,11 @@ vid.RefreshControls = function()
     switch( vid.mode )
     {
     case vid.mode_player:
+        vid.overlay_controls.style.background = 'transparent';
         vid.Folders.style.display = 'none';
         vid.PlayList.style.display = 'none';
         vid.PlayerBox.style.display = 'block';
-        vid.bBack.style.display = '';
+        vid.bHome.style.display = '';
         vid.bList.style.display = '';
         vid.bWatch.style.display = 'none';
         vid.bPrev.style.display = '';
@@ -415,10 +413,11 @@ vid.RefreshControls = function()
         vid.bRand.style.display = vid.bShuffle ? '' : 'none';
         break;
     case vid.mode_folder:
+        vid.overlay_controls.style.background = '#000000';
         vid.Folders.style.display = 'none';
         vid.PlayList.style.display = 'block';
         vid.PlayerBox.style.display = 'none';
-        vid.bBack.style.display = '';
+        vid.bHome.style.display = '';
         vid.bList.style.display = 'none';
         vid.bWatch.style.display = vid.bVideoResumable ? '' : 'none';
         vid.bPrev.style.display = '';
@@ -428,10 +427,11 @@ vid.RefreshControls = function()
         break;
     case vid.mode_folders:
     default: // Fall-through
+        vid.overlay_controls.style.background = '#000000';
         vid.Folders.style.display = 'block';
         vid.PlayList.style.display = 'none';
         vid.PlayerBox.style.display = 'none';
-        vid.bBack.style.display = 'none';
+        vid.bHome.style.display = 'none';
         vid.bList.style.display = 'none';
         vid.bWatch.style.display= 'none';
         vid.bPrev.style.display = 'none';
@@ -563,7 +563,14 @@ vid.HighlightPlaying = function(noscroll)
         if( !noscroll && item.scrollIntoView ) 
         {
             item.scrollIntoView();
+            item.scrollIntoView();
+            if( item.offsetTop - window.scrollY <= vid.overlay_controls.clientHeight )
+                window.scrollTo(0,window.scrollY-(0.5*vid.browserHeight));
         }
+    }
+    else
+    {
+        window.scrollTo(0,0);
     }
 }
 
@@ -800,7 +807,7 @@ vid.BrowseFolder = function( id )
 
     vid.mode = vid.mode_folder;
     vid.RefreshControls();
-    
+    vid.HighlightPlaying();
 }
     
 /**
@@ -818,6 +825,9 @@ vid.BrowseFolders = function()
     vid.video.src = '';
     vid.bVideoResumable = false;
 
+    if( window.scrollTo )
+        window.scrollTo(0,0);
+    
     return false;
 }
 
@@ -839,18 +849,24 @@ it gets baked into the html output with the script.
 /* Video player modes for windowed/full-screen */
 #PlayerBox {
     display: none;
-    position: fixed;
     overflow: hidden;
-    margin: 0 !important;
-    padding:0 !important;
+    margin: 0px !important;
+    padding:0px !important;
     width:100%;
     height:100%;
 }
-.playlist {
-    display:block;
-    padding-left: 10pt;
+#PlayList, #Folders {
+    display: none;
     overflow-x: hidden !important;
-    width:100%;
+    padding-left: 10pt;
+    width: 100%;
+}
+/* iOS Shim.  If I make a proper position:fixed; element of the play list, it 
+   doesn't scroll right.  So I add a spacer to the top of the content and the
+   text doesn't go past that on top.  */ 
+#Playlist_shim {
+    height: 42pt;
+    background-color:#000000;
 }
 
 .videoplayer, .videoplayer_alt {
@@ -877,28 +893,32 @@ it gets baked into the html output with the script.
 
 /* Skinned control panel mode for windowed and full-screen */
 #video_controls, #overlay_controls {
+    position: fixed;
     height: 32pt !important;
     line-height: 0px;
     font-size: 0px;
     vertical-align: middle;
-    background: transparent;
     margin: 0;
     padding:0;
     overflow: hidden !important;
     white-space:nowrap;
 }
 #video_controls {
-    display: table;
-    position: fixed;
     bottom: 8pt;
-    left:0px;
     width:100%;
+    background: transparent;
+    display: table;
 }
 #overlay_controls {
+    top: 0pt;
+    width:100%;
+    text-align: right;
+    background: #000000;
     display: block;
+}
+#bHome {
     position: fixed;
-    top: 8pt;
-    right:8pt;
+    left:8pt;
 }
 
 /* Skinned control panel icons in left and right boxes */
@@ -933,7 +953,7 @@ it gets baked into the html output with the script.
     top:0px;
     height: 32pt;
     line-height: 32pt;
-    font-size: 14pt;
+    font-size: 12pt;
 }
 #progress_playing {
     z-index:2;
@@ -969,6 +989,7 @@ it gets baked into the html output with the script.
     height: 30pt;
     border: 1pt solid #303030;
     width: 100%;
+    overflow:visible;
 }
 
 </style>
@@ -1008,6 +1029,7 @@ it gets baked into the html output with the script.
 
 <!--INDEX_FILES_BEGIN
 <div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
+    <div id='Playlist_shim'>&nbsp;<br/></div>
     <div class='title'>FOLDER_NAME</div>
 -->
 
@@ -1027,8 +1049,9 @@ it gets baked into the html output with the script.
 </div>
 -->
 
-<div id='Folders' class='playlist'>
-<div class='title'>Browse TITLE_TEXT</div>
+<div id='Folders' >
+<div id='Playlist_shim'>&nbsp;<br/></div>
+<div class='title'>Browse Videos</div>
 <!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
 <br/>
@@ -1039,17 +1062,18 @@ it gets baked into the html output with the script.
 </div>
 </div>
 
-<div id='PlayList' class='playlist'>
+<div id='PlayList' >
 <!--INDEX_FILES_HERE-->
 </div>
 
 <div id="overlay_controls" >
+    <button id="bHome"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
+
     <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
     <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
     <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
     <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return vid.PlayNext();"><div class="next_icon"></div></button>
     &nbsp;
-    <button id="bBack"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
     <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return vid.WatchMode();" ><div class="player_icon"></div></button>
     <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
     <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>

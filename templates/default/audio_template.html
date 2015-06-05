@@ -38,6 +38,8 @@ aud.PlayerInit = function()
     aud.bPrev = document.getElementById("bPrev");
     
     aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
+    
+    aud.BrowseFolders();
 }
 
 /** Play in shuffled order */
@@ -92,12 +94,16 @@ aud.HighlightPlaying = function(noscroll)
     {
         item.className = 'index_entry_highlight';
         if( !noscroll && item.scrollIntoView )
+        {
+            var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
             item.scrollIntoView();
+            if( item.offsetTop - window.scrollY <= aud.audio_box.clientHeight )
+                window.scrollTo(0,window.scrollY-(0.5*browserHeight));
+        }
     }
     else
     {
-        if( !noscroll )
-            aud.PlayList.scrollTop = 0;
+        window.scrollTo(0,0);
     }
 }
 
@@ -307,6 +313,9 @@ aud.BrowseFolders = function()
     aud.Folders.style.display ='block';
     aud.audio_box.style.display ='none';
     aud.PlayList.style.display ='none';
+
+    if( window.scrollTo )
+        window.scrollTo(0,0);
     return false;
 }
 
@@ -325,10 +334,25 @@ into the html output with the script.
 
 /* The remaining CSS is bound to how this page works */
 #Folders {
+    display: none;
+    overflow: hidden;
+    padding-left: 10pt;
+    width:100%;
+}
+#PlayList {
+    display: none;
     overflow-x: hidden !important;
-    display:block;
+    padding-left: 10pt;
     width: 100%;
 }
+/* iOS Shim.  If I make a proper position:fixed; element of the play list, it 
+   doesn't scroll right.  So I add a spacer to the top of the content and the
+   text doesn't go past that on top.  */ 
+#Playlist_shim {
+    height: 74pt;
+    background-color:#000000;
+}
+
 /* Audio player and controls 'fixed' position because Amazon Silk is fuxed. */
 #PlayerBox {
     display: none;
@@ -337,7 +361,7 @@ into the html output with the script.
     position: fixed;
     width: 100%;
     height: 72pt;
-    background-color:#101010;
+    background-color:#000000;
 }
 #audioplayer {
     vertical-align:middle !important;
@@ -348,10 +372,10 @@ into the html output with the script.
     height:32pt;
     outline: 0;
 }
-#bBack {
+#bHome {
     position: fixed;
     top:36pt;
-    right:8pt;
+    left:8pt;
 }
 #audiocontrols {
     position: fixed;
@@ -360,14 +384,6 @@ into the html output with the script.
     width: 100%;
     top:   36pt;
     left:  0pt;
-}
-#PlayList {
-    display: none;
-    position: fixed;
-    width: 100%;
-    overflow: auto;
-    top: 72pt;
-    bottom: 0pt;
 }
 
 .folder_page {
@@ -389,7 +405,7 @@ into the html output with the script.
 <button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
 <button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
 </div>
-<button id="bBack" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
+<button id="bHome" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
 </div>
 
 <!--INDEX_FOLDER
@@ -399,6 +415,7 @@ into the html output with the script.
 -->
 <!--INDEX_FILES_BEGIN
 <div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
+    <div id='Playlist_shim'>&nbsp;<br/></div>
     <div class='title'>FOLDER_NAME</div>
 -->
 <!--INDEX_ITEM
@@ -411,7 +428,7 @@ into the html output with the script.
 -->
 
 <div id='Folders'>
-<div class='title'>Browse TITLE_TEXT</div>
+<div class='title'>Browse Music</div>
 <!--INDEX_FOLDERS_HERE-->
 <div class="info_text">
 <br/>
