@@ -150,6 +150,7 @@ all_playlist_folders=[]
 all_play_lists=[]
 all_folders=[]
 all_media_files={}
+total_play_lists=0
 index_toc=[]
 
 # Build a list of folders and their files
@@ -228,6 +229,7 @@ if 0 != len(all_media_folders):
 
             # We found files in the play list
             if 0 != len(files):
+                total_play_lists = total_play_lists + 1;
                 uniquefiles = set(files)
                 sorted_uniquefiles = sorted(uniquefiles,compare_natural)
     
@@ -298,7 +300,7 @@ if 0 != len(all_media_folders):
     with open(os.path.join(root_dir,WEBIFY_INDEX), "w") as text_file:
         text_file.write(output)
             
-    print "\nMade %d folders with %d unique files.\n" %(len(all_media_folders),len(all_media_files))
+    print "\nMade %d folders and %d play lists with %d unique files.\n" %(len(all_media_folders),total_play_lists,len(all_media_files))
 else:
     print "\nNo media found.  Nothing written.\n"
 

@@ -30,6 +30,9 @@ vid.mode = vid.mode_folders;
 
 vid.playlist = [];
 vid.now_playing = '';
+vid.playlistElement = null;
+vid.now_playing_element = null;
+
 vid.bVideoResumable = false;
 vid.bShuffle = false;
 vid.mouseTimeout = -1;
@@ -37,7 +40,6 @@ vid.resizeTimeout = -1;
 vid.MOUSE_TIMEOUT = 3000;
 vid.lastScreenY = -1; 
 vid.lastScreenX = -1;
-vid.playlistElement = null;
 vid.bTrackingProgress = false;
 
 /**
@@ -75,10 +77,18 @@ vid.PlayerInit = function()
     vid.bFull =               document.getElementById("bFull");
     vid.bWindow =             document.getElementById("bWindow");
 
+    // Set up play lists so that they can be sorted after being shuffled
+    var collection = document.getElementsByClassName("index_entry");
+    var i;
+    for( i = 0; i < collection.length; ++i )
+    {
+        collection[i].index = i;
+    }
+    
     vid.BrowseFolders();
 
     // Mouse moved or screen touched
-    vid.PlayerBox.addEventListener( 'mousemove',        vid.MouseMovedFilter );    
+    window.addEventListener( 'mousemove',        vid.MouseMovedFilter );    
 
     // Tap to pause/play (and show controls)
     vid.video.addEventListener( 'click',                vid.TogglePause );
@@ -519,14 +529,14 @@ vid.PlayMedia = function(video_path,noscroll)
     }
 
     vid.now_playing = video_path;
-    vid.HighlightPlaying(noscroll);
-
-    setTimeout( vid.PlayMedia2, 10);
-    vid.RefreshControls();
-    vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
-    vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
-    vid.ShowPaused();
-
+    if( vid.HighlightPlaying(noscroll) )
+    {
+        setTimeout( vid.PlayMedia2, 10);
+        vid.RefreshControls();
+        vid.bNext.setAttribute( 'title', "Next: " + vid.WhatNext().textContent );
+        vid.bPrev.setAttribute( 'title', "Prev: " + vid.WhatPrev().textContent );
+        vid.ShowPaused();
+    }
     return false;
 }
 
@@ -539,7 +549,7 @@ vid.PlayMedia2 = function()
     vid.video.play();
     
     // Show title
-    vid.progress_text_title.innerHTML = vid.TitleFromPath(vid.now_playing);
+    vid.progress_text_title.innerHTML = vid.now_playing_element.textContent;
 
     vid.MouseMoved();
     vid.bTrackingProgress = false;
@@ -547,41 +557,96 @@ vid.PlayMedia2 = function()
     vid.WatchMode();
 }
 
+/** Convert DOM collections of index_entry objects to array */
+vid.Playable = function(element)
+{
+    var i;
+    var curr;
+    var result = new Array();
+    collection = element.children;
+    for( i = 0; i < collection.length; ++i )
+    {
+        curr = collection[i];
+        if( "index_entry" == curr.className || "index_entry_highlight" == curr.className )
+            result.push(collection[i]);
+    }
+    return result;
+}
+
+
 /** Show which item is playing in the play list */
 vid.HighlightPlaying = function(noscroll)
 {
-    // Scroll play list to currently playing
+    var collection;
     var i;
-    for( i = 0; i < vid.playlist.length; ++i )
+    var curr;
+    vid.now_playing_element = null;
+    
+    // Find and reset elements 
+    if( null == vid.playlistElement )
     {
-        vid.playlist[i].className = 'index_entry';
-    }
-    var item = vid.playlist[vid.IndexPlaying()];
-    if( !!item )
-    {
-        item.className = 'index_entry_highlight';
-        if( !noscroll && item.scrollIntoView ) 
+        collection = vid.Playable(document);
+        for( i = 0; i < collection.length; ++i )
         {
-            item.scrollIntoView();
-            item.scrollIntoView();
-            if( item.offsetTop - window.scrollY <= vid.overlay_controls.clientHeight )
-                window.scrollTo(0,window.scrollY-(0.5*vid.browserHeight));
+            curr = collection[i];
+            if( curr.getAttribute('path') == vid.now_playing )
+            {
+                vid.BrowseFolder(curr.parentNode.id);
+                vid.now_playing_element = curr;
+            }
+            delete curr.style;
+            curr.className = 'index_entry';
         }
     }
     else
     {
-        window.scrollTo(0,0);
+        collection = vid.Playable(vid.playlistElement);
+        for( i = 0; i < collection.length; ++i )
+        {
+            curr = collection[i];
+            if( curr.getAttribute('path') == vid.now_playing )
+            {
+                vid.now_playing_element = curr;
+            }
+            delete curr.style;
+            curr.className = 'index_entry';
+        }
     }
+    if( null == vid.now_playing_element )
+    {
+        console.log( "Media not found in internal play lists:", vid.now_playing );
+        window.scrollTo(0,0);
+        return false;
+    }
+
+    // Highlight what we found
+    item = vid.now_playing_element;
+    item.className = 'index_entry_highlight';
+    if( !noscroll && item.scrollIntoView )
+    {
+        var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+        item.scrollIntoView();
+        if( item.offsetTop - window.scrollY <= vid.overlay_controls.clientHeight )
+            window.scrollTo(0,window.scrollY-(0.5*vid.browserHeight));
+    }
+    return true;
 }
+
 
 /** Make a play list from title links */
 vid.MakePlaylist = function(playlistElement)
 {
-    vid.bSeq.style.display = vid.bShuffle ? 'none' : '';
-    vid.bRand.style.display = vid.bShuffle ? '' : 'none';
-
-    vid.playlistElement = playlistElement = playlistElement || vid.playlistElement;
-
+    if( vid.bShuffle )
+    {
+        vid.bRand.style.display = '';
+        vid.bSeq.style.display  = 'none';
+    }
+    else
+    {
+        vid.bRand.style.display = 'none';
+        vid.bSeq.style.display  = '';
+    }
+    playlistElement = playlistElement || vid.playlistElement;
     if( null == playlistElement )
     {
         vid.playlistElement = null;
@@ -589,47 +654,42 @@ vid.MakePlaylist = function(playlistElement)
         vid.bPrev.setAttribute( 'title', "" );
         return vid.playlist = [];
     }
-    
+    vid.playlistElement = playlistElement;
+
+    var playlist = vid.Playable(vid.playlistElement);
+
+    if( vid.bShuffle ) 
+    {
+        vid.ArrayShuffle(playlist);
+        vid.ArrayShuffle(playlist);
+        vid.ArrayShuffle(playlist);
+    }
+    else
+    {
+        playlist.sort( function(a,b) { return a.index - b.index; } )
+    }
+
+    // Order play list from sort/shuffle, reset index_entry, load any thumbnails for this list
     var i;
     var curr;
-    var img;
-    vid.playlist = [];
-    var collection = playlistElement.children;
-    for( i = 0; i < collection.length; ++i )
+    for( i = 0; i < playlist.length; ++i )
     {
-        curr = collection[i];
-        if( 'index_entry' == curr.className )
-        {
-            vid.playlist.push(curr);
-        }
-        else if( 'index_entry_highlight' == curr.className )
-        {
-            curr.className = 'index_entry';
-            vid.playlist.push(curr);
-        }
-        else
-            continue;
+        curr = playlist[i];
+        curr.className = 'index_entry';
+        playlistElement.appendChild(curr);
         img = curr.getElementsByTagName('img')[0];
         if( img && !img.src )
         {
             img.src = img.getAttribute("defer");
         }
     }
-
-    if( vid.bShuffle ) 
-    {
-        vid.ArrayShuffle(vid.playlist);
-        vid.ArrayShuffle(vid.playlist);
-        vid.ArrayShuffle(vid.playlist);
-    }
-
-    vid.bNext.setAttribute( 'title', "Next: " + vid.TitleFromPath( vid.WhatNext() ) );
-    vid.bPrev.setAttribute( 'title', "Prev: " + vid.TitleFromPath( vid.WhatPrev() ) );
+    
+    vid.bNext.setAttribute( 'title', "Next: " + vid.WhatNext().textContent );
+    vid.bPrev.setAttribute( 'title', "Prev: " + vid.WhatPrev().textContent );
 
     vid.HighlightPlaying(true);
 
-    return collection;
-
+    return playlist;
 }
 
 /** Shuffle a play list */
@@ -638,6 +698,7 @@ vid.PlayListSerial = function()
     vid.MouseMoved();
     vid.bShuffle = false;
     vid.MakePlaylist();
+    vid.HighlightPlaying();
     return false;
 }
 
@@ -647,7 +708,7 @@ vid.PlayListRandom = function()
     vid.MouseMoved();
     vid.bShuffle = true;
     vid.MakePlaylist();
-    vid.PlayMedia(vid.playlist[0].getAttribute('path'));
+    vid.PlayNext();
     return false;
 }
 /**
@@ -669,94 +730,83 @@ vid.ArrayShuffle = function(array)
     }
     return array;
 }
-/** Get index of currently playing media */
-vid.IndexPlaying = function()
-{
-    var i = vid.playlist.length;
-    while( 0 <= --i )
-    {
-        if( vid.playlist[i].getAttribute('path') == vid.now_playing )
-            return i;
-    }
-    return -1;
-}
+
 /** Play the previous one */
 vid.PlayPrev = function()
 {
-    vid.MouseMoved();
-    vid.PlayMedia(vid.WhatPrev());
+    if( !vid.audio.paused && vid.audio.currentTime > 3 )
+    {
+        vid.audio.currentTime = 0;
+        vid.audio.play();
+    }
+    else
+    {
+        vid.PlayMedia(vid.WhatPrev().getAttribute('path'));
+    }
     return false;
 }
 /** Play the next one */
 vid.PlayNext = function()
 {
-    vid.MouseMoved();
-    vid.PlayMedia(vid.WhatNext());
+    vid.PlayMedia(vid.WhatNext().getAttribute('path'));
     return false;
 }
-/** At end of media, play the next one; re-shuffle as appropriate */
+/** At end of play list, re-shuffle as appropriate */
 vid.PlayNextWrap = function()
 {
-    vid.MouseMoved();
-    var i = vid.IndexPlaying() + 1;
-    if( i >= vid.playlist.length )
+    if( null == vid.playlistElement )
+        return false;
+        
+    vid.now_playing_element = vid.now_playing_element.nextElementSibling;
+    if( null == vid.now_playing_element )
     {
-        i = 0;
         if( vid.bShuffle )
         {
             return vid.PlayListRandom();
         }
+        var collection = vid.Playable(vid.playlistElement);
+        vid.now_playing_element = collection[0];
     }
-    vid.PlayMedia(vid.playlist[i].getAttribute('path'));
+    vid.PlayMedia(vid.now_playing_element.getAttribute('path'));
     return false;
 }
 /** What will play previous */
 vid.WhatPrev = function()
 {
-    var i = vid.IndexPlaying() - 1;
-    if( i < 0 )
+    if( null == vid.playlistElement )
+        return false;
+        
+    var result;
+    if( null == vid.now_playing_element )
+        result = null;
+    else
+        result = vid.now_playing_element.previousElementSibling;
+    if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        i = vid.playlist.length-1;
+        var collection = vid.Playable(vid.playlistElement);
+        result = collection[collection.length-1];
     }
-    var path = vid.playlist[i].getAttribute('path');
-    return path;
+    return result;
 }
+
 /** What will play next */
 vid.WhatNext = function()
 {
-    var i = vid.IndexPlaying() + 1;
-    if( i >= vid.playlist.length )
+    if( null == vid.playlistElement )
+        return false;
+        
+    var result;
+    if( null == vid.now_playing_element )
+        result = null;
+    else
+        result = vid.now_playing_element.nextElementSibling;
+        
+    if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        i = 0;
+        var collection = vid.Playable(vid.playlistElement);
+        result = collection[0];
     }
-    var path = vid.playlist[i].getAttribute('path');
-    return path;
-}
-/** Turn video URI into title text */
-vid.TitleFromPath = function(path)
-{
-    path = path.substring(path.lastIndexOf('/')+1);
-    path = path.substring(0,path.lastIndexOf('.'));
-    
-    // URI decoders don't do the whole job, apparently.
-    var parts = path.split('%');
-    if( 1 == parts.length )
-        return path;
-    var ss;
-    path = parts.shift();
-    while( 0 < parts.length )
-    {
-        ss = parts.shift();
-        if( ss.match( /^[0-9A-F][0-9A-F].*/i ) )
-        {
-            path += String.fromCharCode( parseInt(ss.slice(0,2), 16) ) + ss.slice(2);
-        }
-        else
-        {
-            path += '%'+ss;
-        }
-    }
-    return path;
+    return result;
 }
 
 
@@ -854,6 +904,7 @@ it gets baked into the html output with the script.
     padding:0px !important;
     width:100%;
     height:100%;
+    background-color:#000000;
 }
 #PlayList, #Folders {
     display: none;
@@ -894,7 +945,7 @@ it gets baked into the html output with the script.
 /* Skinned control panel mode for windowed and full-screen */
 #video_controls, #overlay_controls {
     position: fixed;
-    height: 32pt !important;
+    height: 34pt !important;
     line-height: 0px;
     font-size: 0px;
     vertical-align: middle;
@@ -1034,15 +1085,11 @@ it gets baked into the html output with the script.
 -->
 
 <!--INDEX_FILE_THUMB
-    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-        <a onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" ><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a>
-    </div>
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
 -->
 
 <!--INDEX_FILE_NOTHUMB
-    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' >
-        <a onclick="javascript: vid.PlayMedia(this.parentNode.getAttribute('path'),true); return false;" >MEDIA_TITLE</a>
-    </div>
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a>MEDIA_TITLE</a></div>
 -->
 
 <!--INDEX_FILES_END

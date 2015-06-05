@@ -85,10 +85,10 @@ aud.PlayMedia = function(audio_path,noscroll)
         aud.audio.load();
         aud.audio.play();
     
-        aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().children[0].innerHTML );
-        aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().children[0].innerHTML );
+        aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().textContent );
+        aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().textContent );
     }
-    
+
     return false;
 }
 
@@ -210,8 +210,8 @@ aud.MakePlaylist = function(playlistElement)
         playlistElement.appendChild(playlist[i]);
     }
     
-    aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().children[0].innerHTML );
-    aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().children[0].innerHTML );
+    aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().textContent );
+    aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().textContent );
 
     aud.HighlightPlaying(true);
 
@@ -258,7 +258,7 @@ aud.PlayNext = function()
     aud.PlayMedia(aud.WhatNext().getAttribute('path'));
     return false;
 }
-/** At end of media, play the next one; re-shuffle as appropriate */
+/** At end of play list, re-shuffle as appropriate */
 aud.PlayNextWrap = function()
 {
     if( null == aud.playlistElement )
@@ -459,9 +459,7 @@ into the html output with the script.
     <div class='title'>FOLDER_NAME</div>
 -->
 <!--INDEX_ITEM
-    <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' >
-        <a onclick="return aud.PlayMedia(this.parentNode.getAttribute('path'),true);" title="Play MEDIA_TITLE" >MEDIA_TITLE</a>
-    </div>
+    <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' title="Play MEDIA_TITLE" onclick="return aud.PlayMedia(this.getAttribute('path'),true);" ><a>MEDIA_TITLE</a></div>
 -->
 <!--INDEX_FILES_END
 </div>
