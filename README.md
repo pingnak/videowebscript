@@ -46,11 +46,9 @@ I'm still deciding whether to dive in and make a python front-end and installer 
 
 Landscape, Phone/iPod Sized, Play List (Physics for Future Presidents, Richard A. Muller, Berkely)
 
-![screen shot 2015-06-02 at 11 00 15](https://cloud.githubusercontent.com/assets/6754243/7943028/de4f8aa0-0916-11e5-9384-8fd629534071.png)
+![screen shot 2015-06-02 at 16 31 10](https://cloud.githubusercontent.com/assets/6754243/7949663/12d0a272-0945-11e5-83d7-e299326282ce.png)
 
 Landscape, Phone/iPod Sized, Player (Physics for Future Presidents, Richard A. Muller, Berkely)
-
-Note: The seek bar looks a little high, but many devices have 'active edges', nowadays.  Maybe it is a little high, too.  Anyway, while playing, all of that disappears after three seconds, until you touch it again.
 
 ![screen shot 2015-06-02 at 11 08 43](https://cloud.githubusercontent.com/assets/6754243/7943181/ced4c2ba-0917-11e5-8084-93cc4e463900.png)
 
