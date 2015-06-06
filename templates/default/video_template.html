@@ -258,25 +258,22 @@ vid.hhmmss = function(t)
 /** Update progress */
 vid.UpdateTime = function()
 {   
-    if( vid.bTrackingProgress )
-        return false;
-    vid.progress_playing.style.width = (100*vid.video.currentTime/vid.video.duration)+'%';
-    vid.progress_text.innerHTML = vid.hhmmss(vid.video.currentTime);
-    vid.progress_text_total.innerHTML = vid.hhmmss(vid.video.duration);
+    if( !vid.bTrackingProgress )
+        vid.RefreshProgress(vid.video.currentTime,vid.video.duration);
     return false;
 }
 /** Refresh play time */
-vid.RefreshProgress = function(seconds)
+vid.RefreshProgress = function(seconds,duration)
 {
     vid.progress_text.innerHTML = vid.hhmmss(seconds);
-    vid.progress_text_total.innerHTML = vid.hhmmss(vid.video.duration);
-    if( isNaN(vid.video.duration) || vid.video.duration < 1 )
+    vid.progress_text_total.innerHTML = vid.hhmmss(duration);
+    if( isNaN(vid.video.duration) || duration < 1 )
     {
         vid.progress_playing.style.width = '0%';
     }
     else
     {
-        vid.progress_playing.style.width = (100*seconds/vid.video.duration)+'%';
+        vid.progress_playing.style.width = (100*seconds/duration)+'%';
     }
 }
 
@@ -342,7 +339,7 @@ vid.ProgressTrackMouse = function(e)
     vid.MouseMoved();
     var fraction = vid.getProgressFromMouse(e);
     var time= vid.video.duration * fraction;
-    vid.RefreshProgress(time);
+    vid.RefreshProgress(time,vid.video.duration);
 }
 
 /** We should know how big&long the video is, so we can update it*/
@@ -540,21 +537,22 @@ vid.PlayMedia = function(video_path,noscroll)
     return false;
 }
 
-/** Setting attributes kills the video... so let the stack unwind and start it second */
+/** Setting next/prev attributes kills the video... so let the stack unwind and start it second */
 vid.PlayMedia2 = function()
 {
     vid.video.addEventListener( 'error', vid.Error );
     vid.video.setAttribute("src",vid.now_playing);
     vid.video.load();
     vid.video.play();
-    
-    // Show title
-    vid.progress_text_title.innerHTML = vid.now_playing_element.textContent;
-
     vid.MouseMoved();
     vid.bTrackingProgress = false;
-    vid.UpdateTime();
     vid.WatchMode();
+
+    // Clear any progress from previous video
+    vid.RefreshProgress(0,0);
+
+    // Show title in seek bar
+    vid.progress_text_title.innerHTML = vid.now_playing_element.textContent;
 }
 
 /** Convert DOM collections of index_entry objects to array */
