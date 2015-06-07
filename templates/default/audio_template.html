@@ -389,7 +389,7 @@ into the html output with the script.
    doesn't scroll right.  So I add a spacer to the top of the content and the
    text doesn't go past that on top.  */ 
 #Playlist_shim {
-    height: 74pt;
+    height: 82pt;
     background-color:#000000;
 }
 
@@ -400,30 +400,30 @@ into the html output with the script.
     text-align:center;
     position: fixed;
     width: 100%;
-    height: 72pt;
+    height: 80pt;
     background-color:#000000;
 }
 #audioplayer {
-    vertical-align:middle !important;
-    position: fixed;
-    top:3pt;
-    left:0pt;
-    width: 100%;
-    height:32pt;
+    position: absolute;
     outline: 0;
+    left:  0pt;
+    width: 100%;
+    bottom:2pt;
+    z-index:1;
 }
 #bHome {
-    position: fixed;
-    top:36pt;
-    left:8pt;
+    position: absolute;
+    top:0pt;
+    left:0pt;
+    z-index:2;
 }
 #audiocontrols {
-    position: fixed;
+    position: absolute;
     text-align: center;
     line-height:32pt;
     width: 100%;
-    top:   36pt;
-    left:  0pt;
+    top:   8pt;
+    z-index:2;
 }
 
 .folder_page {
@@ -435,17 +435,17 @@ into the html output with the script.
 
 <body onload="aud.PlayerInit();" >
 <div id='PlayerBox'>
+<div id="audiocontrols">
+    <button id="bHome" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
+    <button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
+    <button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
+    <button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
+    <button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
+</div>
 <audio id="audioplayer" controls>
     Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
     <a href="https://en.wikipedia.org/wiki/List_of_web_browsers">Other Browsers...</a><br/>
 </audio>
-<div id="audiocontrols">
-<button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
-<button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
-<button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
-<button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
-</div>
-<button id="bHome" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
 </div>
 
 <!--INDEX_FOLDER

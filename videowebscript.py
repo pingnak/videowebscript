@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# shebang for unix-like shells... Windows users type 'python videowebscript.py'
+# -*- coding: utf-8 -*-
 
 #
 # The python version.
@@ -213,8 +213,11 @@ for root, dirs, files in os.walk(root_dir):
             total_media_count = total_media_count + 1;
             
             # Bake some details about this file
+
             media_path = os.path.relpath(fullPath,root_dir)
             media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
+            #media_path_escaped = media_path.encode("ascii", "ignore")
+            #media_path_escaped = unicodedata.normalize('NFKD',unicode(media_path,"ISO-8859-1")).encode("utf8","ignore")
             filename_title_escaped=escape(fileName)
             
             if HAVE_THUMBNAILER:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# shebang for unix-like shells... Windows users type 'python videowebscript.py'
+# -*- coding: utf-8 -*-
 
 #
 # The python version.
@@ -17,6 +17,7 @@ import urllib
 import string
 from xml.sax.saxutils import escape
 from xml.sax.saxutils import unescape
+import unicodedata
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -280,11 +281,15 @@ if 0 != len(all_media_folders):
             playlist_section += playlist_section_folder;
             for file in files:
                 playlist_section_file=INDEX_FILE
+                
                 media_path = os.path.relpath(file,root_dir)
+                media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
+                #media_path_escaped = media_path.encode("ascii", "ignore")
+                #media_path_escaped = unicodedata.normalize('NFKD',unicode(media_path,"ISO-8859-1")).encode("utf8","ignore")
+                
                 file_path, file_name = os.path.split(file)
                 file_name,ext = os.path.splitext(file_name)
 
-                media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
                 filename_title_escaped=escape(file_name)
                 
                 playlist_section_file = playlist_section_file.replace('MEDIA_TITLE', filename_title_escaped ) 

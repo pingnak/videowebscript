@@ -914,7 +914,7 @@ it gets baked into the html output with the script.
    doesn't scroll right.  So I add a spacer to the top of the content and the
    text doesn't go past that on top.  */ 
 #Playlist_shim {
-    height: 42pt;
+    height: 45pt;
     background-color:#000000;
 }
 
@@ -943,7 +943,7 @@ it gets baked into the html output with the script.
 /* Skinned control panel mode for windowed and full-screen */
 #video_controls, #overlay_controls {
     position: fixed;
-    height: 34pt !important;
+    height: 44pt !important;
     line-height: 0px;
     font-size: 0px;
     vertical-align: middle;
@@ -953,21 +953,33 @@ it gets baked into the html output with the script.
     white-space:nowrap;
 }
 #video_controls {
-    bottom: 8pt;
+    bottom: 0pt;
     width:100%;
     background: transparent;
     display: table;
 }
 #overlay_controls {
+    position: fixed;
     top: 0pt;
     width:100%;
-    text-align: right;
     background: #000000;
     display: block;
 }
-#bHome {
-    position: fixed;
-    left:8pt;
+#overlay_controls_left {
+    position: absolute;
+    top: 8pt;
+    left:0pt;
+}
+#overlay_controls_center {
+    position: absolute;
+    text-align:center;
+    top: 8pt;
+    width: 100%;
+}
+#overlay_controls_right {
+    position: absolute;
+    top: 8pt;
+    right:0pt;
 }
 
 /* Skinned control panel icons in left and right boxes */
@@ -1112,17 +1124,24 @@ it gets baked into the html output with the script.
 </div>
 
 <div id="overlay_controls" >
-    <button id="bHome"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
-
+    <div id="overlay_controls_center">
     <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
+    &nbsp;
     <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
     <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+    &nbsp;
     <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return vid.PlayNext();"><div class="next_icon"></div></button>
+    </div>
+    <div id="overlay_controls_left">
+    <button id="bHome"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
     &nbsp;
     <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return vid.WatchMode();" ><div class="player_icon"></div></button>
     <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
+    </div>
+    <div id="overlay_controls_right">
     <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
     <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
+    </div>
 </div>
 
 </body>
