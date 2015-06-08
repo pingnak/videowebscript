@@ -462,7 +462,6 @@ CONFIG::FLASH_AUTHORING
             {
                 var folder_list_db : Array = new Array();
                 var file_list_db : Array = new Array();
-                var media_files_db : Array = new Array();
                 var thumbnail_db : Dictionary = new Dictionary();
                 
                 // Iterate all of the folders
@@ -475,6 +474,8 @@ CONFIG::FLASH_AUTHORING
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
                 {
+                    var media_files_db : Array = new Array();
+                    
                     if( folder_iteration < folders.length )
                     {
                         // Do next pass
