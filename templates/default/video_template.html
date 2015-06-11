@@ -59,6 +59,7 @@ vid.PlayerInit = function()
     vid.bHome =               document.getElementById("bHome");
     vid.bList =               document.getElementById("bList");
     vid.bWatch =              document.getElementById("bWatch");
+    vid.bPrint =              document.getElementById("bPrint");
 
     vid.progress_bar =        document.getElementById("progress_bar");
     vid.progress_text =       document.getElementById("progress_text");
@@ -84,7 +85,8 @@ vid.PlayerInit = function()
     {
         collection[i].index = i;
     }
-    
+
+    vid.SetupPrint();    
     vid.BrowseFolders();
 
     // Mouse moved or screen touched
@@ -879,6 +881,98 @@ vid.BrowseFolders = function()
     return false;
 }
 
+/**
+ * Capturing the browser Ctrl/Cmd+P or Menu->Print to put the page into a 
+ * pritable mode... is completely buggered across browsers.
+ *
+ * Provide a print icon to positively put it in the right mode, but at least try.
+**/
+vid.DoPrint = function()
+{
+    vid.BeforePrint();
+    window.print();
+    vid.AfterPrint();
+}
+
+/**
+ * Capture print before dialog pops up, and put the UI into a printable mode
+ * Implemented like it would work... if it worked consistently at all
+**/
+vid.BeforePrint = function()
+{
+    // Show all play lists
+    vid.overlay_controls.style.display = 'none';
+    vid.PlayerBox.style.display = 'none';
+    vid.Folders.style.display = 'none';
+    vid.PlayList.style.display = 'block';
+        
+    var i;
+    var element;
+    var show;
+    if( vid.mode_folders == vid.mode )
+    {
+        show = vid.PlayList.children;
+        for( i = 0; i < show.length; ++i )
+        {
+            element = show[i];
+            element.style.display = 'block';
+        }
+    }
+    show = vid.Playable(document);
+    for( i = 0; i < show.length; ++i )
+    {
+        element = show[i];
+        element.className = 'index_entry';
+    }
+    //setTimeout( vid.AfterPrint, 100 );
+}
+
+/**
+ * After (preumed MODAL) print dialog, put UI back 
+**/
+vid.AfterPrint = function()
+{
+    vid.overlay_controls.style.display = '';
+    if( vid.mode_folders == vid.mode )
+    {
+        vid.BrowseFolders();
+    }
+    else
+    {
+        vid.BrowseFolder();
+    }
+}
+
+/**
+ * Setup print.  I expect this to break as browser wars progress
+**/
+vid.SetupPrint = function()
+{
+    // IE/Firefox ONLY (coincidentally don't do 'matchMedia' right)
+    if( "onbeforeprint" in window && "onafterprint" in window )
+    {
+        window.onbeforeprint = vid.BeforePrint;
+        window.onafterprint = vid.AfterPrint;
+    }
+    else if (window.matchMedia) 
+    {
+        // Chrome, Safari
+        var mediaQueryList = window.matchMedia('print');
+        mediaQueryList.addListener(function(mql) 
+        {
+            if (mql.matches) 
+            {
+                vid.BeforePrint();
+            }
+            else
+            {
+                vid.AfterPrint();
+            }
+        });
+    }
+    // Else... use that print icon, or get something not very ideal
+}
+
 //]]>
 </script>
 
@@ -1053,9 +1147,15 @@ it gets baked into the html output with the script.
     overflow:visible;
 }
 
+@media print {
+#Playlist_shim {
+    display: none;
+}
+}
 </style>
 
 </head>
+
 
 <body onload="vid.PlayerInit();" >
 <div id='PlayerBox' >
@@ -1093,7 +1193,6 @@ it gets baked into the html output with the script.
     <div id='Playlist_shim'>&nbsp;<br/></div>
     <div class='title'>FOLDER_NAME</div>
 -->
-
 <!--INDEX_FILE_THUMB
     <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
 -->
@@ -1122,7 +1221,6 @@ it gets baked into the html output with the script.
 <div id='PlayList' >
 <!--INDEX_FILES_HERE-->
 </div>
-
 <div id="overlay_controls" >
     <div id="overlay_controls_center">
     <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
@@ -1139,6 +1237,7 @@ it gets baked into the html output with the script.
     <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
     </div>
     <div id="overlay_controls_right">
+    <button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.DoPrint();"><div class="print_icon"></div></button>
     <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
     <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
     </div>

@@ -25,12 +25,16 @@ aud.now_playing = null;
 aud.playlistElement = null;
 aud.now_playing_element = null;
 
+aud.mode_folders = 'folders';
+aud.mode_folder  = 'folder';
+aud.mode = aud.mode_folders;
+
 aud.PlayerInit = function()
 {
     aud.Folders = document.getElementById("Folders");
     aud.PlayList = document.getElementById("PlayList");
 
-    aud.audio_box = document.getElementById("PlayerBox");
+    aud.PlayerBox = document.getElementById("PlayerBox");
     aud.audio = document.getElementById("audioplayer");
     aud.bRand = document.getElementById("bRand");
     aud.bSeq = document.getElementById("bSeq");
@@ -48,6 +52,8 @@ aud.PlayerInit = function()
     }
     
     aud.BrowseFolders();
+    
+    aud.SetupPrint();
 }
 
 /** Play in shuffled order */
@@ -80,7 +86,7 @@ aud.PlayMedia = function(audio_path,noscroll)
 
     aud.now_playing = audio_path;
     if( aud.HighlightPlaying(noscroll) )
-    {
+   {
         aud.audio.src = audio_path;
         aud.audio.load();
         aud.audio.play();
@@ -160,7 +166,7 @@ aud.HighlightPlaying = function(noscroll)
     {
         var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
         item.scrollIntoView();
-        if( item.offsetTop - window.scrollY <= aud.audio_box.clientHeight )
+        if( item.offsetTop - window.scrollY <= aud.PlayerBox.clientHeight )
             window.scrollTo(0,window.scrollY-(0.5*browserHeight));
     }
     return true;
@@ -319,8 +325,12 @@ aud.WhatNext = function()
 // Show folder contents
 aud.BrowseFolder = function(id)
 {
+    if( !id && aud.playlistElement )
+        id = aud.playlistElement.id;
+
+    aud.mode = aud.mode_folder;
     aud.Folders.style.display ='none';
-    aud.audio_box.style.display ='block';
+    aud.PlayerBox.style.display ='block';
     aud.PlayList.style.display ='block';
 
     var collapse = aud.PlayList.children;
@@ -347,16 +357,109 @@ aud.BrowseFolder = function(id)
 // Show folder list
 aud.BrowseFolders = function()
 {
+    aud.mode = aud.mode_folders;
     aud.audio.pause();
     aud.audio.src = null;
     aud.now_playing = null;
     aud.Folders.style.display ='block';
-    aud.audio_box.style.display ='none';
+    aud.PlayerBox.style.display ='none';
     aud.PlayList.style.display ='none';
 
     if( window.scrollTo )
         window.scrollTo(0,0);
     return false;
+}
+
+/**
+ * Capturing the browser Ctrl/Cmd+P or Menu->Print to put the page into a 
+ * pritable mode... is completely buggered across browsers.
+ *
+ * Provide a print icon to positively put it in the right mode, but at least try.
+**/
+aud.DoPrint = function()
+{
+    aud.BeforePrint();
+    window.print();
+    aud.AfterPrint();
+}
+
+/**
+ * Capture print before dialog pops up, and put the UI into a printable mode
+ * Implemented like it would work... if it worked consistently at all
+**/
+aud.BeforePrint = function()
+{
+    aud.PlayerBox.style.display = 'none';
+        
+    var i;
+    var element;
+    var show;
+
+    if( aud.mode_folders == aud.mode )
+    {
+        // Show all play lists
+        aud.Folders.style.display = 'none';
+        aud.PlayList.style.display = 'block';
+        show = aud.PlayList.children;
+        for( i = 0; i < show.length; ++i )
+        {
+            element = show[i];
+            element.style.display = 'block';
+        }
+    }
+    // Clean up play list highlight
+    show = aud.Playable(document);
+    for( i = 0; i < show.length; ++i )
+    {
+        element = show[i];
+        element.className = 'index_entry';
+    }
+    //setTimeout( aud.AfterPrint, 100 );
+}
+
+/**
+ * After (preumed MODAL) print dialog, put UI back 
+**/
+aud.AfterPrint = function()
+{
+    if( aud.mode_folders == aud.mode )
+    {
+        aud.BrowseFolders();
+    }
+    else
+    {
+        aud.BrowseFolder();
+    }
+}
+
+/**
+ * Setup print.  I expect this to break as browser wars progress
+**/
+aud.SetupPrint = function()
+{
+    // IE/Firefox ONLY (coincidentally don't do 'matchMedia' right)
+    if( "onbeforeprint" in window && "onafterprint" in window )
+    {
+        window.onbeforeprint = aud.BeforePrint;
+        window.onafterprint = aud.AfterPrint;
+    }
+    // Chrome, Safari
+    else if (window.matchMedia) 
+    {
+        var mediaQueryList = window.matchMedia('print');
+        mediaQueryList.addListener(function(mql) 
+        {
+            if (mql.matches) 
+            {
+                aud.BeforePrint();
+            }
+            else
+            {
+                aud.AfterPrint();
+            }
+        });
+    }
+    // Else... use that print icon, or get something not very ideal
 }
 
 //]]>
@@ -415,7 +518,13 @@ into the html output with the script.
     position: absolute;
     top:0pt;
     left:0pt;
-    z-index:2;
+    z-index:9;
+}
+#bPrint {
+    position: fixed;
+    top:8pt;
+    right:8pt;
+    z-index:9;
 }
 #audiocontrols {
     position: absolute;
@@ -428,6 +537,15 @@ into the html output with the script.
 
 .folder_page {
     display: none;
+}
+
+@media print {
+#Playlist_shim {
+    display: none;
+}
+#PlayerBox {
+    visibility: hidden;
+}
 }
 
 </style>
@@ -481,5 +599,6 @@ into the html output with the script.
 <!--INDEX_FILES_HERE-->
 </div>
 
+<button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return aud.DoPrint();"><div class="print_icon"></div></button>
 </body>
 </html>
