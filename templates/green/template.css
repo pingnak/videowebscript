@@ -35,6 +35,7 @@ button:focus {outline:0;}
     clear: both;
     width:100%;
     font-size:2.5em;
+    font-weight: bold;
     white-space:nowrap;
 }
 
@@ -85,7 +86,6 @@ button:focus {outline:0;}
         padding-right:2pt;
     }
 }
-
 
 /* Text advertising project home page */
 .info_text {
@@ -149,7 +149,6 @@ button:focus {outline:0;}
     
 .icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, 
 .folder_icon, .window_icon, .play_icon, .pause_icon, .back_icon, .list_icon, 
-.player_icon, .home_icon {
     display: inline-block;
     background-size:cover;
     height:32pt;

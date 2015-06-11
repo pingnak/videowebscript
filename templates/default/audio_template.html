@@ -404,7 +404,11 @@ aud.BeforePrint = function()
         for( i = 0; i < show.length; ++i )
         {
             element = show[i];
-            element.style.display = 'block';
+            // Exclude play lists from folder list print
+            if( 'playlist_page' == element.className )
+                element.style.display = 'none';
+            else
+                element.style.display = 'block';
         }
     }
     // Clean up play list highlight
@@ -567,12 +571,17 @@ into the html output with the script.
 </div>
 
 <!--INDEX_FOLDER
-    <div class="folder_entry" style='FOLDER_STYLE'>
+    <div class='folder_entry' style='FOLDER_STYLE'>
         <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
     </div>
 -->
+<!--INDEX_PLAYLIST
+    <div class='playlist_entry' style='FOLDER_STYLE'>
+        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
+    </div>
+-->
 <!--INDEX_FILES_BEGIN
-<div id="FOLDER_ID" class="folder_page" style='FOLDER_STYLE'>
+<div id="FOLDER_ID" class='FOLDER_CLASS' style='FOLDER_STYLE'>
     <div id='Playlist_shim'>&nbsp;<br/></div>
     <div class='title'>FOLDER_NAME</div>
 -->

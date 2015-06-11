@@ -51,10 +51,10 @@ def compare_natural(item1, item2):
     s1=decompose(item1)
     s2=decompose(item2)
     if s1 < s2:
-        return -1;
+        return -1
     if s1 > s2:
-        return 1;
-    return 0;
+        return 1
+    return 0
 
 def compare_natural_filename(item1, item2):
     "Compare two path strings as 'natural' strings."
@@ -116,9 +116,13 @@ if not os.path.isfile(PLAYER_TEMPLATE_FILE):
 with open (PLAYER_TEMPLATE_FILE, "r") as myfile:
     PLAYER_TEMPLATE=myfile.read()
 
-# Find and cache a copy of media file template
+# Find and cache a copy of folder template
 INDEX_FOLDER_MATCH=re.search('<!--INDEX_FOLDER(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
 INDEX_FOLDER=INDEX_FOLDER_MATCH.group(1)
+
+# Find and cache a copy of folder template
+INDEX_PLAYLIST_MATCH=re.search('<!--INDEX_PLAYLIST(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_PLAYLIST=INDEX_PLAYLIST_MATCH.group(1)
 
 # Find index playlist_section completion tag
 INDEX_FILES_BEGIN_MATCH=re.search('<!--INDEX_FILES_BEGIN(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
@@ -168,13 +172,13 @@ for root, dirs, files in os.walk(root_dir):
     print "    " + folder_curr
 
     # How many media files in this folder?
-    media_files_this_folder = [];
+    media_files_this_folder = []
 
     for relPath in sorted(files,compare_natural_filename):
 
         file_name, fileExtension = os.path.splitext(relPath)
         if '.' == file_name[0]:
-            continue;
+            continue
 
         # Skip files that aren't playable
         fullPath = os.path.join(root, relPath)
@@ -182,7 +186,7 @@ for root, dirs, files in os.walk(root_dir):
         if fileExtension.lower() in MEDIA_TYPES:
 
             # Keep track for trivia
-            all_media_files[file_name] = fullPath;
+            all_media_files[file_name] = fullPath
             media_files_this_folder.append(fullPath)
             
         elif fileExtension.lower() in PLAY_LISTS:
@@ -205,14 +209,14 @@ if 0 != len(all_media_folders):
         print "\nSearching Play List Files..."
         sys.stdout.flush()
         for playlist_file in all_play_lists:
-            print "    "+playlist_file;
+            print "    "+playlist_file
             sys.stdout.flush()
 
             # We want the text all lower-case, with forward-slashes, for matching, no encoding/escaping
             with open (playlist_file, "r") as myfile:
                 playlist_curr=myfile.read()
                 
-            # Eat XML &entities;
+            # Eat XML &entities
             playlist_curr = unescape(playlist_curr)
 
             # Lower-case, no backslashes in paths
@@ -230,7 +234,7 @@ if 0 != len(all_media_folders):
 
             # We found files in the play list
             if 0 != len(files):
-                total_play_lists = total_play_lists + 1;
+                total_play_lists = total_play_lists + 1
                 uniquefiles = set(files)
                 sorted_uniquefiles = sorted(uniquefiles,compare_natural)
     
@@ -249,18 +253,24 @@ if 0 != len(all_media_folders):
     folder_path, folder_name = os.path.split(root_dir)
     folder_name_escaped = escape(folder_name)
     output = str(PLAYER_TEMPLATE)
-    output = output.replace( 'TITLE_TEXT', folder_name_escaped )
     output = output.replace( '/*INSERT_CSS_HERE*/', CSS_TEMPLATE)
+    output = output.replace( 'TITLE_TEXT', folder_name_escaped )
     index_section=""
     playlist_section=""
     all_folders_sorted = sorted(all_folders, compare_natural)
     for folder, files in all_folders_sorted:
-        index_section_entry=INDEX_FOLDER
         folder_depth = len(os.path.relpath(folder, root_dir).split(os.sep))
         if root_dir == folder:
-            folder_depth = 0;
+            folder_depth = 0
         folder_depth = LEFT_PADDING + (folder_depth*FOLDER_DEPTH)
         folder_output_style = 'padding-left:' + str(folder_depth) + 'pt;'
+
+        isPlaylist = not os.path.isdir(folder)
+        if isPlaylist:
+            index_section_entry = INDEX_PLAYLIST
+        else:
+            index_section_entry = INDEX_FOLDER
+
         if 0 == len(files):
             index_section_entry = index_section_entry.replace('FOLDER_STYLE', folder_output_style + ' pointer-events: none; opacity: 0.75;' )
         else:
@@ -275,10 +285,14 @@ if 0 != len(all_media_folders):
         
         if 0 != len(files):
             playlist_section_folder=INDEX_FILES_BEGIN
-            playlist_section_folder = playlist_section_folder.replace( "FOLDER_NAME", FOLDER_NAME );
-            playlist_section_folder = playlist_section_folder.replace( "FOLDER_ID", FOLDER_ID );
-            playlist_section_folder = playlist_section_folder.replace( "FOLDER_STYLE", '' );
-            playlist_section += playlist_section_folder;
+            playlist_section_folder = playlist_section_folder.replace( "FOLDER_NAME", FOLDER_NAME )
+            playlist_section_folder = playlist_section_folder.replace( "FOLDER_ID", FOLDER_ID )
+            playlist_section_folder = playlist_section_folder.replace( "FOLDER_STYLE", '' )
+            if isPlaylist:
+                playlist_section_folder = playlist_section_folder.replace( "FOLDER_CLASS", 'playlist_page' )
+            else:
+                playlist_section_folder = playlist_section_folder.replace( "FOLDER_CLASS", 'folder_page' )
+            playlist_section += playlist_section_folder
             for file in files:
                 playlist_section_file=INDEX_FILE
                 
@@ -295,8 +309,8 @@ if 0 != len(all_media_folders):
                 playlist_section_file = playlist_section_file.replace('MEDIA_TITLE', filename_title_escaped ) 
                 playlist_section_file = playlist_section_file.replace('MEDIA_PATH',  media_path_escaped )
                 playlist_section_file = playlist_section_file.replace('FILE_STYLE', '' )
-                playlist_section = playlist_section + playlist_section_file;
-            playlist_section = playlist_section + INDEX_FILES_END;
+                playlist_section = playlist_section + playlist_section_file
+            playlist_section = playlist_section + INDEX_FILES_END
 
     output = output.replace( '<!--INDEX_FOLDERS_HERE-->', index_section)
     output = output.replace( '<!--INDEX_FILES_HERE-->', playlist_section)

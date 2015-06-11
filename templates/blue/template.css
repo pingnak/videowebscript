@@ -35,11 +35,12 @@ button:focus {outline:0;}
     clear: both;
     width:100%;
     font-size:2.5em;
+    font-weight: bold;
     white-space:nowrap;
 }
 
 /* Folder index text */
-.folder_entry {
+.folder_entry, .playlist_entry {
     margin-top:2pt;
     margin-bottom:4pt;
     margin-left:8pt;
@@ -47,6 +48,10 @@ button:focus {outline:0;}
     white-space: nowrap;
     overflow: hidden;
     cursor: pointer;
+}
+
+/* Folder container */
+.folder_page, .playlist_page {
 }
 
 /* Player index text */
@@ -61,7 +66,7 @@ button:focus {outline:0;}
 }
 
 .index_entry_highlight, .index_entry_highlight a:link, .index_entry_highlight a:visited {
-    color: #0000FF;
+    color: #0000ff;
     font-weight: bold;
 }
 .index_entry, .index_entry a:link, .index_entry_highlight a:visited {
@@ -85,7 +90,6 @@ button:focus {outline:0;}
         padding-right:2pt;
     }
 }
-
 
 /* Text advertising project home page */
 .info_text {
@@ -146,17 +150,25 @@ button:focus {outline:0;}
     /* ./wireframe0015.png */
     background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMA3x+fD+8vfz+/z29PX4+v8XiDmgAAAQ5JREFUWMPtlM0SgyAMhEUIAX/3/Z+2h6B2LNJgpxeHXHWXTb5A1z2+fHC/yN0C0PTD8QYAwHf1jFTxVht9xF7G1+tnEuk8AADm2umtcvTqOmcBALaqjSDHk5w7AgCGXq9f0uw2iSeggqeXrt/puVjBUwJj8JlQCp4bvOX860QqnlOa3nTZ2ViEZ3d4118LPIOsPo3l8Qy+vPol3nK78jwz8HJtyIyXTLq0+kF3Rc88t9XXLLyAIp+Bp9y0/oOnS/qT7aUB0ynuvD8cmgjH33FPYGoM1uOhegvFzFFpED8THHy0BpaZeXT3DcLVhjSDZtAMmkEzaAYPMzDxe1HJQFv/MeiNWm/z03FBW92z6gW22Cy1qXp34AAAAABJRU5ErkJggg==) no-repeat;
 }
-    
+.print_icon {
+    /* ./wireframe0016.png */
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAD///////////////////////////////////////////////////////////////+3leKCAAAAEHRSTlMAL+9vn9/Pvz9/D6+PX08fQ4eIoAAAARZJREFUWMPtlsESgyAMRBWBJCh2//9re3CmA62JqOOlw16Rh+wu6DB0df1qZGbmSSot9CWfVUAOaFJM+/NfaBXvA5bW+UHZQUAgIqLag4lLZQBxVCwEIEc+TwAmZUwArEeAWXfAHCu2CWhjDkAavOWeT4aFCYDbllDlGAApAGus8kkMf+cWD7UQFgCyY4EvHyLDaAKw7ljgyocA4GUADlOEkaIFL8vqTLjVAm8ntcGtFjg7qds1yC0AbwBEqUFVByupDR4sB7aDwk/VILZeiEoG3Do/8s+NuDYv/tE8fhXgtFy6sPlKS+0s6IQi6s5Z0ejH5haAO6ADOuAxwMpnJDXg9o0klwDFJyRdeYXqvycJnVUeuv5Ib0suRVyEvZyQAAAAAElFTkSuQmCC) no-repeat;
+}
+.playlist_icon {
+    /* ./wireframe0017.png */
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAAAM1BMVEUAAAAAAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP8AAP+pygs/AAAAEHRSTlMAL8+v75/fvz9/Dx9PX2+PRakMwwAAAV5JREFUWMPtl9sWgiAQRccAB9Ts/P/X9sAlVCqYeWt13lrittkOF4n++YX4YPgQE7YhwIxz7DQEYCgJDNgz4bYMACwQqp+LAQB3GrT6c9ZyDYCpxy5XKa28/iQAPjxt6wLAvwVQ0ALIXEbPx1Yp1q1ZMsCN+K9efciArG4aBDABmEfbvwI8CAAkAE90A3DPAHfo5b0LEEtOgGP7mB6Aj7fKS9ijfznAAXhQ08G3SRkB0WHbwZemiIA0gqUlJIfEAFYJIDnM79R9mHiuCUgOM+DTMmKbgOQwA8ZLyJalgJAbqMPBRQQDMHkl6nBwEcEA5uRQXAKSQxVgIkUflKqkfVBWc0UJoWwjQQbYasDwelDmYAIMrwdFjbwE1gICvXXQsy9kh20HpgewKkuwpAQwtRwMnA8CNR30nw82bQmrEmDrM5nzY7nVJ7O+Q901QQso3wR32f32tZ/uLMlE//xSnp+kS9dlC1f9AAAAAElFTkSuQmCC) no-repeat;
+}
+   
 .icon_class, .prev_icon, .next_icon, .serial_icon, .random_icon, .full_icon, 
 .folder_icon, .window_icon, .play_icon, .pause_icon, .back_icon, .list_icon, 
-.player_icon, .home_icon {
+.player_icon, .home_icon, .print_icon, .playlist_icon {
     display: inline-block;
     background-size:cover;
     height:32pt;
     width:32pt;
 }
 
-.folder_icon {
+.folder_icon, .playlist_icon {
     vertical-align:text-top;
     width:1em;
     height:1em;
@@ -169,3 +181,28 @@ button:focus {outline:0;}
     border: none !important;
 }
 
+@media print {
+    /* When printing, remove the images and use a black on white theme */
+    html, body, div {
+        font-family: "Arial", Helvetica, sans-serif;
+        font-size: 6pt;
+        background-color: #ffffff; 
+        color: black; 
+    }
+    .title {
+        color: black; 
+    }
+    .index_entry, .index_entry_highlight {
+        color: black; 
+        font-weight: normal;
+    }
+    .folder_page {
+        page-break-after: always;
+    }
+    .playlist_page {
+        display:none;
+    }
+    img.index_thumbnail {
+        display:none;
+    }
+}
