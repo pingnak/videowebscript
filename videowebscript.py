@@ -16,12 +16,14 @@ import random
 import urllib
 import string
 from xml.sax.saxutils import escape
+from xml.sax.saxutils import unescape
+import unicodedata
 from subprocess import call
 import distutils.spawn
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
-    print "Make web pages to play HTML5 compatible video formats.\n"
+    print "Makes a web page to play HTML5 compatible video formats.\n"
     print "/media/path:\tPath to media to make web UI for.\n"
     print "template:\tWhich template to use.\n"
     print "/path2/template:Template in some other folder\n"
@@ -129,6 +131,10 @@ with open (PLAYER_TEMPLATE_FILE, "r") as myfile:
 INDEX_FOLDER_MATCH=re.search('<!--INDEX_FOLDER(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
 INDEX_FOLDER=INDEX_FOLDER_MATCH.group(1)
 
+# Find and cache a copy of folder template
+INDEX_PLAYLIST_MATCH=re.search('<!--INDEX_PLAYLIST(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_PLAYLIST=INDEX_PLAYLIST_MATCH.group(1)
+
 # Find index playlist_section completion tag
 INDEX_FILES_BEGIN_MATCH=re.search('<!--INDEX_FILES_BEGIN(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
 INDEX_FILES_BEGIN=INDEX_FILES_BEGIN_MATCH.group(1)
@@ -156,7 +162,8 @@ print( "\nCrawling folders in %s..." % (root_dir) )
 #
 # Iterate folders & files
 #
-all_paths_with_media=[]
+all_media_folders=[]
+all_play_lists=[]
 total_media_count = 0
 index_toc=[]
 player_toc=[]
@@ -191,7 +198,7 @@ for root, dirs, files in os.walk(root_dir):
     # A folder with content to play
 
     # Record live link folder for left box index/TOC
-    all_paths_with_media.append(root)
+    all_media_folders.append(root)
 
     totalFiles = 0;
     for relPath in sorted(files,compare_natural_filename):
@@ -267,9 +274,8 @@ for root, dirs, files in os.walk(root_dir):
         # Add accumulated indexes to list, to defer folder sort
         player_toc.append((folder_curr,output))
 
-
 # Manufacture index.html for entire run of folders, if there were any
-if 0 != len(all_paths_with_media):
+if 0 != len(all_media_folders):
     print "\nBuilding index..."
     sys.stdout.flush()
     
@@ -309,6 +315,6 @@ if 0 != len(all_paths_with_media):
                 print "Making " + needs[1]
                 call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs[0], '-o', needs[1] ])
             
-    print "\nMade %d folders with %d files.\n" %(len(all_paths_with_media),total_media_count)
+    print "\nMade %d folders with %d files.\n" %(len(all_media_folders),total_media_count)
 else:
     print "\nNo media found.  Nothing written.\n"

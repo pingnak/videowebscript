@@ -22,6 +22,7 @@ var vid = {};
 
 vid.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
 vid.bUseNativeControls = false;//!vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+vid.bPrintEnabled = !(/Android|Silk|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
 vid.mode_folders = 'folders';
 vid.mode_folder  = 'folder';
@@ -420,6 +421,7 @@ vid.RefreshControls = function()
         vid.bNext.style.display = '';
         vid.bSeq.style.display = vid.bShuffle ? 'none' : '';
         vid.bRand.style.display = vid.bShuffle ? '' : 'none';
+        vid.bPrint.style.display = 'none';
         break;
     case vid.mode_folder:
         vid.overlay_controls.style.background = '#000000';
@@ -433,6 +435,8 @@ vid.RefreshControls = function()
         vid.bNext.style.display = '';
         vid.bSeq.style.display = vid.bShuffle ? 'none' : '';
         vid.bRand.style.display = vid.bShuffle ? '' : 'none';
+        vid.bPrint.style.display = vid.bPrintEnabled ? '' : 'none';
+        vid.bPrint.title = "Print Folder Titles";
         break;
     case vid.mode_folders:
     default: // Fall-through
@@ -447,6 +451,8 @@ vid.RefreshControls = function()
         vid.bNext.style.display = 'none';
         vid.bSeq.style.display  = 'none';
         vid.bRand.style.display = 'none';
+        vid.bPrint.style.display = vid.bPrintEnabled ? '' : 'none';
+        vid.bPrint.title = "Print All Titles";
         break;
     }
 
@@ -1183,8 +1189,13 @@ it gets baked into the html output with the script.
 </div>
 
 <!--INDEX_FOLDER
-    <div class="folder_entry" style='FOLDER_STYLE'>
+    <div class='folder_entry' style='FOLDER_STYLE'>
         <a onclick="return vid.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
+    </div>
+-->
+<!--INDEX_PLAYLIST
+    <div class='playlist_entry' style='FOLDER_STYLE'>
+        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 
@@ -1237,7 +1248,7 @@ it gets baked into the html output with the script.
     <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
     </div>
     <div id="overlay_controls_right">
-    <button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.DoPrint();"><div class="print_icon"></div></button>
+    <button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return vid.DoPrint();"><div class="print_icon"></div></button>
     <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
     <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
     </div>

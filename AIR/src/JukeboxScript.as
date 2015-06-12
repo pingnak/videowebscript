@@ -81,6 +81,7 @@ CONFIG::MXMLC_BUILD
         protected var css_template : String;
         protected var index_template : String;
         protected var index_toc_folder : String;
+        protected var index_toc_playlist : String;
         protected var index_toc_files : String;
         protected var index_toc_file : String;
         protected var index_toc_files_end : String;
@@ -263,6 +264,10 @@ CONFIG::FLASH_AUTHORING
                 index_toc_folder = index_template.match( rxIndexToc_Folder )[0];
                 index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
 
+                const rxIndexToc_Playlist : RegExp = /\<\!\-\-INDEX_PLAYLIST(.*?)\-\-\>/ms;
+                index_toc_playlist = index_template.match( rxIndexToc_Playlist )[0];
+                index_toc_playlist = index_toc_playlist.replace( rxIndexToc_Playlist, "$1" );
+                
                 const rxIndexToc_Files : RegExp = /\<\!\-\-INDEX_FILES_BEGIN(.*?)\-\-\>/ms;
                 index_toc_files = index_template.match( rxIndexToc_Files )[0];
                 index_toc_files = index_toc_files.replace( rxIndexToc_Files, "$1" );
@@ -520,8 +525,13 @@ CONFIG::FLASH_AUTHORING
                             curr_title = Find.EscapeQuotes(curr_title);
                            
                             var FOLDER_ID : String = relPath.replace(/[^a-zA-Z0-9]/g, '_' );
+
+                            // Differentiate play list and folder of real files
+                            if( root.isDirectory )
+                                seded = index_toc_folder;
+                            else
+                                seded = index_toc_playlist;
                             
-                            seded = index_toc_folder;
                             seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
                             var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
                             seded = seded.replace(/FOLDER_NAME/g,curr_title);
@@ -559,6 +569,11 @@ CONFIG::FLASH_AUTHORING
                                 }
                                 seded = index_toc_files;
                                 seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                                // Differentiate play list and folder of real files
+                                if( root.isDirectory )
+                                    seded = seded.replace(/FOLDER_CLASS/g, 'folder_page');
+                                else
+                                    seded = seded.replace(/FOLDER_CLASS/g, 'playlist_page');
                                 seded = seded.replace(/FOLDER_STYLE/g, '');
                                 seded = seded.replace(/FOLDER_NAME/g,curr_title);
                                 index_files = seded + index_files + index_toc_files_end;

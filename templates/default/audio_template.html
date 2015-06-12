@@ -40,7 +40,9 @@ aud.PlayerInit = function()
     aud.bSeq = document.getElementById("bSeq");
     aud.bNext = document.getElementById("bNext");
     aud.bPrev = document.getElementById("bPrev");
-    
+    aud.bPrint= document.getElementById("bPrint");
+    aud.bPrint.style.display = /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'none' : '';
+
     aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
 
     // Set up play lists so that they can be sorted after being shuffled
@@ -325,6 +327,7 @@ aud.WhatNext = function()
 // Show folder contents
 aud.BrowseFolder = function(id)
 {
+    aud.bPrint.title = "Print Folder Titles";
     if( !id && aud.playlistElement )
         id = aud.playlistElement.id;
 
@@ -357,6 +360,7 @@ aud.BrowseFolder = function(id)
 // Show folder list
 aud.BrowseFolders = function()
 {
+    aud.bPrint.title = "Print All Titles";
     aud.mode = aud.mode_folders;
     aud.audio.pause();
     aud.audio.src = null;
@@ -577,7 +581,7 @@ into the html output with the script.
 -->
 <!--INDEX_PLAYLIST
     <div class='playlist_entry' style='FOLDER_STYLE'>
-        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
+        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 <!--INDEX_FILES_BEGIN
@@ -608,6 +612,6 @@ into the html output with the script.
 <!--INDEX_FILES_HERE-->
 </div>
 
-<button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return aud.DoPrint();"><div class="print_icon"></div></button>
+<button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return aud.DoPrint();"><div class="print_icon"></div></button>
 </body>
 </html>

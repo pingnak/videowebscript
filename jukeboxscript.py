@@ -21,7 +21,7 @@ import unicodedata
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
-    print "Make web pages to play HTML5 compatible audio formats.\n"
+    print "Makes a web page to play HTML5 compatible audio formats.\n"
     print "/media/path:\tPath to media to make web UI for.\n"
     print "template:\tWhich template to use.\n"
     print "/path2/template:Template in some other folder\n"
@@ -151,7 +151,6 @@ print( "\nCrawling folders in %s..." % (root_dir) )
 # Iterate folders & files
 #
 all_media_folders=[]
-all_playlist_folders=[]
 all_play_lists=[]
 all_folders=[]
 all_media_files={}
