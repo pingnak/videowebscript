@@ -1,6 +1,6 @@
 ﻿
 /*
- * Web (HTML5) Video Player Generator
+ * Web (HTML5) Media Player Generator
  *
  * Iterate gigantic trees of contents to generate thumbnails, and displays/players
  * in the browser, similar to DLNA photo/music/movie handling.
@@ -26,7 +26,7 @@ package
     public class VideoWebScript extends applet
     {
         protected static const SO_PATH : String = "VideoWebScriptData";
-        protected static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_2.0";
+        protected static const SO_SIGN : String = "MEDIASCRIPT_SIGN_2.2";
 
 CONFIG::MXMLC_BUILD
 {
@@ -47,7 +47,7 @@ CONFIG::MXMLC_BUILD
         /** A css file with theming details */
         public static const CSS_TEMPLATE  : String = "template.css";
 
-        /** Width of thumbnails for video */
+        /** Width of thumbnails for media */
         public static const THUMB_SIZE_DEFAULT : int = 240;
 
         /** Offset for folder depths in TOC file */
@@ -60,11 +60,14 @@ CONFIG::MXMLC_BUILD
             Lots of synonyms for 'mp4'.  Many of these may have incompatible CODECs
             or DRM, or other proprietary extensions in them.
         **/
-        public static const REGEX_MP4        : RegExp = /.(mp4|m4v|m4p|m4r|3gp|3g2)/;
+        public static const rxMEDIA        : RegExp = /.(mp4|m4v|m4p|m4r|3gp|3g2|ogg|ogv)/;
 
         /** Regular expressions that we accept as 'jpeg content'*/
-        public static const REGEX_JPEG       : RegExp = /.(jpg|jpeg)/;
+        public static const rxTHUMB       : RegExp = /.(jpg|jpeg)/;
 
+        /** Regex to match play list files */
+        public static const rxPLAY_LISTS : RegExp = /\.(asx|aimppl|bio|fpl|kpl|m3u|m3u8|pla|plc|pls|plist|smil|txt|vlc|wpl|xml|xpl|xspf|zpl)$/i;
+        
         /** Path to do the job in */
         protected var root_path_media : File;
         
@@ -97,9 +100,12 @@ CONFIG::MXMLC_BUILD
         /** Top level folder template */
         protected var index_folder : String;
 
+        /** Play list folder item */
+        protected var index_playlist : String;
+
         /** Start of folder group */
         protected var index_begin : String;
-
+        
         /** Index file with thumbnail */
         protected var index_file : String;
 
@@ -135,18 +141,18 @@ CONFIG::FLASH_AUTHORING
             addChild(ui);
             SortTabs(ui);
 
-            ui.tfPathVideo.addEventListener( Event.CHANGE, onFolderEdited );
-            ui.tfPathVideo.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
+            ui.tfPathMedia.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfPathMedia.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
 
             CheckSetup(ui.bnDoThumbs);
             ui.tfThumbnailSize.addEventListener( Event.CHANGE, onFolderEdited );
             ui.tfThumbnailSize.maxChars = 3;
             ui.tfThumbnailSize.restrict = "0-9";
-            ui.bFindPathVideo.addEventListener( MouseEvent.CLICK, BrowsePathVideo );
+            ui.bFindPathMedia.addEventListener( MouseEvent.CLICK, BrowsePathMedia );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnCompletionTone);
 
-            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoVideo );
+            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoMedia );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
             
             
@@ -249,20 +255,20 @@ CONFIG::FLASH_AUTHORING
         }
 
         /**
-         * Process video tree
+         * Process media tree
         **/
-        protected function DoVideo(e:Event=null):void
+        protected function DoMedia(e:Event=null):void
         {
-            trace("DoVideo",root_path_media.nativePath);
+            trace("DoMedia",root_path_media.nativePath);
 
             /**
              * Do parameter checks before we launch into processes
             **/
-            ui.tfPathVideo.text = root_path_media.nativePath;
+            ui.tfPathMedia.text = root_path_media.nativePath;
 
             if( !root_path_media.exists || !root_path_media.isDirectory )
             {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 return;
             }
             // Make sure we don't go way out of range on thumb size
@@ -283,7 +289,7 @@ CONFIG::FLASH_AUTHORING
 
             if( !root_path_media.exists || !root_path_media.isDirectory )
             {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 return;
             }
             
@@ -349,6 +355,10 @@ CONFIG::FLASH_AUTHORING
                 // Preload the various template elements we'll be writing for each folder/file
                 index_template = LoadText(index_template_file);
                 
+                const rxIndexToc_Playlist : RegExp = /\<\!\-\-INDEX_PLAYLIST(.*?)\-\-\>/ms;
+                index_playlist = index_template.match( rxIndexToc_Playlist )[0];
+                index_playlist = index_playlist.replace( rxIndexToc_Playlist, "$1" );
+                
                 const rxFolder : RegExp = /\<\!\-\-INDEX_FOLDER(.*?)\-\-\>/ms;
                 index_folder = index_template.match( rxFolder )[0];
                 index_folder = index_folder.replace(rxFolder,"$1");
@@ -357,13 +367,13 @@ CONFIG::FLASH_AUTHORING
                 index_begin = index_template.match( rxIndexBegin )[0];
                 index_begin = index_begin.replace(rxIndexBegin,"$1");
 
-                const rxFileThumb : RegExp = /\<\!\-\-INDEX_FILE_THUMB(.*?)\-\-\>/ms;
+                const rxFileThumb : RegExp = /\<\!\-\-INDEX_ITEM_THUMB(.*?)\-\-\>/ms;
                 index_file = index_template.match( rxFileThumb )[0];
                 index_file = index_file.replace( rxFileThumb, "$1");
 
-                const rxFileNoThumb : RegExp = /\<\!\-\-INDEX_FILE_NOTHUMB(.*?)\-\-\>/ms;
+                const rxFileNoThumb : RegExp = /\<\!\-\-INDEX_ITEM_NOTHUMB(.*?)\-\-\>/ms;
                 index_file_nothumb = index_template.match( rxFileNoThumb )[0];
-                index_file_nothumb = index_file.replace( rxFileNoThumb, "$1");
+                index_file_nothumb = index_file_nothumb.replace( rxFileNoThumb, "$1");
 
                 const rxIndexEnd : RegExp = /\<\!\-\-INDEX_FILES_END(.*?)\-\-\>/ms;
                 index_end = index_template.match( rxIndexEnd )[0];
@@ -385,7 +395,7 @@ CONFIG::FLASH_AUTHORING
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
-            finding.addEventListener( Find.FOUND, HaveVideoFiles );
+            finding.addEventListener( Find.FOUND, HaveMediaFiles );
 
             thumbnail = new Thumbnail(ui.mcThumbnail.mcPlaceholder,thumb_size);
             Busy();
@@ -393,17 +403,17 @@ CONFIG::FLASH_AUTHORING
         }
 
         /** Folder find is done.  Now decide what to do with it.  */
-        protected function HaveVideoFiles(e:Event=null):void
+        protected function HaveMediaFiles(e:Event=null):void
         {
             trace("Tree");
             found = finding.results;//Find.PruneEmpties( finding.results );
-            DoVideoFilesTree(found);
+            DoMediaFilesTree(found);
         }
 
         /**
-         * Finished exporting video files
+         * Finished exporting media files
         **/
-        protected function VideoFilesComplete(e:Event=null):void
+        protected function MediaFilesComplete(e:Event=null):void
         {
             ui.tfStatus.text = "";
             if( CheckGet( ui.bnDoThumbs ) && 0 != thumbnail.queue_length )
@@ -423,7 +433,7 @@ CONFIG::FLASH_AUTHORING
         }
 
         /**
-         * Clean up after video UI and thumbnail generation
+         * Clean up after media UI and thumbnail generation
         **/
         protected function ThumbnailsComplete(e:Event=null):void
         {
@@ -448,20 +458,26 @@ CONFIG::FLASH_AUTHORING
          * index for all.
          *
          * This will definitely load individual pages a lot faster, but you'll
-         * add some more clutter to your directory tree for all of the VideoPlayer
+         * add some more clutter to your directory tree for all of the MediaPlayer
          * files.
          *
          * Simpler UI without folding folders.  Just one index.html at the root
          * like the other ones, but containing only links to folders containing
          * more content.
         **/
-        protected function DoVideoFilesTree(found:Array):void
+        protected function DoMediaFilesTree(found:Array):void
         {
             var root_dir : File = found[0];
-            try
+            //try
             {
+                var play_list_db : Array = new Array();
+                var media_files_db : Array = [];
+                var all_play_lists : Array = new Array();
+
                 var folder_list_db : Array = new Array();
                 var file_list_db : Array = new Array();
+                var file_list_index : String = "";
+
                 var thumbnail_db : Dictionary = new Dictionary();
                 
                 // Iterate all of the folders
@@ -485,7 +501,7 @@ CONFIG::FLASH_AUTHORING
                     {
                         // Break out of 'threaded' loop
                         // Bottom part of file index file; all done
-                        setTimeout( ThreadComplete );
+                        setTimeout( MakePlaylists );
                         return;
                     }
                     ui.tfStatus.text = "Folder: "+folder_iteration.toString()+"/"+folders.length.toString();
@@ -516,44 +532,26 @@ CONFIG::FLASH_AUTHORING
                     
                     var iFile : int;
                     var curr_file : File;
+                    var curr_files_list : Array = [];
                     for( iFile = 0; iFile < sortedFiles.length; ++iFile )
                     {
                         curr_file = sortedFiles[iFile];
                         var extCurr : String = Find.File_extension(curr_file);
-                        if( extCurr.match(REGEX_MP4) )
+                        if( extCurr.match(rxMEDIA) )
                         {
                             media_files_db.push(curr_file);
-
-                            var curr_file_relative : String = Find.File_relative( curr_file, root_dir );
-                            var curr_file_title : String = Find.File_name( curr_file );
-                            curr_file_title = Find.FixDecodeURI(curr_file_title);
-                            curr_file_title = Find.EscapeQuotes(curr_file_title);
-
-                            // Thumb to-do list
-                            var file_thumb : File = Find.File_newExtension(curr_file,'.jpg');
-                            var curr_file_thumb : String = Find.File_relative( file_thumb, root_dir );
-
-                            // Emit index+code to play file
-                            if( CheckGet( ui.bnDoThumbs ) )
-                            {
-                                seded = index_file;
-                                seded = seded.replace(/MEDIA_IMAGE/g,Find.FixEncodeURI(curr_file_thumb));
-                            }
-                            else
-                            {   // No thumbnail
-                                seded = index_file_nothumb;
-                            }
-                            seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
-                            seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
-                            seded = seded.replace(/FILE_STYLE/g,'');
-                            index_files += seded;
-                            
+                            curr_files_list.push(curr_file);
+                        }
+                        else if( extCurr.match(rxPLAY_LISTS) )
+                        {
+                            all_play_lists.push(curr_file);
                         }
                         else if( extCurr.toLowerCase() == '.jpg' )
                         {
                             thumbnail_db[curr_file.nativePath] = 'true';
                         }
                     }
+                    folder_list_db.push( { root:root, index:curr_files_list } );
 
                     // Add missing thumbnails to 'to do' list.
                     var curr_thumb : File;
@@ -567,87 +565,220 @@ CONFIG::FLASH_AUTHORING
                         }
                     }
                     
-                    // Emit folder
-                    seded = index_folder;
-                    seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
-                    var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
-                    seded = seded.replace(/FOLDER_NAME/g,curr_title);
-                    if( 0 == media_files_db.length )
+                    ++folder_iteration;
+                }
+                
+                /* 
+                    Ultra-evil brute force play list import function
+                    Search the whole file versus every file we know about; if
+                    there are matches, make a 'fake' folder out of it.
+                */
+                var playlist_iteration : int = 0;
+
+                function MakePlaylists():void
+                {
+                    ui.tfStatus.text = "Play Lists...";
+                    setTimeout( ThreadPassPlayList, 34 );
+                }
+                    
+                //for( playlist_iteration = 0; playlist_iteration < all_play_lists.length; ++playlist_iteration )
+                function ThreadPassPlayList():void
+                {
+                    if( playlist_iteration < all_play_lists.length )
                     {
-                        // Indent and emit disabled folder
-                        const folder_disabled : String = ' pointer-events: none; opacity: 0.75;';
-                        seded = seded.replace(/FOLDER_STYLE/g,indent+folder_disabled);
-                        folder_list_db.push( {root:root,index:seded} );
+                        // Do next pass
+                        ui.tfStatus.text = "Play List: "+playlist_iteration.toString()+"/"+all_play_lists.length.toString();
+                        setTimeout( ThreadPassPlayList, 34 );
                     }
                     else
                     {
-                        // Indent enabled folder
-                        seded = seded.replace(/FOLDER_STYLE/g,indent);
-                        folder_list_db.push( {root:root,index:seded} );
-                        
-                        // Add file list div
-                        seded = index_begin;
-                        seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
-                        seded = seded.replace(/FOLDER_STYLE/g, '');
-                        seded = seded.replace(/FOLDER_NAME/g,curr_title);
-                        index_files = seded + index_files + index_end;
-                        file_list_db.push( {root:root,index:index_files} );
+                        // Break out of 'threaded' loop
+                        // Bottom part of file index file; all done
+                        ui.tfStatus.text = "Generating index...";
+                        setTimeout( ThreadComplete, 34 );
+                        return;
                     }
-                    ++folder_iteration;
-                }
+                
+                    //for each( curr_file in all_play_lists )
+                    var curr_file : File = all_play_lists[playlist_iteration];
+                    {
+
+                        var curr_file_text : String = LoadText( curr_file );
+                        // Eat up XML/HTML entities
+                        curr_file_text = new XML(curr_file_text).toString();
+                        // Get rid of URI escapes
+                        //curr_file_text = Find.FixDecodeURI(curr_file_text);
+                        // All lower-case for case-insensitivity
+                        curr_file_text = curr_file_text.toLowerCase(); 
+                        
+                        // At this point, our image of the play list is utterly ruined, except as something to search as a block of text
+                        
+                        var files : Array = [];
+            
+                        // Treat play list file as raw text, and look for literal matches of file names that we have.
+                        var media_curr : File;
+                        var name_curr : String;
+                        
+                        for each (media_curr in media_files_db)
+                        {
+                            name_curr = Find.File_name(media_curr);
+                            name_curr = name_curr.toLowerCase();
+                            name_curr = '/' + name_curr + '.';
+                            if( -1 != curr_file_text.indexOf( name_curr ) )
+                                files.push( media_curr );
+                        }
+                        
+                        // We found file names in our collection in that play list, so we will treat it like a real one.
+                        if( 0 != files.length )
+                        {
+                            // Make sure we have only unique files.
+                            var uniquefiles : Dictionary = new Dictionary();
+                            for each (media_curr in files)
+                                uniquefiles[media_curr] = 'true';
+                            files = [];
+                            for(media_curr in uniquefiles)
+                                files.push(media_curr);
+                                
+                            // Add play list file like a folder
+                            var newpath : File = new File( Find.GetPathWithoutExt(curr_file) );
+                            folder_list_db.push( { root:newpath, index:files } );
+                        }
+                    }
+                    ++playlist_iteration;
+                }                
                 
                 // Generate index.html file...
                 function ThreadComplete():void
                 {
-                    if( folder_list_db.length > 1 )
+                    if( 0 != media_files_db.length )
                     {
                         // Insert folder list for little link table
                         var folder_list : String = "";
-                        var iteration : int;
-                        var dbCurr : Object;
-                        for( iteration = 0; iteration < folder_list_db.length; ++iteration )
-                        {
-                            dbCurr = folder_list_db[iteration];
-                            folder_list += dbCurr.index;
-                        }
+                        var player_list : String = "";
                         
-                        var file_list : String = "";
-                        for( iteration = 0; iteration < file_list_db.length; ++iteration )
+                        function byNativePath( p1:Object, p2:Object ) : int
                         {
-                            dbCurr = file_list_db[iteration];
-                            file_list += dbCurr.index;
+                            return Find.SortOnNative( p1.root, p2.root );
                         }
+                        folder_list_db = folder_list_db.sort(byNativePath);
+                        
+                        var folder_iteration : int;
+                        for( folder_iteration = 0; folder_iteration < folder_list_db.length; ++folder_iteration )
+                        {
+                            var curr_folder : Object = folder_list_db[folder_iteration];
+                            var root : File = curr_folder.root;
+                            var curr_index : Array = curr_folder.index;
 
-                        var curr_title : String = Find.File_name( folders[0] );
-                        var curr_title_escaped : String = Find.EscapeQuotes(curr_title);
+                            var seded : String
+        
+                            // Make folder index and start folder 
+                            var relPath : String = Find.File_relative(root,root_dir);
+                            var curr_depth : int = Find.File_Depth(root,root_dir) + (0 != folder_iteration);
+        
+                            // Create and build top half of index file
+                            var curr_title : String = Find.File_nameext(root);
+                            curr_title = Find.FixDecodeURI(curr_title);
+                            curr_title = Find.EscapeQuotes(curr_title);
+                           
+                            var FOLDER_ID : String = relPath.replace(/[^a-zA-Z0-9]/g, '_' );
+
+                            // Differentiate play list and folder of real files
+                            if( root.isDirectory )
+                                seded = index_folder;
+                            else
+                                seded = index_playlist;
+                            
+                            seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                            var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
+                            seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                            
+                            if( 0 == curr_index.length )
+                            {
+                                // Add disabled link for folder list
+                                const folder_disabled : String = ' pointer-events: none; opacity: 0.75;';
+                                seded = seded.replace(/FOLDER_STYLE/g,indent+folder_disabled);
+                                folder_list += seded;
+                            }
+                            else
+                            {
+                                // Add active link for folder list
+                                seded = seded.replace(/FOLDER_STYLE/g,indent);
+                                folder_list += seded;
+                                
+                                // Now build the file index for this folder and add it to the list
+                                var index_files : String = "";
+                                var media_iteration : int;
+                                curr_index = curr_index.sort(Find.SortOnNative);
+                                for( media_iteration = 0; media_iteration < curr_index.length; ++media_iteration )
+                                {
+                                    var curr_file : File = curr_index[media_iteration];
+                                    var curr_file_relative : String = Find.File_relative( curr_file, root_dir );
+                                    var curr_file_title : String = Find.File_name( curr_file );
+                                    curr_file_title = Find.FixDecodeURI(curr_file_title);
+                                    curr_file_title = Find.EscapeQuotes(curr_file_title);
+                                    
+                                    // Emit index+code to play file
+                                    if( CheckGet( ui.bnDoThumbs ) )
+                                    {
+                                        seded = index_file;
+                                        // Thumb to-do list
+                                        var file_thumb : File = Find.File_newExtension(curr_file,'.jpg');
+                                        var curr_file_thumb : String = Find.File_relative( file_thumb, root_dir );
+                                        seded = seded.replace(/MEDIA_IMAGE/g,Find.FixEncodeURI(curr_file_thumb));
+                                    }
+                                    else
+                                    {   // No thumbnail
+                                        seded = index_file_nothumb;
+                                    }
+
+                                    seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
+                                    seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
+                                    seded = seded.replace(/MEDIA_STYLE/g,'');
+                                    index_files += seded;
+                                }
+                                seded = index_files;
+                                seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
+                                // Differentiate play list and folder of real files
+                                if( root.isDirectory )
+                                    seded = seded.replace(/FOLDER_CLASS/g, 'folder_page');
+                                else
+                                    seded = seded.replace(/FOLDER_CLASS/g, 'playlist_page');
+                                seded = seded.replace(/FOLDER_STYLE/g, '');
+                                seded = seded.replace(/FOLDER_NAME/g,curr_title);
+                                index_files = seded + index_files + index_end;
+                                player_list += index_files;
+                            }
+                        }
                         
+                        var TITLE_TEXT : String = Find.File_name( root_dir );
+                        TITLE_TEXT = Find.EscapeQuotes(TITLE_TEXT);
                         var index_content : String = index_template;
                         index_content = index_content.replace("/*INSERT_CSS_HERE*/",css_template);
-                        index_content = index_content.replace(/TITLE_TEXT/g,curr_title_escaped);
-                        index_content = index_content.replace(/THUMB_SIZE/g,thumb_size.toString());
+                        index_content = index_content.replace(/TITLE_TEXT/g,TITLE_TEXT);
                         index_content = index_content.replace("<!--INDEX_FOLDERS_HERE-->", folder_list);
-                        index_content = index_content.replace("<!--INDEX_FILES_HERE-->",   file_list);
-
-                        // Pack output file a bit
+                        index_content = index_content.replace("<!--INDEX_FILES_HERE-->", player_list);
+                        
                         //index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
-                        var toc_file : File = Find.File_AddPath( root_dir, MAIN_TOC );
+                        var toc_file : File = Find.File_AddPath( root_path_media, MAIN_TOC );
                         var fs : FileStream = new FileStream();
                         fs.open( toc_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
                         fs.close();
                     }
                     // Put UI back
-                    VideoFilesComplete();
+                    MediaFilesComplete();
                 }
             }
+            /*
             catch( e:Error )
             {
                 trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 Interactive();
             }
+            */
             // Fall out; timer threads are in charge
         }
 
@@ -729,7 +860,7 @@ CONFIG::FLASH_AUTHORING
             }
 
             // Decode the saved data
-            root_path_media = new File(share_data.url_video);
+            root_path_media = new File(share_data.url_media);
             if( !root_path_media.exists )
                 root_path_media = File.desktopDirectory;
             onFolderChanged();
@@ -769,7 +900,7 @@ CONFIG::FLASH_AUTHORING
             fs.open(f, FileMode.WRITE);
 
             // Copy data to our save 'object
-            share_data.url_video = root_path_media.url;
+            share_data.url_media = root_path_media.url;
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.bDoThumbs = CheckGet( ui.bnDoThumbs );
             share_data.thumb_size = thumb_size;
@@ -786,8 +917,8 @@ CONFIG::FLASH_AUTHORING
             return share_data;
         }
 
-        /** Find path to video content */
-        protected function BrowsePathVideo(e:Event=null):void
+        /** Find path to media content */
+        protected function BrowsePathMedia(e:Event=null):void
         {
             root_path_media.addEventListener(Event.SELECT, onFolderChanged);
             root_path_media.browseForDirectory("Choose a folder");
@@ -803,7 +934,7 @@ CONFIG::FLASH_AUTHORING
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
         protected function onFolderEdited(e:Event=null):void
         {
-            if( '' == ui.tfPathVideo.text )
+            if( '' == ui.tfPathMedia.text )
             {
                 root_path_media.nativePath = '/';
             }
@@ -811,7 +942,7 @@ CONFIG::FLASH_AUTHORING
             {
                 try
                 {
-                    root_path_media.nativePath = ui.tfPathVideo.text;
+                    root_path_media.nativePath = ui.tfPathMedia.text;
                 }
                 catch( e:Error )
                 {
@@ -827,7 +958,7 @@ CONFIG::FLASH_AUTHORING
             if(Keyboard.ENTER == event.charCode)
             {
                 onFolderEdited();
-                DoVideo();
+                DoMedia();
             }
         }
 
@@ -838,7 +969,7 @@ CONFIG::FLASH_AUTHORING
             {
                 root_path_media = File.userDirectory;
             }
-            ui.tfPathVideo.text = root_path_media.nativePath;
+            ui.tfPathMedia.text = root_path_media.nativePath;
         }
 
         /** Enable/disable template controls */
@@ -906,12 +1037,12 @@ CONFIG::FLASH_AUTHORING
         {
             if( !root_path_media.exists || !root_path_media.isDirectory )
             {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathVideo);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 return;
             }
 
-            var warning : String = "Every JPEG from the Video Player path will be wiped out!\n\n" + root_path_media.nativePath;
-            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Video Thumbnail Images", yeah, warning, "DO IT!", "ABORT!" );
+            var warning : String = "Every JPEG from the Media Player path will be wiped out!\n\n" + root_path_media.nativePath;
+            AreYouSure( GetMovieClip("UI_AreYouSure"), "Remove Media Thumbnail Images", yeah, warning, "DO IT!", "ABORT!" );
             function yeah():void
             {
                 trace("Removing Thumbnail Images");
@@ -924,7 +1055,7 @@ CONFIG::FLASH_AUTHORING
                     if( file.isDirectory )
                         return false;
                     var ext : String = Find.File_extension(file);
-                    var found:Array = ext.match(REGEX_MP4);
+                    var found:Array = ext.match(rxMEDIA);
                     return null == found;
                 }
                 finding = new Find( root_path_media, OnlyMP4 )

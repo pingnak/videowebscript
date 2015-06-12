@@ -27,7 +27,7 @@ package
     public class JukeboxScript extends applet
     {
         protected static const SO_PATH : String = "JukeboxScriptData";
-        protected static const SO_SIGN : String = "VIDEOSCRIPT_SIGN_2.0";
+        protected static const SO_SIGN : String = "MEDIASCRIPT_SIGN_2.2";
 
 CONFIG::MXMLC_BUILD
 {
@@ -58,7 +58,7 @@ CONFIG::MXMLC_BUILD
         public static const LEFT_PADDING : int = 4;
         
         /** Regex to match media files */
-        public static const rxMP3 : RegExp = /\.(mp3|ogg|m4a)$/i;
+        public static const rxMEDIA : RegExp = /\.(aac|mp3|ogg|oga|m4a)$/i;
 
         /** Regex to match play list files */
         public static const rxPLAY_LISTS : RegExp = /\.(asx|aimppl|bio|fpl|kpl|m3u|m3u8|pla|plc|pls|plist|smil|txt|vlc|wpl|xml|xpl|xspf|zpl)$/i;
@@ -78,13 +78,29 @@ CONFIG::MXMLC_BUILD
         /** Finder while searching files/folders */
         protected var finding : Find;
 
-        protected var css_template : String;
+        /** CSS template file, loaded */
+        protected var css_template : String
+
+        /** Player template file, loaded */
         protected var index_template : String;
-        protected var index_toc_folder : String;
-        protected var index_toc_playlist : String;
-        protected var index_toc_files : String;
-        protected var index_toc_file : String;
-        protected var index_toc_files_end : String;
+
+        /** Top level folder template */
+        protected var index_folder : String;
+
+        /** Play list folder item */
+        protected var index_playlist : String;
+
+        /** Start of folder group */
+        protected var index_begin : String;
+        
+        /** Index file with thumbnail */
+        protected var index_file : String;
+
+        /** Index file without thumbnail */
+        protected var index_file_nothumb : String;
+
+        /** End of folder group */
+        protected var index_end : String;
         
         public function JukeboxScript()
         {
@@ -111,15 +127,15 @@ CONFIG::FLASH_AUTHORING
             addChild(ui);
             SortTabs(ui);
 
-            ui.tfPathAudio.addEventListener( Event.CHANGE, onFolderEdited );
-            ui.tfPathAudio.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
-            ui.bFindPathAudio.addEventListener( MouseEvent.CLICK, BrowsePathAudio );
+            ui.tfPathMedia.addEventListener( Event.CHANGE, onFolderEdited );
+            ui.tfPathMedia.addEventListener( KeyboardEvent.KEY_DOWN, HitEnter );
+            ui.bFindPathMedia.addEventListener( MouseEvent.CLICK, BrowsePathMedia );
             ui.bnFindExplore.addEventListener( MouseEvent.CLICK, OpenFolder );
             CheckSetup(ui.bnCompletionTone);
-            
-            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoAudio );
+
+            ui.bnDoIt.addEventListener( MouseEvent.CLICK, DoMedia );
             ui.bnAbort.addEventListener( MouseEvent.CLICK, Abort );
-            
+
             CheckSetup(ui.bnTempate);
             ui.bnTempate.addEventListener( MouseEvent.CLICK, ChangeTemplateEnable );
             ui.bFindTemplate.addEventListener( MouseEvent.CLICK, BrowsePathTemplate );
@@ -188,20 +204,20 @@ CONFIG::FLASH_AUTHORING
         }
         
         /**
-         * Process audio tree
+         * Process media tree
         **/
-        protected function DoAudio(e:Event=null):void
+        protected function DoMedia(e:Event=null):void
         {
-            trace("DoAudio",root_path_media.nativePath);
+            trace("DoMedia",root_path_media.nativePath);
 
             /**
              * Do parameter checks before we launch into processes
             **/
-            ui.tfPathAudio.text = root_path_media.nativePath;
+            ui.tfPathMedia.text = root_path_media.nativePath;
 
             if( !root_path_media.exists || !root_path_media.isDirectory )
             {
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 return;
             }
 
@@ -261,24 +277,28 @@ CONFIG::FLASH_AUTHORING
                 index_template = LoadText(index_template_file);
 
                 const rxIndexToc_Folder : RegExp = /\<\!\-\-INDEX_FOLDER(.*?)\-\-\>/ms;
-                index_toc_folder = index_template.match( rxIndexToc_Folder )[0];
-                index_toc_folder = index_toc_folder.replace( rxIndexToc_Folder, "$1" );
+                index_folder = index_template.match( rxIndexToc_Folder )[0];
+                index_folder = index_folder.replace( rxIndexToc_Folder, "$1" );
 
                 const rxIndexToc_Playlist : RegExp = /\<\!\-\-INDEX_PLAYLIST(.*?)\-\-\>/ms;
-                index_toc_playlist = index_template.match( rxIndexToc_Playlist )[0];
-                index_toc_playlist = index_toc_playlist.replace( rxIndexToc_Playlist, "$1" );
+                index_playlist = index_template.match( rxIndexToc_Playlist )[0];
+                index_playlist = index_playlist.replace( rxIndexToc_Playlist, "$1" );
                 
                 const rxIndexToc_Files : RegExp = /\<\!\-\-INDEX_FILES_BEGIN(.*?)\-\-\>/ms;
-                index_toc_files = index_template.match( rxIndexToc_Files )[0];
-                index_toc_files = index_toc_files.replace( rxIndexToc_Files, "$1" );
-                
-                const rxIndexToc_File : RegExp = /\<\!\-\-INDEX_ITEM(.*?)\-\-\>/ms;
-                index_toc_file = index_template.match( rxIndexToc_File )[0];
-                index_toc_file = index_toc_file.replace( rxIndexToc_File, "$1" );
+                index_begin = index_template.match( rxIndexToc_Files )[0];
+                index_begin = index_begin.replace( rxIndexToc_Files, "$1" );
 
+                const rxFileThumb : RegExp = /\<\!\-\-INDEX_ITEM_THUMB(.*?)\-\-\>/ms;
+                index_file = index_template.match( rxFileThumb )[0];
+                index_file = index_file.replace( rxFileThumb, "$1");
+
+                const rxFileNoThumb : RegExp = /\<\!\-\-INDEX_ITEM_NOTHUMB(.*?)\-\-\>/ms;
+                index_file_nothumb = index_template.match( rxFileNoThumb )[0];
+                index_file_nothumb = index_file_nothumb.replace( rxFileNoThumb, "$1");
+                
                 const rxIndexToc_FilesEnd : RegExp = /\<\!\-\-INDEX_FILES_END(.*?)\-\-\>/ms;
-                index_toc_files_end = index_template.match( rxIndexToc_FilesEnd )[0];
-                index_toc_files_end = index_toc_files_end.replace( rxIndexToc_FilesEnd, "$1" );
+                index_end = index_template.match( rxIndexToc_FilesEnd )[0];
+                index_end = index_end.replace( rxIndexToc_FilesEnd, "$1" );
             }
             catch( e:Error )
             {
@@ -295,23 +315,23 @@ CONFIG::FLASH_AUTHORING
             ui.tfStatus.text = "...";
             finding.addEventListener( Find.ABORT, Aborted );
             finding.addEventListener( Find.MORE, FindStatus );
-            finding.addEventListener( Find.FOUND, HaveAudioFiles );
+            finding.addEventListener( Find.FOUND, HaveMediaFiles );
 
             Busy();
 
         }
         
         /** Folder find is done.  Now decide what to do with it.  */
-        protected function HaveAudioFiles(e:Event=null):void
+        protected function HaveMediaFiles(e:Event=null):void
         {
             trace("Tree");
-            DoAudioFilesTree(finding.results);
+            DoMediaFilesTree(finding.results);
         }
 
         /**
-         * Finished exporting audio files
+         * Finished exporting media files
         **/
-        protected function AudioFilesComplete(e:Event=null):void
+        protected function MediaFilesComplete(e:Event=null):void
         {
             ui.tfStatus.text = "";
             Interactive();
@@ -323,26 +343,25 @@ CONFIG::FLASH_AUTHORING
          * index for all.
          *
          * This will definitely load individual pages a lot faster, but you'll
-         * add some more clutter to your directory tree for all of the AudioPlayer
+         * add some more clutter to your directory tree for all of the MediaPlayer
          * files.  
          *
          * Simpler UI without folding folders.  Just one index.html at the root
          * like the other ones, but containing only links to folders containing 
          * more content.
         **/
-        protected function DoAudioFilesTree(found:Array):void
+        protected function DoMediaFilesTree(found:Array):void
         {
             var root_dir : File = found[0];
             //try
             {
                 var play_list_db : Array = new Array();
                 var media_files_db : Array = [];
-                
                 var all_play_lists : Array = new Array();
+                
                 var folder_list_db : Array = new Array();
                 var file_list_db : Array = new Array();
                 var file_list_index : String = "";
-                var bExportedLinks : Boolean = false;
 
                 // Iterate all of the folders
                 var folders : Array = Find.GetFolders(found);
@@ -396,7 +415,7 @@ CONFIG::FLASH_AUTHORING
                     {
                         curr_file = total_files_at_this_depth[iFile];
                         var extCurr : String = Find.File_extension(curr_file);
-                        if( extCurr.match(rxMP3) )
+                        if( extCurr.match(rxMEDIA) )
                         {
                             media_files_db.push(curr_file);
                             curr_files_list.push(curr_file);
@@ -445,7 +464,6 @@ CONFIG::FLASH_AUTHORING
                     //for each( curr_file in all_play_lists )
                     var curr_file : File = all_play_lists[playlist_iteration];
                     {
-
                         var curr_file_text : String = LoadText( curr_file );
                         // Eat up XML/HTML entities
                         curr_file_text = new XML(curr_file_text).toString();
@@ -493,7 +511,6 @@ CONFIG::FLASH_AUTHORING
 
                 function ThreadComplete():void
                 {
-                    // If user wanted a flattened table of contents, make one.
                     if( 0 != media_files_db.length )
                     {
                         // Insert folder list for little link table
@@ -528,9 +545,9 @@ CONFIG::FLASH_AUTHORING
 
                             // Differentiate play list and folder of real files
                             if( root.isDirectory )
-                                seded = index_toc_folder;
+                                seded = index_folder;
                             else
-                                seded = index_toc_playlist;
+                                seded = index_playlist;
                             
                             seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
                             var indent : String = 'padding-left:'+(LEFT_PADDING+(curr_depth*FOLDER_DEPTH))+'pt;';
@@ -561,13 +578,13 @@ CONFIG::FLASH_AUTHORING
                                     curr_file_title = Find.FixDecodeURI(curr_file_title);
                                     curr_file_title = Find.EscapeQuotes(curr_file_title);
                                     
-                                    seded = index_toc_file;
+                                    seded = index_file_nothumb;//index_file;
                                     seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
                                     seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
-                                    seded = seded.replace(/FILE_STYLE/g,'');
+                                    seded = seded.replace(/MEDIA_STYLE/g,'');
                                     index_files += seded;
                                 }
-                                seded = index_toc_files;
+                                seded = index_begin;
                                 seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
                                 // Differentiate play list and folder of real files
                                 if( root.isDirectory )
@@ -576,7 +593,7 @@ CONFIG::FLASH_AUTHORING
                                     seded = seded.replace(/FOLDER_CLASS/g, 'playlist_page');
                                 seded = seded.replace(/FOLDER_STYLE/g, '');
                                 seded = seded.replace(/FOLDER_NAME/g,curr_title);
-                                index_files = seded + index_files + index_toc_files_end;
+                                index_files = seded + index_files + index_end;
                                 player_list += index_files;
                             }
                         }
@@ -598,14 +615,14 @@ CONFIG::FLASH_AUTHORING
                         fs.writeUTFBytes(index_content);
                         fs.close();
                     }
-                    AudioFilesComplete();
+                    MediaFilesComplete();
                 }
             }
             /*
             catch( e:Error )
             {
                 trace(e.getStackTrace());
-                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathAudio);
+                ErrorIndicate(GetMovieClip("ErrorIndicator"), ui.tfPathMedia);
                 Interactive();
             }
             */
@@ -670,7 +687,7 @@ CONFIG::FLASH_AUTHORING
             }
             
             // Decode the saved data
-            root_path_media = new File(share_data.url_audio);
+            root_path_media = new File(share_data.url_media);
             if( !root_path_media.exists )
                 root_path_media = File.desktopDirectory;
 
@@ -703,7 +720,7 @@ CONFIG::FLASH_AUTHORING
             fs.open(f, FileMode.WRITE);
 
             // Copy data to our save 'object
-            share_data.url_audio = root_path_media.url;
+            share_data.url_media = root_path_media.url;
 
             share_data.bPlayTune = CheckGet( ui.bnCompletionTone );
             share_data.bTemplate = CheckGet( ui.bnTempate );
@@ -719,8 +736,8 @@ CONFIG::FLASH_AUTHORING
             return share_data;
         }
         
-        /** Find path to audio content */
-        protected function BrowsePathAudio(e:Event=null):void
+        /** Find path to media content */
+        protected function BrowsePathMedia(e:Event=null):void
         {
             root_path_media.addEventListener(Event.SELECT, onFolderChanged);
             root_path_media.browseForDirectory("Choose a folder");
@@ -736,7 +753,7 @@ CONFIG::FLASH_AUTHORING
         /** Keep track if user hand-tweaked paths, so we can make them into File objects */
         protected function onFolderEdited(e:Event=null):void
         {
-            root_path_media.nativePath = ui.tfPathAudio.text;
+            root_path_media.nativePath = ui.tfPathMedia.text;
         }
         
         // Convenience - hit enter in port to start up
@@ -745,7 +762,7 @@ CONFIG::FLASH_AUTHORING
             if(Keyboard.ENTER == event.charCode)
             {
                 onFolderEdited();
-                DoAudio();
+                DoMedia();
             }
         }
         
@@ -753,7 +770,7 @@ CONFIG::FLASH_AUTHORING
         /** User navigated a different path */
         protected function onFolderChanged(e:Event=null):void
         {
-            ui.tfPathAudio.text = root_path_media.nativePath; 
+            ui.tfPathMedia.text = root_path_media.nativePath; 
         }
 
         /** Enable/disable template controls */

@@ -352,7 +352,7 @@ if 0 != len(all_media_folders):
                     
                 playlist_section_file = playlist_section_file.replace('MEDIA_TITLE', filename_title_escaped ) 
                 playlist_section_file = playlist_section_file.replace('MEDIA_PATH',  media_path_escaped )
-                playlist_section_file = playlist_section_file.replace('FILE_STYLE', '' )
+                playlist_section_file = playlist_section_file.replace('MEDIA_STYLE', '' )
                 
                 playlist_section = playlist_section + playlist_section_file
             playlist_section = playlist_section + INDEX_FILES_END
