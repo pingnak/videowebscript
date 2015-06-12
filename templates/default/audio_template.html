@@ -18,32 +18,32 @@
 <script type="text/javascript">
 //<![CDATA[
 /** Namespace for audio control code */
-var aud = {};
+var media = {};
 
-aud.bShuffle = false;
-aud.now_playing = null;
-aud.playlistElement = null;
-aud.now_playing_element = null;
+media.bShuffle = false;
+media.now_playing = null;
+media.playlistElement = null;
+media.now_playing_element = null;
 
-aud.mode_folders = 'folders';
-aud.mode_folder  = 'folder';
-aud.mode = aud.mode_folders;
+media.mode_folders = 'folders';
+media.mode_folder  = 'folder';
+media.mode = media.mode_folders;
 
-aud.PlayerInit = function()
+media.PlayerInit = function()
 {
-    aud.Folders = document.getElementById("Folders");
-    aud.PlayList = document.getElementById("PlayList");
+    media.Folders = document.getElementById("Folders");
+    media.PlayList = document.getElementById("PlayList");
 
-    aud.PlayerBox = document.getElementById("PlayerBox");
-    aud.audio = document.getElementById("audioplayer");
-    aud.bRand = document.getElementById("bRand");
-    aud.bSeq = document.getElementById("bSeq");
-    aud.bNext = document.getElementById("bNext");
-    aud.bPrev = document.getElementById("bPrev");
-    aud.bPrint= document.getElementById("bPrint");
-    aud.bPrint.style.display = /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'none' : '';
+    media.PlayerBox = document.getElementById("PlayerBox");
+    media.audio = document.getElementById("audioplayer");
+    media.bRand = document.getElementById("bRand");
+    media.bSeq = document.getElementById("bSeq");
+    media.bNext = document.getElementById("bNext");
+    media.bPrev = document.getElementById("bPrev");
+    media.bPrint= document.getElementById("bPrint");
+    media.bPrint.style.display = /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ? 'none' : '';
 
-    aud.audio.addEventListener( "ended", aud.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
+    media.audio.addEventListener( "ended", media.PlayNextWrap ); // Keep playing (Re-shuffle, as applicable)
 
     // Set up play lists so that they can be sorted after being shuffled
     var collection = document.getElementsByClassName("index_entry");
@@ -53,26 +53,26 @@ aud.PlayerInit = function()
         collection[i].index = i;
     }
     
-    aud.BrowseFolders();
+    media.BrowseFolders();
     
-    aud.SetupPrint();
+    media.SetupPrint();
 }
 
 /** Play in shuffled order */
-aud.PlayListRandom = function()
+media.PlayListRandom = function()
 {
-    aud.bShuffle = true; 
-    aud.MakePlaylist();
-    aud.PlayNext();
+    media.bShuffle = true; 
+    media.MakePlaylist();
+    media.PlayNext();
     return false;
 }
 
 /** Play sequentially */
-aud.PlayListSerial = function()
+media.PlayListSerial = function()
 {
-    aud.bShuffle = false;
-    aud.MakePlaylist();
-    aud.HighlightPlaying();
+    media.bShuffle = false;
+    media.MakePlaylist();
+    media.HighlightPlaying();
     return false;
 }
 
@@ -80,28 +80,28 @@ aud.PlayListSerial = function()
  * Load the audio when the page finishes loading 
  * http://www.w3.org/2010/05/audio/mediaevents.html
  */
-aud.PlayMedia = function(audio_path,noscroll)
+media.PlayMedia = function(audio_path,noscroll)
 {
     noscroll = noscroll || false;
     if(typeof(audio_path)==='undefined') 
-        audio_path = aud.now_playing_element.getAttribute('path');
+        audio_path = media.now_playing_element.getAttribute('path');
 
-    aud.now_playing = audio_path;
-    if( aud.HighlightPlaying(noscroll) )
+    media.now_playing = audio_path;
+    if( media.HighlightPlaying(noscroll) )
    {
-        aud.audio.src = audio_path;
-        aud.audio.load();
-        aud.audio.play();
+        media.audio.src = audio_path;
+        media.audio.load();
+        media.audio.play();
     
-        aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().textContent );
-        aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().textContent );
+        media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );
+        media.bPrev.setAttribute( 'title', "Prev: " + media.WhatPrev().textContent );
     }
 
     return false;
 }
 
 /** Convert DOM collections of index_entry objects to array */
-aud.Playable = function(element)
+media.Playable = function(element)
 {
     var i;
     var curr;
@@ -117,24 +117,24 @@ aud.Playable = function(element)
 }
 
 /** Show which item is playing in the play list */
-aud.HighlightPlaying = function(noscroll)
+media.HighlightPlaying = function(noscroll)
 {
     var collection;
     var i;
     var curr;
-    aud.now_playing_element = null;
+    media.now_playing_element = null;
     
     // Find and reset elements 
-    if( null == aud.playlistElement )
+    if( null == media.playlistElement )
     {
-        collection = aud.Playable(document);
+        collection = media.Playable(document);
         for( i = 0; i < collection.length; ++i )
         {
             curr = collection[i];
-            if( curr.getAttribute('path') == aud.now_playing )
+            if( curr.getAttribute('path') == media.now_playing )
             {
-                aud.BrowseFolder(curr.parentNode.id);
-                aud.now_playing_element = curr;
+                media.BrowseFolder(curr.parentNode.id);
+                media.now_playing_element = curr;
             }
             delete curr.style;
             curr.className = 'index_entry';
@@ -142,68 +142,68 @@ aud.HighlightPlaying = function(noscroll)
     }
     else
     {
-        collection = aud.Playable(aud.playlistElement);
+        collection = media.Playable(media.playlistElement);
         for( i = 0; i < collection.length; ++i )
         {
             curr = collection[i];
-            if( curr.getAttribute('path') == aud.now_playing )
+            if( curr.getAttribute('path') == media.now_playing )
             {
-                aud.now_playing_element = curr;
+                media.now_playing_element = curr;
             }
             delete curr.style;
             curr.className = 'index_entry';
         }
     }
-    if( null == aud.now_playing_element )
+    if( null == media.now_playing_element )
     {
-        console.log( "Media not found in internal play lists:", aud.now_playing );
+        console.log( "Media not found in internal play lists:", media.now_playing );
         window.scrollTo(0,0);
         return false;
     }
 
     // Highlight what we found
-    item = aud.now_playing_element;
+    item = media.now_playing_element;
     item.className = 'index_entry_highlight';
     if( !noscroll && item.scrollIntoView )
     {
         var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
         item.scrollIntoView();
-        if( item.offsetTop - window.scrollY <= aud.PlayerBox.clientHeight )
+        if( item.offsetTop - window.scrollY <= media.PlayerBox.clientHeight )
             window.scrollTo(0,window.scrollY-(0.5*browserHeight));
     }
     return true;
 }
 
 /* Make a play list from title links */
-aud.MakePlaylist = function(playlistElement)
+media.MakePlaylist = function(playlistElement)
 {
-    if( aud.bShuffle )
+    if( media.bShuffle )
     {
-        aud.bRand.style.display = '';
-        aud.bSeq.style.display  = 'none';
+        media.bRand.style.display = '';
+        media.bSeq.style.display  = 'none';
     }
     else
     {
-        aud.bRand.style.display = 'none';
-        aud.bSeq.style.display  = '';
+        media.bRand.style.display = 'none';
+        media.bSeq.style.display  = '';
     }
-    playlistElement = playlistElement || aud.playlistElement;
+    playlistElement = playlistElement || media.playlistElement;
     if( null == playlistElement )
     {
-        aud.playlistElement = null;
-        aud.bNext.setAttribute( 'title', "" );
-        aud.bPrev.setAttribute( 'title', "" );
-        return aud.playlist = [];
+        media.playlistElement = null;
+        media.bNext.setAttribute( 'title', "" );
+        media.bPrev.setAttribute( 'title', "" );
+        return media.playlist = [];
     }
-    aud.playlistElement = playlistElement;
+    media.playlistElement = playlistElement;
 
-    var playlist = aud.Playable(aud.playlistElement);
+    var playlist = media.Playable(media.playlistElement);
 
-    if( aud.bShuffle ) 
+    if( media.bShuffle ) 
     {
-        aud.ArrayShuffle(playlist);
-        aud.ArrayShuffle(playlist);
-        aud.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
     }
     else
     {
@@ -218,10 +218,10 @@ aud.MakePlaylist = function(playlistElement)
         playlistElement.appendChild(playlist[i]);
     }
     
-    aud.bNext.setAttribute( 'title', "Next: " + aud.WhatNext().textContent );
-    aud.bPrev.setAttribute( 'title', "Prev: " + aud.WhatPrev().textContent );
+    media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );
+    media.bPrev.setAttribute( 'title', "Prev: " + media.WhatPrev().textContent );
 
-    aud.HighlightPlaying(true);
+    media.HighlightPlaying(true);
 
     return playlist;
 }
@@ -231,7 +231,7 @@ aud.MakePlaylist = function(playlistElement)
  * @param array Array to shuffle in-place
  * @return Array passed in
 **/
-aud.ArrayShuffle = function(array)
+media.ArrayShuffle = function(array)
 {
     var ri;
     var tmp;
@@ -247,107 +247,107 @@ aud.ArrayShuffle = function(array)
 }
 
 /** Play the previous one */
-aud.PlayPrev = function()
+media.PlayPrev = function()
 {
-    if( !aud.audio.paused && aud.audio.currentTime > 3 )
+    if( !media.audio.paused && media.audio.currentTime > 3 )
     {
-        aud.audio.currentTime = 0;
-        aud.audio.play();
+        media.audio.currentTime = 0;
+        media.audio.play();
     }
     else
     {
-        aud.PlayMedia(aud.WhatPrev().getAttribute('path'));
+        media.PlayMedia(media.WhatPrev().getAttribute('path'));
     }
     return false;
 }
 /** Play the next one */
-aud.PlayNext = function()
+media.PlayNext = function()
 {
-    aud.PlayMedia(aud.WhatNext().getAttribute('path'));
+    media.PlayMedia(media.WhatNext().getAttribute('path'));
     return false;
 }
 /** At end of play list, re-shuffle as appropriate */
-aud.PlayNextWrap = function()
+media.PlayNextWrap = function()
 {
-    if( null == aud.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
-    aud.now_playing_element = aud.now_playing_element.nextElementSibling;
-    if( null == aud.now_playing_element )
+    media.now_playing_element = media.now_playing_element.nextElementSibling;
+    if( null == media.now_playing_element )
     {
-        if( aud.bShuffle )
+        if( media.bShuffle )
         {
-            return aud.PlayListRandom();
+            return media.PlayListRandom();
         }
-        var collection = aud.Playable(aud.playlistElement);
-        aud.now_playing_element = collection[0];
+        var collection = media.Playable(media.playlistElement);
+        media.now_playing_element = collection[0];
     }
-    aud.PlayMedia(aud.now_playing_element.getAttribute('path'));
+    media.PlayMedia(media.now_playing_element.getAttribute('path'));
     return false;
 }
 /** What will play previous */
-aud.WhatPrev = function()
+media.WhatPrev = function()
 {
-    if( null == aud.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
     var result;
-    if( null == aud.now_playing_element )
+    if( null == media.now_playing_element )
         result = null;
     else
-        result = aud.now_playing_element.previousElementSibling;
+        result = media.now_playing_element.previousElementSibling;
     if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        var collection = aud.Playable(aud.playlistElement);
+        var collection = media.Playable(media.playlistElement);
         result = collection[collection.length-1];
     }
     return result;
 }
 
 /** What will play next */
-aud.WhatNext = function()
+media.WhatNext = function()
 {
-    if( null == aud.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
     var result;
-    if( null == aud.now_playing_element )
+    if( null == media.now_playing_element )
         result = null;
     else
-        result = aud.now_playing_element.nextElementSibling;
+        result = media.now_playing_element.nextElementSibling;
         
     if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        var collection = aud.Playable(aud.playlistElement);
+        var collection = media.Playable(media.playlistElement);
         result = collection[0];
     }
     return result;
 }
 
 // Show folder contents
-aud.BrowseFolder = function(id)
+media.BrowseFolder = function(id)
 {
-    aud.bPrint.title = "Print Folder Titles";
-    if( !id && aud.playlistElement )
-        id = aud.playlistElement.id;
+    media.bPrint.title = "Print Folder Titles";
+    if( !id && media.playlistElement )
+        id = media.playlistElement.id;
 
-    aud.mode = aud.mode_folder;
-    aud.Folders.style.display ='none';
-    aud.PlayerBox.style.display ='block';
-    aud.PlayList.style.display ='block';
+    media.mode = media.mode_folder;
+    media.Folders.style.display ='none';
+    media.PlayerBox.style.display ='block';
+    media.PlayList.style.display ='block';
 
-    var collapse = aud.PlayList.children;
+    var collapse = media.PlayList.children;
     var i;
     var element;
-    aud.playlistElement = null;
+    media.playlistElement = null;
     for( i = 0; i < collapse.length; ++i )
     {
         element = collapse[i];
         if( id == element.id )
         {
-            aud.playlistElement = element;
+            media.playlistElement = element;
             element.style.display = 'block';
-            aud.MakePlaylist(element); 
+            media.MakePlaylist(element); 
         }
         else
         {
@@ -358,16 +358,16 @@ aud.BrowseFolder = function(id)
 }
 
 // Show folder list
-aud.BrowseFolders = function()
+media.BrowseFolders = function()
 {
-    aud.bPrint.title = "Print All Titles";
-    aud.mode = aud.mode_folders;
-    aud.audio.pause();
-    aud.audio.src = null;
-    aud.now_playing = null;
-    aud.Folders.style.display ='block';
-    aud.PlayerBox.style.display ='none';
-    aud.PlayList.style.display ='none';
+    media.bPrint.title = "Print All Titles";
+    media.mode = media.mode_folders;
+    media.audio.pause();
+    media.audio.src = null;
+    media.now_playing = null;
+    media.Folders.style.display ='block';
+    media.PlayerBox.style.display ='none';
+    media.PlayList.style.display ='none';
 
     if( window.scrollTo )
         window.scrollTo(0,0);
@@ -380,31 +380,31 @@ aud.BrowseFolders = function()
  *
  * Provide a print icon to positively put it in the right mode, but at least try.
 **/
-aud.DoPrint = function()
+media.DoPrint = function()
 {
-    aud.BeforePrint();
+    media.BeforePrint();
     window.print();
-    aud.AfterPrint();
+    media.AfterPrint();
 }
 
 /**
  * Capture print before dialog pops up, and put the UI into a printable mode
  * Implemented like it would work... if it worked consistently at all
 **/
-aud.BeforePrint = function()
+media.BeforePrint = function()
 {
-    aud.PlayerBox.style.display = 'none';
+    media.PlayerBox.style.display = 'none';
         
     var i;
     var element;
     var show;
 
-    if( aud.mode_folders == aud.mode )
+    if( media.mode_folders == media.mode )
     {
         // Show all play lists
-        aud.Folders.style.display = 'none';
-        aud.PlayList.style.display = 'block';
-        show = aud.PlayList.children;
+        media.Folders.style.display = 'none';
+        media.PlayList.style.display = 'block';
+        show = media.PlayList.children;
         for( i = 0; i < show.length; ++i )
         {
             element = show[i];
@@ -416,40 +416,40 @@ aud.BeforePrint = function()
         }
     }
     // Clean up play list highlight
-    show = aud.Playable(document);
+    show = media.Playable(document);
     for( i = 0; i < show.length; ++i )
     {
         element = show[i];
         element.className = 'index_entry';
     }
-    //setTimeout( aud.AfterPrint, 100 );
+    //setTimeout( media.AfterPrint, 100 );
 }
 
 /**
  * After (preumed MODAL) print dialog, put UI back 
 **/
-aud.AfterPrint = function()
+media.AfterPrint = function()
 {
-    if( aud.mode_folders == aud.mode )
+    if( media.mode_folders == media.mode )
     {
-        aud.BrowseFolders();
+        media.BrowseFolders();
     }
     else
     {
-        aud.BrowseFolder();
+        media.BrowseFolder();
     }
 }
 
 /**
  * Setup print.  I expect this to break as browser wars progress
 **/
-aud.SetupPrint = function()
+media.SetupPrint = function()
 {
     // IE/Firefox ONLY (coincidentally don't do 'matchMedia' right)
     if( "onbeforeprint" in window && "onafterprint" in window )
     {
-        window.onbeforeprint = aud.BeforePrint;
-        window.onafterprint = aud.AfterPrint;
+        window.onbeforeprint = media.BeforePrint;
+        window.onafterprint = media.AfterPrint;
     }
     // Chrome, Safari
     else if (window.matchMedia) 
@@ -459,11 +459,11 @@ aud.SetupPrint = function()
         {
             if (mql.matches) 
             {
-                aud.BeforePrint();
+                media.BeforePrint();
             }
             else
             {
-                aud.AfterPrint();
+                media.AfterPrint();
             }
         });
     }
@@ -559,14 +559,14 @@ into the html output with the script.
 </style>
 </head>
 
-<body onload="aud.PlayerInit();" >
+<body onload="media.PlayerInit();" >
 <div id='PlayerBox'>
 <div id="audiocontrols">
-    <button id="bHome" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return aud.BrowseFolders();"><div class="home_icon"></div></button>
-    <button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return aud.PlayPrev(); "><div class="prev_icon"/></button>
-    <button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return aud.PlayListSerial();"><div class="random_icon"/></button>
-    <button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return aud.PlayListRandom();"><div class="serial_icon"/></button>
-    <button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: aud.PlayNext(); return false;"><div class="next_icon" /></button>
+    <button id="bHome" class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return media.BrowseFolders();"><div class="home_icon"></div></button>
+    <button id="bPrev" class="button_format" type="button" tabindex='-1' title="Previous Track" onclick="javascript: return media.PlayPrev(); "><div class="prev_icon"/></button>
+    <button id="bRand" class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return media.PlayListSerial();"><div class="random_icon"/></button>
+    <button id="bSeq"  class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return media.PlayListRandom();"><div class="serial_icon"/></button>
+    <button id="bNext" class="button_format" type="button" tabindex='-1' title="Next Track" onclick="javascript: media.PlayNext(); return false;"><div class="next_icon" /></button>
 </div>
 <audio id="audioplayer" controls>
     Get a <i>modern</i> browser that supports HTML5 Audio.  If you see this, it doesn't, or it is disabled.<br/><br/>
@@ -576,12 +576,12 @@ into the html output with the script.
 
 <!--INDEX_FOLDER
     <div class='folder_entry' style='FOLDER_STYLE'>
-        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
+        <a onclick="return media.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 <!--INDEX_PLAYLIST
     <div class='playlist_entry' style='FOLDER_STYLE'>
-        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
+        <a onclick="return media.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 <!--INDEX_FILES_BEGIN
@@ -590,10 +590,10 @@ into the html output with the script.
     <div class='title'>FOLDER_NAME</div>
 -->
 <!--INDEX_ITEM_NOTHUMB
-    <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' title="Play MEDIA_TITLE" onclick="return aud.PlayMedia(this.getAttribute('path'),true);" ><a>MEDIA_TITLE</a></div>
+    <div class='index_entry' path="MEDIA_PATH" style='FILE_STYLE' title="Play MEDIA_TITLE" onclick="return media.PlayMedia(this.getAttribute('path'),true);" ><a>MEDIA_TITLE</a></div>
 -->
 <!--INDEX_ITEM_THUMB
-    <div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' title="Play MEDIA_TITLE" onclick="javascript: aud.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
+    <div class="index_entry" path="MEDIA_PATH" style='FILE_STYLE' title="Play MEDIA_TITLE" onclick="javascript: media.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
 -->
 <!--INDEX_FILES_END
 </div>
@@ -615,6 +615,6 @@ into the html output with the script.
 <!--INDEX_FILES_HERE-->
 </div>
 
-<button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return aud.DoPrint();"><div class="print_icon"></div></button>
+<button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return media.DoPrint();"><div class="print_icon"></div></button>
 </body>
 </html>

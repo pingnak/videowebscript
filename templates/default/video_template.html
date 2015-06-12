@@ -18,66 +18,66 @@
 <script type="text/javascript">
 //<![CDATA[
 /** A namespace for all of these otherwise global things, to keep them all together */
-var vid = {};
+var media = {};
 
-vid.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
-vid.bUseNativeControls = false;//!vid.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-vid.bPrintEnabled = !(/Android|Silk|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
+media.bFullscreenEnabled = document.bFullscreenEnabled || document.webkitFullscreenEnabled || document.mozFullScreenEnabled || document.msFullscreenEnabled;
+media.bUseNativeControls = false;//!media.bFullscreenEnabled || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+media.bPrintEnabled = !(/Android|Silk|webOS|iPhone|iPad|iPod|iOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 
-vid.mode_folders = 'folders';
-vid.mode_folder  = 'folder';
-vid.mode_player  = 'player';
-vid.mode = vid.mode_folders;
+media.mode_folders = 'folders';
+media.mode_folder  = 'folder';
+media.mode_player  = 'player';
+media.mode = media.mode_folders;
 
-vid.playlist = [];
-vid.now_playing = '';
-vid.playlistElement = null;
-vid.now_playing_element = null;
+media.playlist = [];
+media.now_playing = '';
+media.playlistElement = null;
+media.now_playing_element = null;
 
-vid.bVideoResumable = false;
-vid.bShuffle = false;
-vid.mouseTimeout = -1;
-vid.resizeTimeout = -1;
-vid.MOUSE_TIMEOUT = 3000;
-vid.lastScreenY = -1; 
-vid.lastScreenX = -1;
-vid.bTrackingProgress = false;
+media.bVideoResumable = false;
+media.bShuffle = false;
+media.mouseTimeout = -1;
+media.resizeTimeout = -1;
+media.MOUSE_TIMEOUT = 3000;
+media.lastScreenY = -1; 
+media.lastScreenX = -1;
+media.bTrackingProgress = false;
 
 /**
  * Set things up, when the page loads
 **/
-vid.PlayerInit = function()
+media.PlayerInit = function()
 {
     /* If no full screen, or some kinda 'mobile' browser that ignores all the rules, use the native controls */
-    vid.video =               document.getElementById("videoplayer");
-    vid.video_controls  =     document.getElementById("video_controls");
-    vid.video_controls_left = document.getElementById("video_controls_left");
-    vid.video_controls_right =document.getElementById("video_controls_right");
-    vid.overlay_controls =    document.getElementById("overlay_controls");
-    vid.Folders =             document.getElementById("Folders");
-    vid.PlayList =            document.getElementById("PlayList");
-    vid.PlayerBox =           document.getElementById("PlayerBox");
-    vid.bHome =               document.getElementById("bHome");
-    vid.bList =               document.getElementById("bList");
-    vid.bWatch =              document.getElementById("bWatch");
-    vid.bPrint =              document.getElementById("bPrint");
+    media.video =               document.getElementById("videoplayer");
+    media.video_controls  =     document.getElementById("video_controls");
+    media.video_controls_left = document.getElementById("video_controls_left");
+    media.video_controls_right =document.getElementById("video_controls_right");
+    media.overlay_controls =    document.getElementById("overlay_controls");
+    media.Folders =             document.getElementById("Folders");
+    media.PlayList =            document.getElementById("PlayList");
+    media.PlayerBox =           document.getElementById("PlayerBox");
+    media.bHome =               document.getElementById("bHome");
+    media.bList =               document.getElementById("bList");
+    media.bWatch =              document.getElementById("bWatch");
+    media.bPrint =              document.getElementById("bPrint");
 
-    vid.progress_bar =        document.getElementById("progress_bar");
-    vid.progress_text =       document.getElementById("progress_text");
-    vid.progress_text_total = document.getElementById("progress_text_total");
-    vid.progress_text_title = document.getElementById("progress_text_title");
-    vid.progress_playing =    document.getElementById("progress_playing");
-    vid.progress_clickme =    document.getElementById("progress_clickme");
+    media.progress_bar =        document.getElementById("progress_bar");
+    media.progress_text =       document.getElementById("progress_text");
+    media.progress_text_total = document.getElementById("progress_text_total");
+    media.progress_text_title = document.getElementById("progress_text_title");
+    media.progress_playing =    document.getElementById("progress_playing");
+    media.progress_clickme =    document.getElementById("progress_clickme");
     
-    vid.bPrev =               document.getElementById("bPrev");
-    vid.bNext =               document.getElementById("bNext");
-    vid.bSeq  =               document.getElementById("bSeq");
-    vid.bRand =               document.getElementById("bRand");
+    media.bPrev =               document.getElementById("bPrev");
+    media.bNext =               document.getElementById("bNext");
+    media.bSeq  =               document.getElementById("bSeq");
+    media.bRand =               document.getElementById("bRand");
 
-    vid.bPlay =               document.getElementById("bPlay");
-    vid.bPause =              document.getElementById("bPause");
-    vid.bFull =               document.getElementById("bFull");
-    vid.bWindow =             document.getElementById("bWindow");
+    media.bPlay =               document.getElementById("bPlay");
+    media.bPause =              document.getElementById("bPause");
+    media.bFull =               document.getElementById("bFull");
+    media.bWindow =             document.getElementById("bWindow");
 
     // Set up play lists so that they can be sorted after being shuffled
     var collection = document.getElementsByClassName("index_entry");
@@ -87,124 +87,124 @@ vid.PlayerInit = function()
         collection[i].index = i;
     }
 
-    vid.SetupPrint();    
-    vid.BrowseFolders();
+    media.SetupPrint();    
+    media.BrowseFolders();
 
     // Mouse moved or screen touched
-    window.addEventListener( 'mousemove',        vid.MouseMovedFilter );    
+    window.addEventListener( 'mousemove',        media.MouseMovedFilter );    
 
     // Tap to pause/play (and show controls)
-    vid.video.addEventListener( 'click',                vid.TogglePause );
+    media.video.addEventListener( 'click',                media.TogglePause );
     
-    //vid.video.addEventListener( 'canplay',              vid.WatchMode );
-    vid.video.addEventListener( 'ended',                vid.PlayNextWrap );
-    window.addEventListener( 'resize',                  vid.OnResize );
-    window.addEventListener( 'fullscreenchange',        vid.OnResize );
-    window.addEventListener( 'webkitfullscreenchange',  vid.OnResize );
-    window.addEventListener( 'mozfullscreenchange',     vid.OnResize );
-    window.addEventListener( 'MSFullscreenChange',      vid.OnResize );
-    vid.video.addEventListener( 'playing',              vid.OnResize );
-    vid.video.addEventListener( 'pause',                vid.OnResize );
-    vid.video.addEventListener( 'loadeddata',           vid.OnResize );
+    //media.video.addEventListener( 'canplay',              media.WatchMode );
+    media.video.addEventListener( 'ended',                media.PlayNextWrap );
+    window.addEventListener( 'resize',                  media.OnResize );
+    window.addEventListener( 'fullscreenchange',        media.OnResize );
+    window.addEventListener( 'webkitfullscreenchange',  media.OnResize );
+    window.addEventListener( 'mozfullscreenchange',     media.OnResize );
+    window.addEventListener( 'MSFullscreenChange',      media.OnResize );
+    media.video.addEventListener( 'playing',              media.OnResize );
+    media.video.addEventListener( 'pause',                media.OnResize );
+    media.video.addEventListener( 'loadeddata',           media.OnResize );
 
-    vid.RefreshControls();
+    media.RefreshControls();
 }
 
-vid.Error = function(e)
+media.Error = function(e)
 {
     console.log(e);
-    vid.video.innerHTML = "Video Playback Error: " + e;
-    //vid.BrowseFolder();
+    media.video.innerHTML = "Video Playback Error: " + e;
+    //media.BrowseFolder();
 }
 
 
 /** Press pause/play button */
-vid.TogglePause = function()
+media.TogglePause = function()
 {
-    vid.MouseMoved();
-    vid.RefreshControls();
-    if( 0 == vid.video.readyState )
-        vid.PlayMedia();
-    else if( vid.video.paused )
-        vid.video.play();
+    media.MouseMoved();
+    media.RefreshControls();
+    if( 0 == media.video.readyState )
+        media.PlayMedia();
+    else if( media.video.paused )
+        media.video.play();
     else
-        vid.video.pause();
+        media.video.pause();
     return false;
 }
 
 /** When video is paused, change to show playing icon */
-vid.ShowPaused = function()
+media.ShowPaused = function()
 {
-    if( vid.video.paused )
+    if( media.video.paused )
     {
-        vid.bPlay.style.display = 'none';
-        vid.bPause.style.display= '';
+        media.bPlay.style.display = 'none';
+        media.bPause.style.display= '';
     }
     else
     {
-        vid.bPlay.style.display = '';
-        vid.bPause.style.display= 'none';
-        vid.bVideoResumable = true;
+        media.bPlay.style.display = '';
+        media.bPause.style.display= 'none';
+        media.bVideoResumable = true;
     }
-    vid.RefreshControls();
+    media.RefreshControls();
     return false;
 }
 
 /** Press full-screen button */
-vid.ToggleFullScreen = function()
+media.ToggleFullScreen = function()
 {
-    if( vid.IsFullScreen() )
-        vid.ExitFullscreen();
+    if( media.IsFullScreen() )
+        media.ExitFullscreen();
     else
-        vid.EnterFullscreen();
+        media.EnterFullscreen();
     return false;
 }
 
 /** See if video is not full-screen */
-vid.IsFullScreen = function()
+media.IsFullScreen = function()
 {
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     return (null != fullscreenElement) || window.fullScreen || (window.innerWidth == screen.width && window.innerHeight == screen.height);
 }
-vid.FullScreenWasMe = function()
+media.FullScreenWasMe = function()
 {
     var fullscreenElement = document.fullscreenElement || document.mozFullScreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
     return document.documentElement == fullscreenElement;
 }
 
 /** Update full-screen status */
-vid.UpdateFullScreen = function()
+media.UpdateFullScreen = function()
 {
     // Sort out full versus windowed playbacl
-    if( !vid.bFullscreenEnabled )
+    if( !media.bFullscreenEnabled )
     {
-        vid.bFull.style.display='none';
-        vid.bWindow.style.display='none';
+        media.bFull.style.display='none';
+        media.bWindow.style.display='none';
         return;
     }
-    if( vid.IsFullScreen() )
+    if( media.IsFullScreen() )
     {
-        if( vid.FullScreenWasMe() )
+        if( media.FullScreenWasMe() )
         {
-            vid.bWindow.style.display='';
-            vid.bFull.style.display='none';
+            media.bWindow.style.display='';
+            media.bFull.style.display='none';
         }
         else
         {   // Something else put us into full screen - I can't un-full-screen from that
-            vid.bFull.style.display='none';
-            vid.bWindow.style.display='none';
+            media.bFull.style.display='none';
+            media.bWindow.style.display='none';
         }
     }
     else
     {
-        vid.bWindow.style.display='none';
-        vid.bFull.style.display='';
+        media.bWindow.style.display='none';
+        media.bFull.style.display='';
     }
 
 }
 
 /** Enter full screen mode */
-vid.EnterFullscreen = function()
+media.EnterFullscreen = function()
 {
     if(document.documentElement.requestFullscreen) 
     {
@@ -222,11 +222,11 @@ vid.EnterFullscreen = function()
     {
         document.documentElement.msRequestFullscreen();
     }
-    vid.UpdateFullScreen();
+    media.UpdateFullScreen();
 }
 
 /** Exit full screen mode */
-vid.ExitFullscreen = function()
+media.ExitFullscreen = function()
 {
     if(document.ExitFullscreen) 
     {
@@ -244,11 +244,11 @@ vid.ExitFullscreen = function()
     {
         document.msExitFullscreen();
     }
-    vid.UpdateFullScreen();
+    media.UpdateFullScreen();
 }
 
 /** Format seconds to hh:mm:ss */
-vid.hhmmss = function(t)
+media.hhmmss = function(t)
 {
     if( isNaN(t) )
         return '00\:00\:00';
@@ -259,24 +259,24 @@ vid.hhmmss = function(t)
     return '' + ((hh < 10) ? '0'+hh : hh) +':'+((mm < 10) ? '0'+mm : mm)+':'+((ss < 10) ? '0'+ss : ss); 
 }
 /** Update progress */
-vid.UpdateTime = function()
+media.UpdateTime = function()
 {   
-    if( !vid.bTrackingProgress )
-        vid.RefreshProgress(vid.video.currentTime,vid.video.duration);
+    if( !media.bTrackingProgress )
+        media.RefreshProgress(media.video.currentTime,media.video.duration);
     return false;
 }
 /** Refresh play time */
-vid.RefreshProgress = function(seconds,duration)
+media.RefreshProgress = function(seconds,duration)
 {
-    vid.progress_text.innerHTML = vid.hhmmss(seconds);
-    vid.progress_text_total.innerHTML = vid.hhmmss(duration);
-    if( isNaN(vid.video.duration) || duration < 1 )
+    media.progress_text.innerHTML = media.hhmmss(seconds);
+    media.progress_text_total.innerHTML = media.hhmmss(duration);
+    if( isNaN(media.video.duration) || duration < 1 )
     {
-        vid.progress_playing.style.width = '0%';
+        media.progress_playing.style.width = '0%';
     }
     else
     {
-        vid.progress_playing.style.width = (100*seconds/duration)+'%';
+        media.progress_playing.style.width = (100*seconds/duration)+'%';
     }
 }
 
@@ -286,15 +286,15 @@ vid.RefreshProgress = function(seconds,duration)
  to what browser.
  http://www.kirupa.com/html5/getting_mouse_click_position.htm
  */
-vid.getClickPosition = function(e)
+media.getClickPosition = function(e)
 {
-    var parentPosition = vid.getPosition(e.currentTarget);
+    var parentPosition = media.getPosition(e.currentTarget);
     var xPosition = e.clientX - parentPosition.x;
     var yPosition = e.clientY - parentPosition.y;
     return { x: xPosition, y: yPosition };
 }
 /** Get position of element, on-screen */
-vid.getPosition = function(element)
+media.getPosition = function(element)
 {
     var xPosition = 0;
     var yPosition = 0;
@@ -308,211 +308,211 @@ vid.getPosition = function(element)
 }
 
 /** Convert mouse position to time */
-vid.getProgressFromMouse = function(e)
+media.getProgressFromMouse = function(e)
 {
-    var pt = vid.getClickPosition(e);
-    var fraction = pt.x/vid.progress_clickme.clientWidth;
+    var pt = media.getClickPosition(e);
+    var fraction = pt.x/media.progress_clickme.clientWidth;
     return fraction;
 }
 /** Seek to clicked time */
-vid.ProgressClick = function(e)
+media.ProgressClick = function(e)
 {
-    vid.MouseMoved();
-    var fraction = vid.getProgressFromMouse(e);
-    var time= vid.video.duration * fraction;
-    vid.video.currentTime = time;
+    media.MouseMoved();
+    var fraction = media.getProgressFromMouse(e);
+    var time= media.video.duration * fraction;
+    media.video.currentTime = time;
 }
 /** Mouse entered progress; disable time updates */
-vid.ProgressIn = function(e)
+media.ProgressIn = function(e)
 {
-    vid.bTrackingProgress = true;
-    vid.MouseMoved();
-    vid.ProgressTrackMouse(e);
+    media.bTrackingProgress = true;
+    media.MouseMoved();
+    media.ProgressTrackMouse(e);
 }
 /** Mouse exited progress; enable time updates */
-vid.ProgressOut = function(e)
+media.ProgressOut = function(e)
 {
-    vid.bTrackingProgress = false;
-    vid.MouseMoved();
-    vid.UpdateTime();
+    media.bTrackingProgress = false;
+    media.MouseMoved();
+    media.UpdateTime();
 }
 /** Update progress bar and time with mouse motion */
-vid.ProgressTrackMouse = function(e)
+media.ProgressTrackMouse = function(e)
 {   /* Keep progress stamps from stomping on my tracking */
-    vid.MouseMoved();
-    var fraction = vid.getProgressFromMouse(e);
-    var time= vid.video.duration * fraction;
-    vid.RefreshProgress(time,vid.video.duration);
+    media.MouseMoved();
+    var fraction = media.getProgressFromMouse(e);
+    var time= media.video.duration * fraction;
+    media.RefreshProgress(time,media.video.duration);
 }
 
 /** We should know how big&long the video is, so we can update it*/
-vid.UpdateMeta = function()
+media.UpdateMeta = function()
 {
-    vid.UpdateTime();
-    vid.RefreshControls();
+    media.UpdateTime();
+    media.RefreshControls();
 }
 
 /**
  * Set things up, when the page loads
 **/
-vid.MouseTimeout = function()
+media.MouseTimeout = function()
 {
-    if( vid.mode_player == vid.mode )
+    if( media.mode_player == media.mode )
     {
-        vid.overlay_controls.style.visibility = 'hidden';
-        vid.video_controls.style.visibility = 'hidden';
-        vid.PlayerBox.style.cursor = 'none';
-        vid.mouseTimeout = -1;
+        media.overlay_controls.style.visibility = 'hidden';
+        media.video_controls.style.visibility = 'hidden';
+        media.PlayerBox.style.cursor = 'none';
+        media.mouseTimeout = -1;
     }
     else
     {
-        vid.MouseMoved();
+        media.MouseMoved();
     }
 }
 
 /** Only call MouseMoved if the mouse... moved. */
-vid.MouseMovedFilter = function(e)
+media.MouseMovedFilter = function(e)
 {
-    if( Math.abs(e.screenX - vid.lastScreenX)+Math.abs(e.screenY - vid.lastScreenY) > 1 )
-        vid.MouseMoved();
-    vid.lastScreenX = e.screenX;
-    vid.lastScreenY = e.screenY;
+    if( Math.abs(e.screenX - media.lastScreenX)+Math.abs(e.screenY - media.lastScreenY) > 1 )
+        media.MouseMoved();
+    media.lastScreenX = e.screenX;
+    media.lastScreenY = e.screenY;
 }
 /** Show the mouse and controls */
-vid.MouseMoved = function()
+media.MouseMoved = function()
 {
-    vid.video_controls.style.visibility = '';
-    vid.overlay_controls.style.visibility = '';
-    vid.PlayerBox.style.cursor = '';
-    if( -1 != vid.mouseTimeout )
-        clearTimeout(vid.mouseTimeout);
-    if( vid.mode_player == vid.mode && !vid.video.paused )
-        vid.mouseTimeout = setTimeout( vid.MouseTimeout, vid.MOUSE_TIMEOUT );
+    media.video_controls.style.visibility = '';
+    media.overlay_controls.style.visibility = '';
+    media.PlayerBox.style.cursor = '';
+    if( -1 != media.mouseTimeout )
+        clearTimeout(media.mouseTimeout);
+    if( media.mode_player == media.mode && !media.video.paused )
+        media.mouseTimeout = setTimeout( media.MouseTimeout, media.MOUSE_TIMEOUT );
     return true;
 }
 
 /** Window changed: Organize and update controls */
-vid.OnResize = function()
+media.OnResize = function()
 {
     // Because some browsers don't have this figured out yet, even though they called me
-    if( -1 != vid.resizeTimeout )
-        clearTimeout( vid.resizeTimeout );
-    vid.resizeTimeout = setTimeout( vid.RefreshControls, 34 );
+    if( -1 != media.resizeTimeout )
+        clearTimeout( media.resizeTimeout );
+    media.resizeTimeout = setTimeout( media.RefreshControls, 34 );
 }
-vid.RefreshControls = function()
+media.RefreshControls = function()
 {
-    vid.resizeTimeout = -1;
+    media.resizeTimeout = -1;
 
-    vid.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-    vid.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
+    media.browserWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+    media.browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
     
     // Manage all of the mode-based button/pane states on top-right menu
-    switch( vid.mode )
+    switch( media.mode )
     {
-    case vid.mode_player:
-        vid.overlay_controls.style.background = 'transparent';
-        vid.Folders.style.display = 'none';
-        vid.PlayList.style.display = 'none';
-        vid.PlayerBox.style.display = 'block';
-        vid.bHome.style.display = '';
-        vid.bList.style.display = '';
-        vid.bWatch.style.display = 'none';
-        vid.bPrev.style.display = '';
-        vid.bNext.style.display = '';
-        vid.bSeq.style.display = vid.bShuffle ? 'none' : '';
-        vid.bRand.style.display = vid.bShuffle ? '' : 'none';
-        vid.bPrint.style.display = 'none';
+    case media.mode_player:
+        media.overlay_controls.style.background = 'transparent';
+        media.Folders.style.display = 'none';
+        media.PlayList.style.display = 'none';
+        media.PlayerBox.style.display = 'block';
+        media.bHome.style.display = '';
+        media.bList.style.display = '';
+        media.bWatch.style.display = 'none';
+        media.bPrev.style.display = '';
+        media.bNext.style.display = '';
+        media.bSeq.style.display = media.bShuffle ? 'none' : '';
+        media.bRand.style.display = media.bShuffle ? '' : 'none';
+        media.bPrint.style.display = 'none';
         break;
-    case vid.mode_folder:
-        vid.overlay_controls.style.background = '#000000';
-        vid.Folders.style.display = 'none';
-        vid.PlayList.style.display = 'block';
-        vid.PlayerBox.style.display = 'none';
-        vid.bHome.style.display = '';
-        vid.bList.style.display = 'none';
-        vid.bWatch.style.display = vid.bVideoResumable ? '' : 'none';
-        vid.bPrev.style.display = '';
-        vid.bNext.style.display = '';
-        vid.bSeq.style.display = vid.bShuffle ? 'none' : '';
-        vid.bRand.style.display = vid.bShuffle ? '' : 'none';
-        vid.bPrint.style.display = vid.bPrintEnabled ? '' : 'none';
-        vid.bPrint.title = "Print Folder Titles";
+    case media.mode_folder:
+        media.overlay_controls.style.background = '#000000';
+        media.Folders.style.display = 'none';
+        media.PlayList.style.display = 'block';
+        media.PlayerBox.style.display = 'none';
+        media.bHome.style.display = '';
+        media.bList.style.display = 'none';
+        media.bWatch.style.display = media.bVideoResumable ? '' : 'none';
+        media.bPrev.style.display = '';
+        media.bNext.style.display = '';
+        media.bSeq.style.display = media.bShuffle ? 'none' : '';
+        media.bRand.style.display = media.bShuffle ? '' : 'none';
+        media.bPrint.style.display = media.bPrintEnabled ? '' : 'none';
+        media.bPrint.title = "Print Folder Titles";
         break;
-    case vid.mode_folders:
+    case media.mode_folders:
     default: // Fall-through
-        vid.overlay_controls.style.background = '#000000';
-        vid.Folders.style.display = 'block';
-        vid.PlayList.style.display = 'none';
-        vid.PlayerBox.style.display = 'none';
-        vid.bHome.style.display = 'none';
-        vid.bList.style.display = 'none';
-        vid.bWatch.style.display= 'none';
-        vid.bPrev.style.display = 'none';
-        vid.bNext.style.display = 'none';
-        vid.bSeq.style.display  = 'none';
-        vid.bRand.style.display = 'none';
-        vid.bPrint.style.display = vid.bPrintEnabled ? '' : 'none';
-        vid.bPrint.title = "Print All Titles";
+        media.overlay_controls.style.background = '#000000';
+        media.Folders.style.display = 'block';
+        media.PlayList.style.display = 'none';
+        media.PlayerBox.style.display = 'none';
+        media.bHome.style.display = 'none';
+        media.bList.style.display = 'none';
+        media.bWatch.style.display= 'none';
+        media.bPrev.style.display = 'none';
+        media.bNext.style.display = 'none';
+        media.bSeq.style.display  = 'none';
+        media.bRand.style.display = 'none';
+        media.bPrint.style.display = media.bPrintEnabled ? '' : 'none';
+        media.bPrint.title = "Print All Titles";
         break;
     }
 
-    vid.bTrackingProgress = false;
+    media.bTrackingProgress = false;
     
-    vid.progress_clickme.removeEventListener( 'mousemove',vid.ProgressTrackMouse );    
-    vid.progress_clickme.removeEventListener( 'click',    vid.ProgressClick );
-    vid.progress_clickme.removeEventListener( 'mouseover',vid.ProgressIn );     
-    vid.progress_clickme.removeEventListener( 'mouseout', vid.ProgressOut ); 
+    media.progress_clickme.removeEventListener( 'mousemove',media.ProgressTrackMouse );    
+    media.progress_clickme.removeEventListener( 'click',    media.ProgressClick );
+    media.progress_clickme.removeEventListener( 'mouseover',media.ProgressIn );     
+    media.progress_clickme.removeEventListener( 'mouseout', media.ProgressOut ); 
 
-    vid.video.removeEventListener( 'playing',       vid.ShowPaused );
-    vid.video.removeEventListener( 'pause',         vid.ShowPaused );
-    vid.video.removeEventListener( 'timeupdate',    vid.UpdateTime );
-    vid.video.removeEventListener( 'loadeddata',    vid.UpdateMeta );
+    media.video.removeEventListener( 'playing',       media.ShowPaused );
+    media.video.removeEventListener( 'pause',         media.ShowPaused );
+    media.video.removeEventListener( 'timeupdate',    media.UpdateTime );
+    media.video.removeEventListener( 'loadeddata',    media.UpdateMeta );
 
-    vid.bUseNativeControls = vid.browserWidth < 640 
-        // || !vid.bFullscreenEnabled 
+    media.bUseNativeControls = media.browserWidth < 640 
+        // || !media.bFullscreenEnabled 
         // || /Android|Silk|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     
-    if( vid.bUseNativeControls )
+    if( media.bUseNativeControls )
     {
         /* If full-screen is unavailable to code, stick to native controls */
-        vid.video.setAttribute("controls",true);
-        vid.video_controls.style.display = 'none';
+        media.video.setAttribute("controls",true);
+        media.video_controls.style.display = 'none';
     }
     else
     {
-        if( vid.video.hasAttribute("controls") )
-            vid.video.removeAttribute("controls");
-        vid.video_controls.style.display = '';
+        if( media.video.hasAttribute("controls") )
+            media.video.removeAttribute("controls");
+        media.video_controls.style.display = '';
 
         /* Had to add a layer on top of progress bar, to click */
-        vid.progress_clickme.addEventListener( 'mousemove',vid.ProgressTrackMouse );    
-        vid.progress_clickme.addEventListener( 'click',    vid.ProgressClick );
-        vid.progress_clickme.addEventListener( 'mouseover',vid.ProgressIn );     
-        vid.progress_clickme.addEventListener( 'mouseout', vid.ProgressOut ); 
+        media.progress_clickme.addEventListener( 'mousemove',media.ProgressTrackMouse );    
+        media.progress_clickme.addEventListener( 'click',    media.ProgressClick );
+        media.progress_clickme.addEventListener( 'mouseover',media.ProgressIn );     
+        media.progress_clickme.addEventListener( 'mouseout', media.ProgressOut ); 
 
-        vid.video.addEventListener( 'playing',          vid.ShowPaused );
-        vid.video.addEventListener( 'pause',            vid.ShowPaused );
-        vid.video.addEventListener( 'timeupdate',       vid.UpdateTime );
-        vid.video.addEventListener( 'loadeddata',       vid.UpdateMeta );
+        media.video.addEventListener( 'playing',          media.ShowPaused );
+        media.video.addEventListener( 'pause',            media.ShowPaused );
+        media.video.addEventListener( 'timeupdate',       media.UpdateTime );
+        media.video.addEventListener( 'loadeddata',       media.UpdateMeta );
     }
     
     
     // If window is shorter than video, when scaled, fit to height instead of width
-    var videoAspect = vid.video.videoWidth / vid.video.videoHeight;
+    var videoAspect = media.video.videoWidth / media.video.videoHeight;
     var windowAspect = window.innerWidth / window.innerHeight;
     var screenAspect = screen.width / screen.height;
     if( videoAspect < windowAspect ) // Second test because Silk doesn't work right
     {
-        vid.video.className = 'videoplayer_alt';
+        media.video.className = 'videoplayer_alt';
     }
     else 
     {
-        vid.video.className = 'videoplayer';
+        media.video.className = 'videoplayer';
     }
     
     // Sort out full versus windowed playbacl
-    vid.UpdateFullScreen();
-    vid.MouseMoved();
+    media.UpdateFullScreen();
+    media.MouseMoved();
     return false;
 }
 
@@ -521,50 +521,50 @@ vid.RefreshControls = function()
  * Play a video
  * http://www.w3.org/2010/05/video/mediaevents.html
  */
-vid.PlayMedia = function(video_path,noscroll)
+media.PlayMedia = function(video_path,noscroll)
 {
     // Setting attributes blows up
     noscroll = noscroll || false;
     if(typeof(video_path)==='undefined')
     {
-        if( null != vid.now_playing )
-            video_path = vid.now_playing;
+        if( null != media.now_playing )
+            video_path = media.now_playing;
         else
-            video_path = vid.playlist[0].getAttribute('path');
+            video_path = media.playlist[0].getAttribute('path');
     }
 
-    vid.now_playing = video_path;
-    if( vid.HighlightPlaying(noscroll) )
+    media.now_playing = video_path;
+    if( media.HighlightPlaying(noscroll) )
     {
-        setTimeout( vid.PlayMedia2, 10);
-        vid.RefreshControls();
-        vid.bNext.setAttribute( 'title', "Next: " + vid.WhatNext().textContent );
-        vid.bPrev.setAttribute( 'title', "Prev: " + vid.WhatPrev().textContent );
-        vid.ShowPaused();
+        setTimeout( media.PlayMedia2, 10);
+        media.RefreshControls();
+        media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );
+        media.bPrev.setAttribute( 'title', "Prev: " + media.WhatPrev().textContent );
+        media.ShowPaused();
     }
     return false;
 }
 
 /** Setting next/prev attributes kills the video... so let the stack unwind and start it second */
-vid.PlayMedia2 = function()
+media.PlayMedia2 = function()
 {
-    vid.video.addEventListener( 'error', vid.Error );
-    vid.video.setAttribute("src",vid.now_playing);
-    vid.video.load();
-    vid.video.play();
-    vid.MouseMoved();
-    vid.bTrackingProgress = false;
-    vid.WatchMode();
+    media.video.addEventListener( 'error', media.Error );
+    media.video.setAttribute("src",media.now_playing);
+    media.video.load();
+    media.video.play();
+    media.MouseMoved();
+    media.bTrackingProgress = false;
+    media.WatchMode();
 
     // Clear any progress from previous video
-    vid.RefreshProgress(0,0);
+    media.RefreshProgress(0,0);
 
     // Show title in seek bar
-    vid.progress_text_title.innerHTML = vid.now_playing_element.textContent;
+    media.progress_text_title.innerHTML = media.now_playing_element.textContent;
 }
 
 /** Convert DOM collections of index_entry objects to array */
-vid.Playable = function(element)
+media.Playable = function(element)
 {
     var i;
     var curr;
@@ -581,24 +581,24 @@ vid.Playable = function(element)
 
 
 /** Show which item is playing in the play list */
-vid.HighlightPlaying = function(noscroll)
+media.HighlightPlaying = function(noscroll)
 {
     var collection;
     var i;
     var curr;
-    vid.now_playing_element = null;
+    media.now_playing_element = null;
     
     // Find and reset elements 
-    if( null == vid.playlistElement )
+    if( null == media.playlistElement )
     {
-        collection = vid.Playable(document);
+        collection = media.Playable(document);
         for( i = 0; i < collection.length; ++i )
         {
             curr = collection[i];
-            if( curr.getAttribute('path') == vid.now_playing )
+            if( curr.getAttribute('path') == media.now_playing )
             {
-                vid.BrowseFolder(curr.parentNode.id);
-                vid.now_playing_element = curr;
+                media.BrowseFolder(curr.parentNode.id);
+                media.now_playing_element = curr;
             }
             delete curr.style;
             curr.className = 'index_entry';
@@ -606,69 +606,69 @@ vid.HighlightPlaying = function(noscroll)
     }
     else
     {
-        collection = vid.Playable(vid.playlistElement);
+        collection = media.Playable(media.playlistElement);
         for( i = 0; i < collection.length; ++i )
         {
             curr = collection[i];
-            if( curr.getAttribute('path') == vid.now_playing )
+            if( curr.getAttribute('path') == media.now_playing )
             {
-                vid.now_playing_element = curr;
+                media.now_playing_element = curr;
             }
             delete curr.style;
             curr.className = 'index_entry';
         }
     }
-    if( null == vid.now_playing_element )
+    if( null == media.now_playing_element )
     {
-        console.log( "Media not found in internal play lists:", vid.now_playing );
+        console.log( "Media not found in internal play lists:", media.now_playing );
         window.scrollTo(0,0);
         return false;
     }
 
     // Highlight what we found
-    item = vid.now_playing_element;
+    item = media.now_playing_element;
     item.className = 'index_entry_highlight';
     if( !noscroll && item.scrollIntoView )
     {
         var browserHeight= window.innerHeight|| document.documentElement.clientHeight|| document.body.clientHeight;
         item.scrollIntoView();
-        if( item.offsetTop - window.scrollY <= vid.overlay_controls.clientHeight )
-            window.scrollTo(0,window.scrollY-(0.5*vid.browserHeight));
+        if( item.offsetTop - window.scrollY <= media.overlay_controls.clientHeight )
+            window.scrollTo(0,window.scrollY-(0.5*media.browserHeight));
     }
     return true;
 }
 
 
 /** Make a play list from title links */
-vid.MakePlaylist = function(playlistElement)
+media.MakePlaylist = function(playlistElement)
 {
-    if( vid.bShuffle )
+    if( media.bShuffle )
     {
-        vid.bRand.style.display = '';
-        vid.bSeq.style.display  = 'none';
+        media.bRand.style.display = '';
+        media.bSeq.style.display  = 'none';
     }
     else
     {
-        vid.bRand.style.display = 'none';
-        vid.bSeq.style.display  = '';
+        media.bRand.style.display = 'none';
+        media.bSeq.style.display  = '';
     }
-    playlistElement = playlistElement || vid.playlistElement;
+    playlistElement = playlistElement || media.playlistElement;
     if( null == playlistElement )
     {
-        vid.playlistElement = null;
-        vid.bNext.setAttribute( 'title', "" );
-        vid.bPrev.setAttribute( 'title', "" );
-        return vid.playlist = [];
+        media.playlistElement = null;
+        media.bNext.setAttribute( 'title', "" );
+        media.bPrev.setAttribute( 'title', "" );
+        return media.playlist = [];
     }
-    vid.playlistElement = playlistElement;
+    media.playlistElement = playlistElement;
 
-    var playlist = vid.Playable(vid.playlistElement);
+    var playlist = media.Playable(media.playlistElement);
 
-    if( vid.bShuffle ) 
+    if( media.bShuffle ) 
     {
-        vid.ArrayShuffle(playlist);
-        vid.ArrayShuffle(playlist);
-        vid.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
+        media.ArrayShuffle(playlist);
     }
     else
     {
@@ -690,31 +690,31 @@ vid.MakePlaylist = function(playlistElement)
         }
     }
     
-    vid.bNext.setAttribute( 'title', "Next: " + vid.WhatNext().textContent );
-    vid.bPrev.setAttribute( 'title', "Prev: " + vid.WhatPrev().textContent );
+    media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );
+    media.bPrev.setAttribute( 'title', "Prev: " + media.WhatPrev().textContent );
 
-    vid.HighlightPlaying(true);
+    media.HighlightPlaying(true);
 
     return playlist;
 }
 
 /** Shuffle a play list */
-vid.PlayListSerial = function()
+media.PlayListSerial = function()
 {
-    vid.MouseMoved();
-    vid.bShuffle = false;
-    vid.MakePlaylist();
-    vid.HighlightPlaying();
+    media.MouseMoved();
+    media.bShuffle = false;
+    media.MakePlaylist();
+    media.HighlightPlaying();
     return false;
 }
 
 /** Shuffle a play list (assumes it was already generated) */
-vid.PlayListRandom = function()
+media.PlayListRandom = function()
 {
-    vid.MouseMoved();
-    vid.bShuffle = true;
-    vid.MakePlaylist();
-    vid.PlayNext();
+    media.MouseMoved();
+    media.bShuffle = true;
+    media.MakePlaylist();
+    media.PlayNext();
     return false;
 }
 /**
@@ -722,7 +722,7 @@ vid.PlayListRandom = function()
  * @param array Array to shuffle in-place
  * @return Array passed in
 **/
-vid.ArrayShuffle = function(array)
+media.ArrayShuffle = function(array)
 {
     var ri;
     var tmp;
@@ -738,78 +738,78 @@ vid.ArrayShuffle = function(array)
 }
 
 /** Play the previous one */
-vid.PlayPrev = function()
+media.PlayPrev = function()
 {
-    if( !vid.audio.paused && vid.audio.currentTime > 3 )
+    if( !media.audio.paused && media.audio.currentTime > 3 )
     {
-        vid.audio.currentTime = 0;
-        vid.audio.play();
+        media.audio.currentTime = 0;
+        media.audio.play();
     }
     else
     {
-        vid.PlayMedia(vid.WhatPrev().getAttribute('path'));
+        media.PlayMedia(media.WhatPrev().getAttribute('path'));
     }
     return false;
 }
 /** Play the next one */
-vid.PlayNext = function()
+media.PlayNext = function()
 {
-    vid.PlayMedia(vid.WhatNext().getAttribute('path'));
+    media.PlayMedia(media.WhatNext().getAttribute('path'));
     return false;
 }
 /** At end of play list, re-shuffle as appropriate */
-vid.PlayNextWrap = function()
+media.PlayNextWrap = function()
 {
-    if( null == vid.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
-    vid.now_playing_element = vid.now_playing_element.nextElementSibling;
-    if( null == vid.now_playing_element )
+    media.now_playing_element = media.now_playing_element.nextElementSibling;
+    if( null == media.now_playing_element )
     {
-        if( vid.bShuffle )
+        if( media.bShuffle )
         {
-            return vid.PlayListRandom();
+            return media.PlayListRandom();
         }
-        var collection = vid.Playable(vid.playlistElement);
-        vid.now_playing_element = collection[0];
+        var collection = media.Playable(media.playlistElement);
+        media.now_playing_element = collection[0];
     }
-    vid.PlayMedia(vid.now_playing_element.getAttribute('path'));
+    media.PlayMedia(media.now_playing_element.getAttribute('path'));
     return false;
 }
 /** What will play previous */
-vid.WhatPrev = function()
+media.WhatPrev = function()
 {
-    if( null == vid.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
     var result;
-    if( null == vid.now_playing_element )
+    if( null == media.now_playing_element )
         result = null;
     else
-        result = vid.now_playing_element.previousElementSibling;
+        result = media.now_playing_element.previousElementSibling;
     if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        var collection = vid.Playable(vid.playlistElement);
+        var collection = media.Playable(media.playlistElement);
         result = collection[collection.length-1];
     }
     return result;
 }
 
 /** What will play next */
-vid.WhatNext = function()
+media.WhatNext = function()
 {
-    if( null == vid.playlistElement )
+    if( null == media.playlistElement )
         return false;
         
     var result;
-    if( null == vid.now_playing_element )
+    if( null == media.now_playing_element )
         result = null;
     else
-        result = vid.now_playing_element.nextElementSibling;
+        result = media.now_playing_element.nextElementSibling;
         
     if( null == result || 0 != result.className.indexOf('index_entry') )
     {
-        var collection = vid.Playable(vid.playlistElement);
+        var collection = media.Playable(media.playlistElement);
         result = collection[0];
     }
     return result;
@@ -819,14 +819,14 @@ vid.WhatNext = function()
 /**
  * Show video, if it can resume
 **/
-vid.WatchMode = function()
+media.WatchMode = function()
 {
-    vid.mode = vid.mode_player;
-    vid.RefreshControls();
+    media.mode = media.mode_player;
+    media.RefreshControls();
 
-    if( vid.video.paused )
+    if( media.video.paused )
     {
-        vid.video.play();
+        media.video.play();
     }
     return false;
 }
@@ -834,26 +834,26 @@ vid.WatchMode = function()
 /**
  * List contents of folder 
 **/
-vid.BrowseFolder = function( id )
+media.BrowseFolder = function( id )
 {
-    if( !id && vid.playlistElement )
-        id = vid.playlistElement.id;
+    if( !id && media.playlistElement )
+        id = media.playlistElement.id;
 
-    vid.video.pause();
+    media.video.pause();
 
     // Make the appropriate folder visible
-    var collapse = vid.PlayList.children;
+    var collapse = media.PlayList.children;
     var i;
     var element;
-    vid.playlistElement = null;
+    media.playlistElement = null;
     for( i = 0; i < collapse.length; ++i )
     {
         element = collapse[i];
         if( id == element.id )
         {
-            vid.playlistElement = element;
+            media.playlistElement = element;
             element.style.display = 'block';
-            vid.MakePlaylist(element); 
+            media.MakePlaylist(element); 
         }
         else
         {
@@ -861,25 +861,25 @@ vid.BrowseFolder = function( id )
         }
     }
 
-    vid.mode = vid.mode_folder;
-    vid.RefreshControls();
-    vid.HighlightPlaying();
+    media.mode = media.mode_folder;
+    media.RefreshControls();
+    media.HighlightPlaying();
 }
     
 /**
  * Browse main folder list 
 **/
-vid.BrowseFolders = function()
+media.BrowseFolders = function()
 {
-    vid.mode = vid.mode_folders;
-    vid.RefreshControls();
+    media.mode = media.mode_folders;
+    media.RefreshControls();
 
     // Stop playback
-    vid.video.pause();
-    vid.video.removeEventListener( 'error', vid.Error );
-    vid.now_playing = null;
-    vid.video.src = '';
-    vid.bVideoResumable = false;
+    media.video.pause();
+    media.video.removeEventListener( 'error', media.Error );
+    media.now_playing = null;
+    media.video.src = '';
+    media.bVideoResumable = false;
 
     if( window.scrollTo )
         window.scrollTo(0,0);
@@ -893,72 +893,72 @@ vid.BrowseFolders = function()
  *
  * Provide a print icon to positively put it in the right mode, but at least try.
 **/
-vid.DoPrint = function()
+media.DoPrint = function()
 {
-    vid.BeforePrint();
+    media.BeforePrint();
     window.print();
-    vid.AfterPrint();
+    media.AfterPrint();
 }
 
 /**
  * Capture print before dialog pops up, and put the UI into a printable mode
  * Implemented like it would work... if it worked consistently at all
 **/
-vid.BeforePrint = function()
+media.BeforePrint = function()
 {
     // Show all play lists
-    vid.overlay_controls.style.display = 'none';
-    vid.PlayerBox.style.display = 'none';
-    vid.Folders.style.display = 'none';
-    vid.PlayList.style.display = 'block';
+    media.overlay_controls.style.display = 'none';
+    media.PlayerBox.style.display = 'none';
+    media.Folders.style.display = 'none';
+    media.PlayList.style.display = 'block';
         
     var i;
     var element;
     var show;
-    if( vid.mode_folders == vid.mode )
+    if( media.mode_folders == media.mode )
     {
-        show = vid.PlayList.children;
+        show = media.PlayList.children;
         for( i = 0; i < show.length; ++i )
         {
             element = show[i];
             element.style.display = 'block';
         }
     }
-    show = vid.Playable(document);
+    show = media.Playable(document);
     for( i = 0; i < show.length; ++i )
     {
         element = show[i];
         element.className = 'index_entry';
     }
-    //setTimeout( vid.AfterPrint, 100 );
+    //setTimeout( media.AfterPrint, 100 );
 }
 
 /**
  * After (preumed MODAL) print dialog, put UI back 
 **/
-vid.AfterPrint = function()
+media.AfterPrint = function()
 {
-    vid.overlay_controls.style.display = '';
-    if( vid.mode_folders == vid.mode )
+    media.overlay_controls.style.display = '';
+    if( media.mode_folders == media.mode )
     {
-        vid.BrowseFolders();
+        media.BrowseFolders();
     }
     else
     {
-        vid.BrowseFolder();
+        media.BrowseFolder();
     }
 }
 
 /**
  * Setup print.  I expect this to break as browser wars progress
 **/
-vid.SetupPrint = function()
+media.SetupPrint = function()
 {
     // IE/Firefox ONLY (coincidentally don't do 'matchMedia' right)
     if( "onbeforeprint" in window && "onafterprint" in window )
     {
-        window.onbeforeprint = vid.BeforePrint;
-        window.onafterprint = vid.AfterPrint;
+        window.onbeforeprint = media.BeforePrint;
+        window.onafterprint = media.AfterPrint;
     }
     else if (window.matchMedia) 
     {
@@ -968,11 +968,11 @@ vid.SetupPrint = function()
         {
             if (mql.matches) 
             {
-                vid.BeforePrint();
+                media.BeforePrint();
             }
             else
             {
-                vid.AfterPrint();
+                media.AfterPrint();
             }
         });
     }
@@ -1163,7 +1163,7 @@ it gets baked into the html output with the script.
 </head>
 
 
-<body onload="vid.PlayerInit();" >
+<body onload="media.PlayerInit();" >
 <div id='PlayerBox' >
 
 <video id="videoplayer" class='videoplayer' >
@@ -1173,8 +1173,8 @@ it gets baked into the html output with the script.
 
 <div id="video_controls">
     <div id="video_controls_left">
-        <button id="bPlay"  class="button_format" type="button" tabindex='-1' title="Playing" onclick="javascript: return vid.TogglePause(); "><div class="play_icon"></div></button>
-        <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return vid.TogglePause(); "><div class="pause_icon"></div></button>
+        <button id="bPlay"  class="button_format" type="button" tabindex='-1' title="Playing" onclick="javascript: return media.TogglePause(); "><div class="play_icon"></div></button>
+        <button id="bPause" class="button_format" type="button" tabindex='-1' title="Paused"  onclick="javascript: return media.TogglePause(); "><div class="pause_icon"></div></button>
     </div>
     <div id="progress_bar">
         <div id="progress_playing"></div>
@@ -1190,12 +1190,12 @@ it gets baked into the html output with the script.
 
 <!--INDEX_FOLDER
     <div class='folder_entry' style='FOLDER_STYLE'>
-        <a onclick="return vid.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
+        <a onclick="return media.BrowseFolder('FOLDER_ID');" title="Browse FOLDER_NAME" ><div class="folder_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 <!--INDEX_PLAYLIST
     <div class='playlist_entry' style='FOLDER_STYLE'>
-        <a onclick="return BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
+        <a onclick="return media.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 
@@ -1205,11 +1205,11 @@ it gets baked into the html output with the script.
     <div class='title'>FOLDER_NAME</div>
 -->
 <!--INDEX_ITEM_THUMB
-    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: media.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
 -->
 
 <!--INDEX_ITEM_NOTHUMB
-    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a>MEDIA_TITLE</a></div>
+    <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: media.PlayMedia(this.getAttribute('path'),true); return false;"><a>MEDIA_TITLE</a></div>
 -->
 
 <!--INDEX_FILES_END
@@ -1234,23 +1234,23 @@ it gets baked into the html output with the script.
 </div>
 <div id="overlay_controls" >
     <div id="overlay_controls_center">
-    <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return vid.PlayPrev(); "><div class="prev_icon"></div></button>
+    <button id="bPrev"  class="button_format" type="button" tabindex='-1' title="Prev Video" onclick="javascript: return media.PlayPrev(); "><div class="prev_icon"></div></button>
     &nbsp;
-    <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return vid.PlayListRandom();"><div class="serial_icon"></div></button>
-    <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return vid.PlayListSerial();"><div class="random_icon"></div></button>
+    <button id="bSeq"   class="button_format" type="button" tabindex='-1' title="Sequential" onclick="javascript: return media.PlayListRandom();"><div class="serial_icon"></div></button>
+    <button id="bRand"  class="button_format" type="button" tabindex='-1' title="Shuffled"   onclick="javascript: return media.PlayListSerial();"><div class="random_icon"></div></button>
     &nbsp;
-    <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return vid.PlayNext();"><div class="next_icon"></div></button>
+    <button id="bNext"  class="button_format" type="button" tabindex='-1' title="Next Video" onclick="javascript: return media.PlayNext();"><div class="next_icon"></div></button>
     </div>
     <div id="overlay_controls_left">
-    <button id="bHome"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return vid.BrowseFolders();"><div class="home_icon"></div></button>
+    <button id="bHome"  class="button_format" type="button" tabindex='-1' title="Back To Folder List" onclick="return media.BrowseFolders();"><div class="home_icon"></div></button>
     &nbsp;
-    <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return vid.WatchMode();" ><div class="player_icon"></div></button>
-    <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return vid.BrowseFolder();"><div class="list_icon"></div></button>
+    <button id="bWatch" class="button_format" type="button" tabindex='-1' title="Resume Video" onclick="javascript: return media.WatchMode();" ><div class="player_icon"></div></button>
+    <button id="bList"  class="button_format" type="button" tabindex='-1' title="Browse Videos" onclick="javascript: return media.BrowseFolder();"><div class="list_icon"></div></button>
     </div>
     <div id="overlay_controls_right">
-    <button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return vid.DoPrint();"><div class="print_icon"></div></button>
-    <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="full_icon"></div></button>
-    <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return vid.ToggleFullScreen();"><div class="window_icon"></div></button>
+    <button id="bPrint"  class="button_format" type="button" tabindex='-1' title="Print File List" onclick="javascript: return media.DoPrint();"><div class="print_icon"></div></button>
+    <button id="bFull"  class="button_format" type="button" tabindex='-1' title="Show Full Screen" onclick="javascript: return media.ToggleFullScreen();"><div class="full_icon"></div></button>
+    <button id="bWindow" class="button_format" type="button" tabindex='-1' title="Exit Full Screen" onclick="javascript: return media.ToggleFullScreen();"><div class="window_icon"></div></button>
     </div>
 </div>
 
