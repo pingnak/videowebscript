@@ -18,6 +18,35 @@ import string
 from xml.sax.saxutils import escape
 from xml.sax.saxutils import unescape
 import unicodedata
+from subprocess import call
+import distutils.spawn
+
+# What to call the index/table of contents
+WEBIFY_INDEX="index.html"
+
+# Template file to make WEBIFY_INDEX from
+WEBIFY_TEMPLATE="audio_template.html"
+
+# Common css data for templates
+CSS_TEMPLATE="template.css"
+
+# List of matchable media files
+MEDIA_TYPES=['.aac','.mp3','.ogg','.oga','.m4a']
+
+# List of various play list formats I could maybe find content in.
+PLAY_LISTS=['.asx','.aimppl','.bio','.fpl','.kpl','.m3u','.m3u8','.pla','.plc','.pls','.plist','.smil','.txt','.vlc','.wpl','.xml','.xpl','.xspf','.zpl']
+
+# What our thumbnailer is called.  Dike out if you don't want thumbnails.
+THUMBNAILER=''
+
+# Thumbnail image width (height determined by video size)
+THUMB_SIZE=240
+
+# Check if the specifiec thumbnailer exists.  Enables thumbnail generation.
+HAVE_THUMBNAILER = distutils.spawn.find_executable(THUMBNAILER) is not None
+
+# File extension of thumbnails
+THUMBNAIL_EXTENSION='.jpg'
 
 def PrintHelp():
     print "\n\n" + sys.argv[0] + " /media/path [template | /path2/template]"
@@ -71,9 +100,10 @@ def compare_natural_filename(item1, item2):
 if 1 >= len(sys.argv):
     PrintHelp()
 
+# Where this script exists
 root_dir = os.path.abspath(sys.argv[1])
 
-# Where is this script
+# Where are the script templates, relative to script 
 SCRIPT_ROOT = os.path.join( os.path.dirname(os.path.realpath(sys.argv[0])), 'templates' )
 
 # Fallback location to get template files
@@ -90,27 +120,21 @@ if 3 <= len(sys.argv):
         print SCRIPT_TEMPLATES + " does not exist."
         PrintHelp()
 
-# What to call the index/table of contents
-WEBIFY_INDEX="index.html"
-
-# List of matchable files
-MEDIA_TYPES=['.mp3','.ogg']
-
 # File to suck css out of (exported to be findable in backquotes)
-CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "template.css")
+CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, CSS_TEMPLATE)
 if not os.path.isfile(CSS_TEMPLATE_FILE):
     print CSS_TEMPLATE_FILE + " not found; using default..."
-    CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "template.css")
+    CSS_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, CSS_TEMPLATE)
 
 # Cache CSS template
 with open (CSS_TEMPLATE_FILE, "r") as myfile:
     CSS_TEMPLATE=myfile.read()
 
 # Which template to use 
-PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, "audio_template.html")
+PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES, WEBIFY_TEMPLATE)
 if not os.path.isfile(PLAYER_TEMPLATE_FILE):
     print PLAYER_TEMPLATE_FILE + " not found; using default..."
-    PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, "audio_template.html")
+    PLAYER_TEMPLATE_FILE=os.path.join(SCRIPT_TEMPLATES_DEFAULT, WEBIFY_TEMPLATE)
 
 # Cache player template
 with open (PLAYER_TEMPLATE_FILE, "r") as myfile:
@@ -129,8 +153,12 @@ INDEX_FILES_BEGIN_MATCH=re.search('<!--INDEX_FILES_BEGIN(.*?)-->', PLAYER_TEMPLA
 INDEX_FILES_BEGIN=INDEX_FILES_BEGIN_MATCH.group(1)
 
 # Find and cache a copy of media file 
-INDEX_FILE_MATCH=re.search('<!--INDEX_ITEM(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_FILE_MATCH=re.search('<!--INDEX_ITEM_NOTHUMB(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
 INDEX_FILE=INDEX_FILE_MATCH.group(1)
+
+# Find and cache a copy of media file 
+INDEX_FILE_THUMB_MATCH=re.search('<!--INDEX_ITEM_THUMB(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL) 
+INDEX_FILE_THUMB=INDEX_FILE_THUMB_MATCH.group(1)
 
 # Find index playlist_section completion tag
 INDEX_FILES_END_MATCH=re.search('<!--INDEX_FILES_END(.*?)-->', PLAYER_TEMPLATE, re.MULTILINE|re.DOTALL)
@@ -142,9 +170,6 @@ LEFT_PADDING = 4
 # Offset for folder depths in TOC file
 FOLDER_DEPTH = 16
 
-# List of various play list formats I could maybe find content in.
-PLAY_LISTS=['.asx','.aimppl','.bio','.fpl','.kpl','.m3u','.m3u8','.pla','.plc','.pls','.plist','.smil','.txt','.vlc','.wpl','.xml','.xpl','.xspf','.zpl']
-
 print( "\nCrawling folders in %s..." % (root_dir) )
 
 #
@@ -154,8 +179,10 @@ all_media_folders=[]
 all_play_lists=[]
 all_folders=[]
 all_media_files={}
+need_thumb=[]
+have_thumb={}
+
 total_play_lists=0
-index_toc=[]
 
 # Build a list of folders and their files
 for root, dirs, files in os.walk(root_dir):
@@ -166,6 +193,7 @@ for root, dirs, files in os.walk(root_dir):
     folder_path, folder_name = os.path.split(root)
     folder_curr = os.path.relpath(root,root_dir)
 
+    # Hidden folders are a bane on NAS
     dirs[:] = [d for d in dirs if not d[0] == '.']
 
     print "    " + folder_curr
@@ -179,18 +207,24 @@ for root, dirs, files in os.walk(root_dir):
         if '.' == file_name[0]:
             continue
 
+        fileExtension = fileExtension.lower();
+
         # Skip files that aren't playable
         fullPath = os.path.join(root, relPath)
         
-        if fileExtension.lower() in MEDIA_TYPES:
+        if fileExtension in MEDIA_TYPES:
 
             # Keep track for trivia
             all_media_files[file_name] = fullPath
             media_files_this_folder.append(fullPath)
-            
-        elif fileExtension.lower() in PLAY_LISTS:
+
+        elif fileExtension in PLAY_LISTS:
             # We can't search for play list contents, until we have all files
             all_play_lists.append( fullPath )
+            
+        elif THUMBNAIL_EXTENSION == fileExtension:
+            # Record that we have a possible thumbnail to match 
+            have_thumb[fullPath] = True
     
     all_folders.append((root,media_files_this_folder))
     if 0 != len(media_files_this_folder):
@@ -293,7 +327,6 @@ if 0 != len(all_media_folders):
                 playlist_section_folder = playlist_section_folder.replace( "FOLDER_CLASS", 'folder_page' )
             playlist_section += playlist_section_folder
             for file in files:
-                playlist_section_file=INDEX_FILE
                 
                 media_path = os.path.relpath(file,root_dir)
                 media_path_escaped = urllib.quote(media_path.replace('\\', '/')) # Fix any Windows backslashes
@@ -304,10 +337,23 @@ if 0 != len(all_media_folders):
                 file_name,ext = os.path.splitext(file_name)
 
                 filename_title_escaped=escape(file_name)
-                
+
+                playlist_section_file=INDEX_FILE
+
+                # This is only needed for video, right now; though some audio files have cover art.
+                if HAVE_THUMBNAILER:
+                    # We should have an image file, named the same as the playable file
+                    playlist_section_file=INDEX_FILE_THUMB
+                    fullPathNoExt,extCurr = os.path.splitext(file)
+                    thumbPath = fullPathNoExt + THUMBNAIL_EXTENSION
+                    filename_jpeg_escaped=urllib.quote(os.path.relpath(thumbPath,root_dir))
+                    playlist_section_file=playlist_section_file.replace('MEDIA_IMAGE',filename_jpeg_escaped)
+                    need_thumb.append( (file,thumbPath) )
+
                 playlist_section_file = playlist_section_file.replace('MEDIA_TITLE', filename_title_escaped ) 
                 playlist_section_file = playlist_section_file.replace('MEDIA_PATH',  media_path_escaped )
                 playlist_section_file = playlist_section_file.replace('FILE_STYLE', '' )
+                
                 playlist_section = playlist_section + playlist_section_file
             playlist_section = playlist_section + INDEX_FILES_END
 
@@ -317,7 +363,17 @@ if 0 != len(all_media_folders):
     # Write index file
     with open(os.path.join(root_dir,WEBIFY_INDEX), "w") as text_file:
         text_file.write(output)
-            
+
+    # Build thumbnails from files that need them.
+    # Deferred to the end, because it usually isn't needed, and it may take a long time if it is
+    if HAVE_THUMBNAILER:
+        print "\nMaking thumbnails..."
+        sys.stdout.flush()
+        for needs in need_thumb:
+            if needs[1] not in have_thumb or 0 == os.stat(needs[1]).st_size:
+                print "Making " + needs[1]
+                call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs[0], '-o', needs[1] ])
+
     print "\nMade %d folders and %d play lists with %d unique files.\n" %(len(all_media_folders),total_play_lists,len(all_media_files))
 else:
     print "\nNo media found.  Nothing written.\n"

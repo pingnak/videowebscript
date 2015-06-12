@@ -1195,7 +1195,7 @@ it gets baked into the html output with the script.
 -->
 <!--INDEX_PLAYLIST
     <div class='playlist_entry' style='FOLDER_STYLE'>
-        <a onclick="return aud.BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
+        <a onclick="return BrowseFolder('FOLDER_ID');" title="Browse Play List FOLDER_NAME" ><div class="playlist_icon"></div>FOLDER_NAME</a>
     </div>
 -->
 
@@ -1204,11 +1204,11 @@ it gets baked into the html output with the script.
     <div id='Playlist_shim'>&nbsp;<br/></div>
     <div class='title'>FOLDER_NAME</div>
 -->
-<!--INDEX_FILE_THUMB
+<!--INDEX_ITEM_THUMB
     <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a><img class="index_thumbnail" defer="MEDIA_IMAGE" />MEDIA_TITLE</a></div>
 -->
 
-<!--INDEX_FILE_NOTHUMB
+<!--INDEX_ITEM_NOTHUMB
     <div class="index_entry" title="Play MEDIA_TITLE" path="MEDIA_PATH" style='FILE_STYLE' onclick="javascript: vid.PlayMedia(this.getAttribute('path'),true); return false;"><a>MEDIA_TITLE</a></div>
 -->
 
