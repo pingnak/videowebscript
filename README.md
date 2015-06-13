@@ -16,6 +16,10 @@ This provides a consistent, portable user interface for that content on practica
 
 Go to the [Wiki Pages](https://github.com/pingnak/videowebscript/wiki), to get more details about how to use and customize this.
 
+##Video Play Lists
+
+Now v2.2 supports video play lists, the same way that the audio play lists are supported.
+
 ##The new, 'monolithic' UI...
 
 * Has a new implementation that sucks all of the web pages into one index.html, instead of one html player file, per folder, and an index.html file, too.
@@ -42,17 +46,14 @@ I'm still deciding whether to dive in and make a python front-end and installer 
 
 ##Screen Shots
 
-![screen shot 2015-06-02 at 10 59 29](https://cloud.githubusercontent.com/assets/6754243/7943027/de4f79f2-0916-11e5-84b4-e001eab2c205.png)
+![screen shot 2015-06-12 at 3 30 44 pm](https://cloud.githubusercontent.com/assets/6754243/8141163/29ba421a-1118-11e5-9bac-0b5868cbe701.png)
+Jukebox Play List
 
-Landscape, Phone/iPod Sized, Play List (Physics for Future Presidents, Richard A. Muller, Berkely)
+![screen shot 2015-06-12 at 3 28 47 pm](https://cloud.githubusercontent.com/assets/6754243/8141162/29b9b9f8-1118-11e5-811f-e3d5a8965960.png)
+Video Play List (Physics for Future Presidents, Richard A. Muller, Berkely)
 
-![screen shot 2015-06-02 at 16 31 10](https://cloud.githubusercontent.com/assets/6754243/7949663/12d0a272-0945-11e5-83d7-e299326282ce.png)
-
-Landscape, Phone/iPod Sized, Player (Physics for Future Presidents, Richard A. Muller, Berkely)
-
-![screen shot 2015-06-02 at 11 08 43](https://cloud.githubusercontent.com/assets/6754243/7943181/ced4c2ba-0917-11e5-8084-93cc4e463900.png)
-
-Portrait, Phone/iPod Sized, Audio Player
+![screen shot 2015-06-12 at 3 31 34 pm](https://cloud.githubusercontent.com/assets/6754243/8141164/29bc4e70-1118-11e5-941f-689333794f37.png)
+Video Player (Physics for Future Presidents, Richard A. Muller, Berkely)
 
 ## Skinning
 
