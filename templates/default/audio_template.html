@@ -21,9 +21,9 @@
 var media = {};
 
 media.bShuffle = false;
-media.now_playing = null;
 media.playlistElement = null;
 media.now_playing_element = null;
+media.now_playing = null;
 
 media.mode_folders = 'folders';
 media.mode_folder  = 'folder';
@@ -64,7 +64,7 @@ media.PlayListRandom = function()
 {
     media.bShuffle = true; 
     media.MakePlaylist();
-    media.PlayNext();
+    media.PlayMedia();
     return false;
 }
 
@@ -73,7 +73,7 @@ media.PlayListSerial = function()
 {
     media.bShuffle = false;
     media.MakePlaylist();
-    media.HighlightPlaying();
+    media.PlayMedia();
     return false;
 }
 
@@ -81,17 +81,24 @@ media.PlayListSerial = function()
  * Load the audio when the page finishes loading 
  * http://www.w3.org/2010/05/audio/mediaevents.html
  */
-media.PlayMedia = function(audio_path,noscroll)
+media.PlayMedia = function(media_path,noscroll)
 {
     noscroll = noscroll || false;
-    if(typeof(audio_path)==='undefined') 
-        audio_path = media.now_playing_element.getAttribute('path');
 
-    media.now_playing = audio_path;
+    media.now_playing = media_path || media.now_playing;
+    if(!media.now_playing)
+    {
+        var collection = media.Playable(media.playlistElement);
+        media.now_playing = collection[0].getAttribute('path');
+    }
     if( media.HighlightPlaying(noscroll) )
-   {
-        media.audio.src = audio_path;
-        media.audio.load();
+    {
+        // My relative paths versus absoute path returned.
+        if( media.audio.src.indexOf( media.now_playing ) + media.now_playing.length != media.audio.src.length  )
+        {
+            media.audio.src = media.now_playing;
+            media.audio.load();
+        }
         media.audio.play();
     
         media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );
@@ -331,7 +338,7 @@ media.BrowseFolder = function(id)
     if( media.mode_folders == media.mode )
         media.FoldersScroll = window.scrollY;
 
-    media.bPrint.title = "Print Folder Titles";
+    media.bPrint.title = "Print List of Titles in This Folder";
     if( !id && media.playlistElement )
         id = media.playlistElement.id;
 
@@ -364,7 +371,7 @@ media.BrowseFolder = function(id)
 // Show folder list
 media.BrowseFolders = function()
 {
-    media.bPrint.title = "Print All Titles";
+    media.bPrint.title = "Print List of All Media Titles";
     media.mode = media.mode_folders;
     media.audio.pause();
     media.audio.src = null;

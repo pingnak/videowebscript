@@ -30,7 +30,7 @@ media.mode_player  = 'player';
 media.mode = media.mode_folders;
 
 media.playlist = [];
-media.now_playing = '';
+media.now_playing = null;
 media.playlistElement = null;
 media.now_playing_element = null;
 
@@ -437,7 +437,7 @@ media.RefreshControls = function()
         media.bSeq.style.display = media.bShuffle ? 'none' : '';
         media.bRand.style.display = media.bShuffle ? '' : 'none';
         media.bPrint.style.display = media.bPrintEnabled ? '' : 'none';
-        media.bPrint.title = "Print Folder Titles";
+        media.bPrint.title = "Print List of Titles in This Folder";
         break;
     case media.mode_folders:
     default: // Fall-through
@@ -453,7 +453,7 @@ media.RefreshControls = function()
         media.bSeq.style.display  = 'none';
         media.bRand.style.display = 'none';
         media.bPrint.style.display = media.bPrintEnabled ? '' : 'none';
-        media.bPrint.title = "Print All Titles";
+        media.bPrint.title = "Print List of All Media Titles";
         break;
     }
 
@@ -522,19 +522,17 @@ media.RefreshControls = function()
  * Play a video
  * http://www.w3.org/2010/05/video/mediaevents.html
  */
-media.PlayMedia = function(video_path,noscroll)
+media.PlayMedia = function(media_path,noscroll)
 {
     // Setting attributes blows up
     noscroll = noscroll || false;
-    if(typeof(video_path)==='undefined')
+    
+    media.now_playing = media_path || media.now_playing;
+    if(!media.now_playing)
     {
-        if( null != media.now_playing )
-            video_path = media.now_playing;
-        else
-            video_path = media.playlist[0].getAttribute('path');
+        var collection = media.Playable(media.playlistElement);
+        media.now_playing = collection[0].getAttribute('path');
     }
-
-    media.now_playing = video_path;
     if( media.HighlightPlaying(noscroll) )
     {
         setTimeout( media.PlayMedia2, 10);
@@ -550,8 +548,11 @@ media.PlayMedia = function(video_path,noscroll)
 media.PlayMedia2 = function()
 {
     media.video.addEventListener( 'error', media.Error );
-    media.video.setAttribute("src",media.now_playing);
-    media.video.load();
+    if( media.video.src.indexOf( media.now_playing ) + media.now_playing.length != media.video.src.length )
+    {
+        media.video.src = media.now_playing;
+        media.video.load();
+    }
     media.video.play();
     media.MouseMoved();
     media.bTrackingProgress = false;
@@ -705,7 +706,7 @@ media.PlayListSerial = function()
     media.MouseMoved();
     media.bShuffle = false;
     media.MakePlaylist();
-    media.HighlightPlaying();
+    media.PlayMedia();
     return false;
 }
 
@@ -715,7 +716,7 @@ media.PlayListRandom = function()
     media.MouseMoved();
     media.bShuffle = true;
     media.MakePlaylist();
-    media.PlayNext();
+    media.PlayMedia();
     return false;
 }
 /**
