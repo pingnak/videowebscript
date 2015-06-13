@@ -42,6 +42,7 @@ media.MOUSE_TIMEOUT = 3000;
 media.lastScreenY = -1; 
 media.lastScreenX = -1;
 media.bTrackingProgress = false;
+media.FoldersScroll = window.scrollY;
 
 /**
  * Set things up, when the page loads
@@ -836,6 +837,9 @@ media.WatchMode = function()
 **/
 media.BrowseFolder = function( id )
 {
+    if( media.mode_folders == media.mode )
+        media.FoldersScroll = window.scrollY;
+
     if( !id && media.playlistElement )
         id = media.playlistElement.id;
 
@@ -882,7 +886,7 @@ media.BrowseFolders = function()
     media.bVideoResumable = false;
 
     if( window.scrollTo )
-        window.scrollTo(0,0);
+        window.scrollTo(0,media.FoldersScroll);
     
     return false;
 }

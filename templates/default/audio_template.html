@@ -28,6 +28,7 @@ media.now_playing_element = null;
 media.mode_folders = 'folders';
 media.mode_folder  = 'folder';
 media.mode = media.mode_folders;
+media.FoldersScroll = window.scrollY;
 
 media.PlayerInit = function()
 {
@@ -327,6 +328,9 @@ media.WhatNext = function()
 // Show folder contents
 media.BrowseFolder = function(id)
 {
+    if( media.mode_folders == media.mode )
+        media.FoldersScroll = window.scrollY;
+
     media.bPrint.title = "Print Folder Titles";
     if( !id && media.playlistElement )
         id = media.playlistElement.id;
@@ -370,7 +374,7 @@ media.BrowseFolders = function()
     media.PlayList.style.display ='none';
 
     if( window.scrollTo )
-        window.scrollTo(0,0);
+        window.scrollTo(0,media.FoldersScroll);
     return false;
 }
 
