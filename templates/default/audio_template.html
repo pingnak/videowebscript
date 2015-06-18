@@ -195,15 +195,13 @@ media.MakePlaylist = function(playlistElement)
         media.bRand.style.display = 'none';
         media.bSeq.style.display  = '';
     }
-    playlistElement = playlistElement || media.playlistElement;
-    if( null == playlistElement )
+    media.playlistElement = playlistElement || media.playlistElement;
+    if( null == media.playlistElement )
     {
-        media.playlistElement = null;
         media.bNext.setAttribute( 'title', "" );
         media.bPrev.setAttribute( 'title', "" );
         return media.playlist = [];
     }
-    media.playlistElement = playlistElement;
 
     var playlist = media.Playable(media.playlistElement);
 
@@ -223,7 +221,7 @@ media.MakePlaylist = function(playlistElement)
     for( i = 0; i < playlist.length; ++i )
     {
         playlist[i].className = 'index_entry';
-        playlistElement.appendChild(playlist[i]);
+        media.playlistElement.appendChild(playlist[i]);
     }
     
     media.bNext.setAttribute( 'title', "Next: " + media.WhatNext().textContent );

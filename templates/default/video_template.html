@@ -30,6 +30,7 @@ media.mode_player  = 'player';
 media.mode = media.mode_folders;
 
 media.playlist = [];
+media.playlist_id = '';
 media.now_playing = null;
 media.playlistElement = null;
 media.now_playing_element = null;
@@ -92,21 +93,17 @@ media.PlayerInit = function()
     media.BrowseFolders();
 
     // Mouse moved or screen touched
-    window.addEventListener( 'mousemove',        media.MouseMovedFilter );    
+    window.addEventListener(        'mousemove',    media.MouseMovedFilter );
 
     // Tap to pause/play (and show controls)
-    media.video.addEventListener( 'click',                media.TogglePause );
+    media.video.addEventListener(   'click',        media.TogglePause );
     
-    //media.video.addEventListener( 'canplay',              media.WatchMode );
-    media.video.addEventListener( 'ended',                media.PlayNextWrap );
-    window.addEventListener( 'resize',                  media.OnResize );
-    window.addEventListener( 'fullscreenchange',        media.OnResize );
-    window.addEventListener( 'webkitfullscreenchange',  media.OnResize );
-    window.addEventListener( 'mozfullscreenchange',     media.OnResize );
-    window.addEventListener( 'MSFullscreenChange',      media.OnResize );
-    media.video.addEventListener( 'playing',              media.OnResize );
-    media.video.addEventListener( 'pause',                media.OnResize );
-    media.video.addEventListener( 'loadeddata',           media.OnResize );
+    //media.video.addEventListener( 'canplay',      media.WatchMode );
+    media.video.addEventListener(   'ended',        media.PlayNextWrap );
+    window.addEventListener(        'resize',       media.OnResize );
+    media.video.addEventListener(   'playing',      media.OnResize );
+    media.video.addEventListener(   'pause',        media.OnResize );
+    media.video.addEventListener(   'loadeddata',   media.OnResize );
 
     media.RefreshControls();
 }
@@ -642,8 +639,9 @@ media.HighlightPlaying = function(noscroll)
 
 
 /** Make a play list from title links */
-media.MakePlaylist = function(playlistElement)
+media.MakePlaylist = function(playlistElement,bRebuild)
 {
+    bRebuild = bRebuild || true;
     if( media.bShuffle )
     {
         media.bRand.style.display = '';
@@ -666,7 +664,7 @@ media.MakePlaylist = function(playlistElement)
 
     var playlist = media.Playable(media.playlistElement);
 
-    if( media.bShuffle ) 
+    if( media.bShuffle && bRebuild ) 
     {
         media.ArrayShuffle(playlist);
         media.ArrayShuffle(playlist);
@@ -838,14 +836,20 @@ media.WatchMode = function()
 **/
 media.BrowseFolder = function( id )
 {
+    // Save scroll position for folder list
     if( media.mode_folders == media.mode )
         media.FoldersScroll = window.scrollY;
 
-    if( !id && media.playlistElement )
-        id = media.playlistElement.id;
-
     media.video.pause();
 
+    var bRebuild = false;
+    if( !id && media.playlistElement )
+    {
+        id = media.playlistElement.id;
+        bRebuild = media.playlist_id != id;
+    }
+    media.playlist_id = id;
+    
     // Make the appropriate folder visible
     var collapse = media.PlayList.children;
     var i;
@@ -858,7 +862,7 @@ media.BrowseFolder = function( id )
         {
             media.playlistElement = element;
             element.style.display = 'block';
-            media.MakePlaylist(element); 
+            media.MakePlaylist(element, bRebuild );
         }
         else
         {
@@ -869,6 +873,7 @@ media.BrowseFolder = function( id )
     media.mode = media.mode_folder;
     media.RefreshControls();
     media.HighlightPlaying();
+    
 }
     
 /**
@@ -885,10 +890,10 @@ media.BrowseFolders = function()
     media.now_playing = null;
     media.video.src = '';
     media.bVideoResumable = false;
-
+    // Restore folder list position
     if( window.scrollTo )
         window.scrollTo(0,media.FoldersScroll);
-    
+    media.playlist_id = '';
     return false;
 }
 
