@@ -490,7 +490,7 @@ CONFIG::FLASH_AUTHORING
                 //for( folder_iteration = 0; folder_iteration < folders.length; ++folder_iteration )
                 function ThreadPassFolder():void
                 {
-                    var media_files_db : Array = new Array();
+                    var media_files_folder_db : Array = new Array();
                     
                     if( folder_iteration < folders.length )
                     {
@@ -539,6 +539,7 @@ CONFIG::FLASH_AUTHORING
                         var extCurr : String = Find.File_extension(curr_file);
                         if( extCurr.match(rxMEDIA) )
                         {
+                            media_files_folder_db.push(curr_file);
                             media_files_db.push(curr_file);
                             curr_files_list.push(curr_file);
                         }
@@ -555,9 +556,9 @@ CONFIG::FLASH_AUTHORING
 
                     // Add missing thumbnails to 'to do' list.
                     var curr_thumb : File;
-                    for( iFile = 0; iFile < media_files_db.length; ++iFile )
+                    for( iFile = 0; iFile < media_files_folder_db.length; ++iFile )
                     {
-                        curr_file = media_files_db[iFile];
+                        curr_file = media_files_folder_db[iFile];
                         curr_thumb = Find.File_newExtension(curr_file,'.jpg');
                         if( !(curr_thumb.nativePath in thumbnail_db) )
                         {
@@ -730,13 +731,12 @@ CONFIG::FLASH_AUTHORING
                                     {   // No thumbnail
                                         seded = index_file_nothumb;
                                     }
-
                                     seded = seded.replace(/MEDIA_PATH/g,Find.FixEncodeURI(curr_file_relative));
                                     seded = seded.replace(/MEDIA_TITLE/g,Find.EscapeQuotes(curr_file_title));
                                     seded = seded.replace(/MEDIA_STYLE/g,'');
                                     index_files += seded;
                                 }
-                                seded = index_files;
+                                seded = index_begin;
                                 seded = seded.replace(/FOLDER_ID/g, FOLDER_ID);
                                 // Differentiate play list and folder of real files
                                 if( root.isDirectory )
@@ -761,7 +761,8 @@ CONFIG::FLASH_AUTHORING
                         //index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
-                        var toc_file : File = Find.File_AddPath( root_path_media, MAIN_TOC );
+                        var toc_file : File = Find.File_AddPath( root_dir, MAIN_TOC );
+
                         var fs : FileStream = new FileStream();
                         fs.open( toc_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
@@ -780,25 +781,6 @@ CONFIG::FLASH_AUTHORING
             }
             */
             // Fall out; timer threads are in charge
-        }
-
-        /**
-         * Write a file asynchronously
-        **/
-        protected function WriteAsync(file:File, utf:String):void
-        {
-            var fs : FileStream = new FileStream();
-            fs.openAsync( file, FileMode.WRITE );
-            fs.addEventListener(OutputProgressEvent.OUTPUT_PROGRESS, waitToClose);
-            fs.writeUTFBytes(utf);
-            function waitToClose(e:OutputProgressEvent):void
-            {
-                if( 0 == e.bytesPending )
-                {
-                    fs.removeEventListener(OutputProgressEvent.OUTPUT_PROGRESS, waitToClose);
-                    fs.close();
-                }
-            }
         }
 
 

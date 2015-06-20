@@ -609,7 +609,7 @@ CONFIG::FLASH_AUTHORING
                         //index_content = PackOutput(index_content);
                         
                         // Now write out index file in one pass
-                        var toc_file : File = Find.File_AddPath( root_path_media, MAIN_TOC );
+                        var toc_file : File = Find.File_AddPath( root_dir, MAIN_TOC );
                         var fs : FileStream = new FileStream();
                         fs.open( toc_file, FileMode.WRITE );
                         fs.writeUTFBytes(index_content);
