@@ -323,7 +323,6 @@ media.ProgressClick = function(e)
 /** Mouse entered progress; disable time updates */
 media.ProgressIn = function(e)
 {
-    media.bTrackingProgress = true;
     media.MouseMoved();
     media.ProgressTrackMouse(e);
 }
@@ -337,6 +336,7 @@ media.ProgressOut = function(e)
 /** Update progress bar and time with mouse motion */
 media.ProgressTrackMouse = function(e)
 {   /* Keep progress stamps from stomping on my tracking */
+    media.bTrackingProgress = true;
     media.MouseMoved();
     var fraction = media.getProgressFromMouse(e);
     var time= media.video.duration * fraction;
@@ -552,11 +552,11 @@ media.PlayMedia2 = function()
     }
     media.video.play();
     media.MouseMoved();
-    media.bTrackingProgress = false;
     media.WatchMode();
 
     // Clear any progress from previous video
     media.RefreshProgress(0,0);
+    media.bTrackingProgress = false;
 
     // Show title in seek bar
     media.progress_text_title.innerHTML = media.now_playing_element.textContent;
