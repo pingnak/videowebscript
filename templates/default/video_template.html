@@ -740,10 +740,10 @@ media.ArrayShuffle = function(array)
 /** Play the previous one */
 media.PlayPrev = function()
 {
-    if( !media.audio.paused && media.audio.currentTime > 3 )
+    if( !media.video.paused && media.video.currentTime > 3 )
     {
-        media.audio.currentTime = 0;
-        media.audio.play();
+        media.video.currentTime = 0;
+        media.video.play();
     }
     else
     {
