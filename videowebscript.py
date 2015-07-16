@@ -42,6 +42,12 @@ THUMBNAILER='ffmpegthumbnailer'
 # Thumbnail image width (height determined by video size)
 THUMB_SIZE=240
 
+# Reject small (blank/blurred) jpeg files.  Adjust if you change 'THUMB_SIZE'
+MIN_THUMB_FILE_SIZE=4096
+
+# How many times to try to make a 'big enough' thumbnail, before giving up
+THUMB_TRIES=3
+
 # Check if the specifiec thumbnailer exists.  Enables thumbnail generation.
 HAVE_THUMBNAILER = distutils.spawn.find_executable(THUMBNAILER) is not None
 
@@ -179,7 +185,7 @@ all_media_folders=[]
 all_play_lists=[]
 all_folders=[]
 all_media_files={}
-need_thumb=[]
+need_thumb={}
 have_thumb={}
 
 total_play_lists=0
@@ -348,7 +354,7 @@ if 0 != len(all_media_folders):
                     thumbPath = fullPathNoExt + THUMBNAIL_EXTENSION
                     filename_jpeg_escaped=urllib.quote(os.path.relpath(thumbPath,root_dir))
                     playlist_section_file=playlist_section_file.replace('MEDIA_IMAGE',filename_jpeg_escaped)
-                    need_thumb.append( (file,thumbPath) )
+                    need_thumb[file] = thumbPath;
                     
                 playlist_section_file = playlist_section_file.replace('MEDIA_TITLE', filename_title_escaped ) 
                 playlist_section_file = playlist_section_file.replace('MEDIA_PATH',  media_path_escaped )
@@ -370,9 +376,16 @@ if 0 != len(all_media_folders):
         print "\nMaking thumbnails..."
         sys.stdout.flush()
         for needs in need_thumb:
-            if needs[1] not in have_thumb or 0 == os.stat(needs[1]).st_size:
-                print "Making " + needs[1]
-                call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs[0], '-o', needs[1] ])
+            # If file doesn't exist, or it's 'too small'
+            if need_thumb[needs] not in have_thumb or MIN_THUMB_FILE_SIZE >= os.stat(need_thumb[needs]).st_size:
+                # Try making random frame until one looks big enough to have content
+                tries = THUMB_TRIES;
+                while 0 < tries:
+                    print "Making " + need_thumb[needs]
+                    tries = tries - 1;
+                    call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs, '-o', need_thumb[needs] ])
+                    if os.stat(need_thumb[needs]).st_size >= MIN_THUMB_FILE_SIZE:
+                        break
 
     print "\nMade %d folders and %d play lists with %d unique files.\n" %(len(all_media_folders),total_play_lists,len(all_media_files))
 else:
