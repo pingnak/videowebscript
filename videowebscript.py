@@ -382,7 +382,7 @@ if 0 != len(all_media_folders):
                 tries = THUMB_TRIES;
                 while 0 < tries:
                     print "Making " + need_thumb[needs]
-                    tries = tries - 1;
+                    tries = tries - 1
                     call([ THUMBNAILER, '-t', str(random.randrange(25, 75))+'%', '-s', str(THUMB_SIZE), '-i', needs, '-o', need_thumb[needs] ])
                     if os.stat(need_thumb[needs]).st_size >= MIN_THUMB_FILE_SIZE:
                         break
