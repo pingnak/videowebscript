@@ -377,7 +377,7 @@ if 0 != len(all_media_folders):
         sys.stdout.flush()
         for needs in need_thumb:
             # If file doesn't exist, or it's 'too small'
-            if need_thumb[needs] not in have_thumb or MIN_THUMB_FILE_SIZE >= os.stat(need_thumb[needs]).st_size:
+            if need_thumb[needs] not in have_thumb: # or MIN_THUMB_FILE_SIZE >= os.stat(need_thumb[needs]).st_size: <-- This last bit can take forever over LAN
                 # Try making random frame until one looks big enough to have content
                 tries = THUMB_TRIES;
                 while 0 < tries:
